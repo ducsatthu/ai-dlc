@@ -1,0 +1,8 @@
+{
+  "name": "ai-dlc",
+  "version": "1.0.0",
+  "description": "AI-Driven Development Lifecycle — agent team + gates + Control Tower. Theo white paper AWS AI-DLC (bản dịch nội bộ TechTus). Phân cấp: Intent → Unit → Bolt → Task. AI đề xuất trước, con người xác nhận trước khi đi tiếp.",
+  "author": {
+    "name": "Mynavi TechTus Vietnam — R&D"
+  }
+}

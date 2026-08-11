@@ -1,0 +1,13 @@
+{
+  "name": "ai-dlc",
+  "owner": {
+    "name": "Mynavi TechTus Vietnam — R&D"
+  },
+  "plugins": [
+    {
+      "name": "ai-dlc",
+      "source": "./plugin",
+      "description": "AI-DLC agent team theo white paper AWS (bản nội bộ TechTus): 17 agents, gates A–G, Control Tower, override per project, retro loop."
+    }
+  ]
+}

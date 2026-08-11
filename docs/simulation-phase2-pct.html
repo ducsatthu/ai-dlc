@@ -1,0 +1,282 @@
+<title>Giả lập: Phase 2 PCT chạy qua AI-DLC Agent Team</title>
+<style>
+  :root {
+    --bg: #F2F4F6; --surface: #FFFFFF; --surface-2: #E9EDF1;
+    --ink: #18222C; --muted: #5B6874; --line: #CFD7DE;
+    --accent: #B96E00; --accent-bg: rgba(185,110,0,0.10);
+    --blue: #33689E; --blue-bg: rgba(51,104,158,0.10);
+    --ok: #2E7D4F; --ok-bg: rgba(46,125,79,0.10);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0E1419; --surface: #161D24; --surface-2: #1D262F;
+      --ink: #E6ECF2; --muted: #93A1AE; --line: #2A3540;
+      --accent: #E9A23B; --accent-bg: rgba(233,162,59,0.13);
+      --blue: #7FAEDC; --blue-bg: rgba(127,174,220,0.12);
+      --ok: #58B383; --ok-bg: rgba(88,179,131,0.13);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0E1419; --surface: #161D24; --surface-2: #1D262F;
+    --ink: #E6ECF2; --muted: #93A1AE; --line: #2A3540;
+    --accent: #E9A23B; --accent-bg: rgba(233,162,59,0.13);
+    --blue: #7FAEDC; --blue-bg: rgba(127,174,220,0.12);
+    --ok: #58B383; --ok-bg: rgba(88,179,131,0.13);
+  }
+  body { background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.6; font-size: 16px; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 48px 24px 96px; }
+  header.masthead { border-bottom: 2px solid var(--ink); padding-bottom: 24px; }
+  .kicker { font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  h1 { font-size: clamp(26px, 4vw, 40px); font-weight: 750; letter-spacing: -0.02em; line-height: 1.14; margin: 10px 0 12px; text-wrap: balance; }
+  .lede { max-width: 68ch; color: var(--muted); font-size: 17px; }
+  .status-chip { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; color: var(--ok); background: var(--ok-bg); border: 1px solid var(--ok); padding: 5px 12px; border-radius: 999px; white-space: nowrap; }
+  .masthead-top { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+  section { margin-top: 56px; }
+  .eyebrow { display: flex; align-items: baseline; gap: 12px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+  .eyebrow::after { content: ""; flex: 1; border-top: 1px solid var(--line); transform: translateY(-3px); }
+  h2 { font-size: 24px; font-weight: 700; margin-bottom: 12px; text-wrap: balance; }
+  h3 { font-size: 17px; font-weight: 650; margin: 24px 0 8px; }
+  p { max-width: 70ch; margin-bottom: 12px; }
+  p.note { color: var(--muted); font-size: 14.5px; }
+  code { font-family: var(--mono); font-size: 0.9em; background: var(--surface-2); padding: 1px 5px; border-radius: 4px; }
+  pre { font-family: var(--mono); font-size: 12.5px; line-height: 1.55; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px; overflow-x: auto; margin: 12px 0; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 12px; }
+  th { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-align: left; padding: 8px 10px; border-bottom: 2px solid var(--ink); }
+  td { padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .table-scroll { overflow-x: auto; }
+  ul { max-width: 72ch; padding-left: 22px; margin-bottom: 12px; }
+  li { margin-bottom: 6px; }
+  /* Flow position strip */
+  .flowpos { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; font-family: var(--mono); font-size: 10.5px; margin: 6px 0 2px; }
+  .fp { padding: 3px 8px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted); }
+  .fp.done { background: var(--ok-bg); color: var(--ok); border-color: var(--ok); }
+  .fp.here { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 700; }
+  :root[data-theme="dark"] .fp.here { color: #10151B; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .fp.here { color: #10151B; } }
+  /* Timeline */
+  .tl { border-left: 2px solid var(--line); margin-left: 10px; padding-left: 26px; margin-top: 20px; }
+  .tl-item { position: relative; margin-bottom: 30px; }
+  .tl-item::before { content: ""; position: absolute; left: -33px; top: 6px; width: 12px; height: 12px; border-radius: 50%; background: var(--surface); border: 2.5px solid var(--muted); }
+  .tl-item.agent::before { border-color: var(--blue); }
+  .tl-item.human::before { border-color: var(--accent); background: var(--accent); }
+  .tl-head { font-weight: 650; font-size: 15.5px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .tl-head .who { font-family: var(--mono); font-size: 11px; padding: 2px 8px; border-radius: 4px; }
+  .who.ai { color: var(--blue); background: var(--blue-bg); border: 1px solid var(--blue); }
+  .who.hu { color: var(--accent); background: var(--accent-bg); border: 1px solid var(--accent); }
+  .tl-body { font-size: 14.5px; color: var(--muted); max-width: 74ch; margin-top: 4px; }
+  .tl-body strong { color: var(--ink); }
+  .artifact { font-family: var(--mono); font-size: 12px; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; display: inline-block; margin: 2px 4px 2px 0; }
+  .stop { border: 1.5px solid var(--accent); background: var(--accent-bg); border-radius: 10px; padding: 14px 18px; margin-top: 8px; font-size: 14.5px; max-width: 76ch; }
+  .stop .stop-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; color: var(--accent); font-weight: 700; display: block; margin-bottom: 6px; }
+  .stop ul { margin: 6px 0 0; }
+  /* Task board */
+  .board { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin-top: 12px; }
+  .board-row { display: flex; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 13px; align-items: flex-start; flex-wrap: wrap; }
+  .board-row:last-child { border-bottom: none; }
+  .board-row .tid { font-family: var(--mono); font-size: 12px; width: 64px; flex: none; color: var(--muted); }
+  .board-row .tstat { font-family: var(--mono); font-size: 10.5px; padding: 2px 7px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted); flex: none; width: 74px; text-align: center; }
+  .tstat.done { background: var(--ok-bg); color: var(--ok); border-color: var(--ok); }
+  .tstat.act { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+  .board-row .tbody { flex: 1; min-width: 240px; }
+  .board-row .tmeta { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .callout { border-left: 3px solid var(--blue); background: var(--blue-bg); border-radius: 0 10px 10px 0; padding: 12px 18px; margin: 16px 0; font-size: 14.5px; max-width: 76ch; }
+  .footer-note { margin-top: 56px; border: 2px solid var(--ok); border-radius: 12px; background: var(--ok-bg); padding: 22px 26px; }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div class="masthead-top">
+      <div class="kicker">AI-DLC · Dry-run · spoke-project-control-tower</div>
+      <div class="status-chip">🧪 GIẢ LẬP — CHƯA CHẠY THẬT</div>
+    </div>
+    <h1>Giả lập: "Triển khai Phase 2 của PCT" chạy qua agent team như thế nào</h1>
+    <p class="lede">Kịch bản: anh/chị gõ <code>/intent "Triển khai Phase 2 cho spoke-project-control-tower"</code>. Trang này vẽ trước toàn bộ những gì 17 agents sẽ làm — đọc hiểu gì, hỏi gì, chia Unit/Bolt ra sao, trong Bolt các agent phối hợp thế nào — và <strong>chính xác những chỗ flow dừng chờ anh/chị confirm</strong>. Nội dung dựa trên tài liệu thật của PCT (wiki, phase2-screens.md, bảng 62 câu trả lời QG/Phase-2 ngày 2026-08-11).</p>
+  </header>
+
+  <section>
+    <div class="eyebrow">Vị trí hiện tại</div>
+    <h2>Đang ở Stage 0 — chưa có gì chạy</h2>
+    <div class="flowpos">
+      <span class="fp here">0 · chờ /intent</span><span class="fp">1 Request</span><span class="fp">2 Discovery</span><span class="fp">3 Validation</span><span class="fp">4 Clarify</span><span class="fp">5 Units</span><span class="fp">6 Construction</span><span class="fp">7 Acceptance</span><span class="fp">8 Release</span>
+    </div>
+    <p class="note" style="margin-top:10px">Mọi thứ dưới đây là <strong>bản chiếu trước</strong> (dựa trên tài liệu thật của PCT nên các Unit đề xuất khá sát, nhưng khi chạy thật các agent sẽ tự phân tích lại và có thể ra kết quả tinh hơn — mọi khác biệt đều phải qua đúng các gate như mô tả). Thanh vị trí này chính là thứ Control Tower hiển thị realtime khi chạy thật.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">Bước 0 · Đọc hiểu</div>
+    <h2>Trước khi hỏi bất kỳ ai: agents đọc gì</h2>
+    <p>PCT là brownfield điển hình (≥2 dấu hiệu: nhiều batch chồng lên nhau, spec cũ đã deprecated, quyết định nằm rải trong 62 câu Q&amp;A) → stage 2–3 (reverse engineering) là <strong>bắt buộc</strong>. context-archaeologist sẽ đọc theo thứ tự:</p>
+    <ul>
+      <li><span class="artifact">wiki/docs/</span> — nguồn sự thật duy nhất theo policy CTO (business-entities, use-cases, phase2-screens, changelog)</li>
+      <li><span class="artifact">docs/phase2-qg-cau-tra-loi.md</span> — 62/62 quyết định đã chốt (PMO Túy + CTO, 2026-08-11)</li>
+      <li><span class="artifact">FEEDBACK_TRACKER.md</span> + <span class="artifact">plans/phase-1/</span> — lịch sử 10 batch, cái gì đã ship, cái gì defer</li>
+      <li><span class="artifact">app-be/ · app-fe/</span> — code thật: models, routers, components, tests (AS-IS static)</li>
+      <li><span class="artifact">memory/decisions-log.md · working-assumptions.md</span> — quyết định và giả định của các phiên BA trước</li>
+    </ul>
+    <div class="callout"><strong>Phát hiện quan trọng ngay ở bước đọc</strong> (ví dụ thật, không bịa): tài liệu cũ nói Phase 2 gồm Quality Gate, nhưng mapping CTO 2026-08-11 đã <strong>kéo nhóm QG lên Phase 1.2</strong> (BATCH-020). "Phase 2 thật" = <strong>Release Planning + Milestone + Backlog Integration</strong>. Đây chính xác là loại mâu thuẫn tài liệu mà mô hình này sinh ra để chặn — nó sẽ thành câu hỏi confirm #1 ở Gate A thay vì thành code sai.</div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Hành trình · Stage 1 → 5</div>
+    <h2>Từ câu lệnh của anh/chị tới danh sách Unit được duyệt</h2>
+    <div class="tl">
+      <div class="tl-item agent">
+        <div class="tl-head"><span class="who ai">intent-analyst + ba-reviewer</span> Stage 1 · Request → Intent</div>
+        <div class="tl-body">Capture: problem = Phase 2 chưa triển khai; outcome = APM/DM quản lý Release–Milestone tập trung thay note Slack, backlog data xem được trong PCT; brownfield type = <strong>Add feature</strong>; vùng ảnh hưởng = app-be (3 entity mới), app-fe (7 màn + 3 popup), LakeHouse (backlog). ba-reviewer soạn decision brief cho Gate A.<br><span class="artifact">INT-001/intent.md</span><span class="artifact">decision-brief-A.md</span></div>
+        <div class="stop"><span class="stop-label">◇ GATE A — DỪNG, CHỜ ANH/CHỊ (lần confirm #1)</span>
+          Orchestrator báo trên tower + kết thúc lượt. Anh/chị confirm:
+          <ul>
+            <li><strong>Scope:</strong> "Phase 2 = Release + Milestone + Backlog, KHÔNG gồm Quality Gate (đã lên P1.2)" — đúng không?</li>
+            <li><strong>Outcome đo bằng gì:</strong> APM tạo được release/milestone thật, DM xem được timeline — hay chỉ cần UI với mock?</li>
+            <li><strong>Priority:</strong> Backlog Integration chờ dữ liệu LakeHouse (Q56) — vẫn thuộc đợt này hay defer?</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="tl-item agent">
+        <div class="tl-head"><span class="who ai">context-archaeologist</span> Stage 2 · Context Discovery (AS-IS)</div>
+        <div class="tl-body">Đọc code + docs theo danh sách ở Bước 0 → dựng AS-IS model: schema hiện tại (chưa có bảng release/milestone), pattern router→service→model của app-be, pattern component + i18n của app-fe, các quyết định đã chốt liên quan (Q52: bỏ cột/filter QG ở SCR-REL-10 · Q53: bỏ luật xoá · Q54: milestone badge gate chỉ tham khảo · Q56: backlog chờ dữ liệu). Không hỏi ai ở stage này — chỉ đọc.<br><span class="artifact">as-is/static-model.md</span><span class="artifact">as-is/decisions-inventory.md</span></div>
+      </div>
+
+      <div class="tl-item human">
+        <div class="tl-head"><span class="who hu">Validation Mob</span> Stage 3 · Context Validation</div>
+        <div class="tl-body">AI trình bày understanding: "PCT hiện có dashboard + risk/issue + weekly report (P1); QG đang ở P1.2; Phase 2 đụng 3 module mới, DB thêm ~3 bảng, không đổi màn cũ trừ SCR-REL-10 bỏ cột QG." ba-reviewer đối chiếu từng khẳng định với wiki + Q&amp;A, gắn nhãn phần nào là suy luận chưa có căn cứ.</div>
+        <div class="stop"><span class="stop-label">◇ GATE B — DỪNG, CHỜ ANH/CHỊ (lần confirm #2)</span>
+          Anh/chị (± SME của PCT) xác nhận AS-IS đúng thực tế: <ul>
+            <li>QG P1.2 đã ship tới đâu rồi? (ảnh hưởng: milestone badge đọc trạng thái gate từ đâu)</li>
+            <li>Bản FEEDBACK_TRACKER.md trên repo là bản cũ (bản mới PMO giữ) — AS-IS có thiếu batch nào không?</li>
+          </ul></div>
+      </div>
+
+      <div class="tl-item agent">
+        <div class="tl-head"><span class="who ai">context-validator + ba-reviewer</span> Stage 4 · Clarification</div>
+        <div class="tl-body">Generate open questions <em>chưa được 62 câu Q&amp;A trả lời</em> — chỉ hỏi cái thật sự chưa có quyết định, và BA route đúng người:<br>
+        · Backlog: làm UI trước với mock hay chờ LakeHouse nối xong? → <strong>anh/chị / CTO</strong><br>
+        · Release "Cancelled" có cho sửa milestone gắn kèm không? → <strong>PMO</strong><br>
+        · Gantt milestone: cần zoom tuần/tháng ngay đợt này hay tháng là đủ? → <strong>APM đại diện</strong><br>
+        <span class="artifact">open-questions.md</span> (mỗi câu: ai trả lời · deadline · ảnh hưởng gì nếu chưa trả lời)</div>
+        <div class="stop"><span class="stop-label">◇ GATE C — DỪNG, CHỜ ANH/CHỊ (lần confirm #3)</span>
+          Anh/chị chốt (hoặc phân người chốt) các open questions. Câu nào chưa chốt được → ghi <code>working-assumption</code> có nhãn, Unit liên quan bị đánh dấu risk — không âm thầm đoán.</div>
+      </div>
+
+      <div class="tl-item agent">
+        <div class="tl-head"><span class="who ai">unit-planner → pm-po-reviewer review</span> Stage 5 · Unit Definition</div>
+        <div class="tl-body">Chia Intent thành Units theo business capability (mỗi Unit = outcome quan sát được, không phải "Update DB"):
+          <div class="board">
+            <div class="board-row"><span class="tid">UOW-01</span><span class="tbody"><strong>Release Planning</strong> — APM tạo/sửa/xem danh sách release (SCR-REL-10/11, entity Release, API CRUD, bỏ cột QG theo Q52)</span></div>
+            <div class="board-row"><span class="tid">UOW-02</span><span class="tbody"><strong>Milestone Timeline</strong> — Gantt kế hoạch vs thực tế, dependency FS, phase (SCR-MILE-10/11, entity Milestone)</span></div>
+            <div class="board-row"><span class="tid">UOW-03</span><span class="tbody"><strong>Release ↔ Milestone liên kết + badge</strong> — gắn milestone vào release, badge gate tham khảo (Q54); phụ thuộc UOW-01 + UOW-02</span></div>
+            <div class="board-row"><span class="tid">UOW-04</span><span class="tbody"><strong>Backlog Integration View</strong> — SCR-BACK-10 read-only từ LakeHouse; trạng thái tùy quyết định Gate C (mock-first / chờ data / defer)</span></div>
+          </div>
+          pm-po-reviewer review breakdown + lập risk register (RISK-01: LakeHouse chưa nối · RISK-02: bản tracker trên repo là bản cũ). qa-reviewer check từng Unit spec theo <code>dor.md</code>. ba-reviewer soạn decision brief D.<br><span class="artifact">units/UOW-01..04/spec.md</span><span class="artifact">RV-001 (pm-po)</span><span class="artifact">risks.md</span></div>
+        <div class="stop"><span class="stop-label">◇ GATE D — DỪNG, CHỜ ANH/CHỊ (lần confirm #4 — quan trọng nhất)</span>
+          Decision brief đính kèm: 4 Units, thứ tự đề xuất 01 → 02 song song → 03 → 04, DoD v1 (tests + security gate + evidence), trade-off nếu defer UOW-04. Anh/chị approve scope + DoD → các Unit unlocked, ghi <code>DEC</code>. Từ đây mới được viết dòng code đầu tiên.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Hành trình · Stage 6</div>
+    <h2>Bolt là gì ở đây: vòng lặp nhỏ nhất — mỗi Unit chạy qua một hoặc nhiều Bolt</h2>
+    <p>Phân cấp theo white paper: <strong>Intent → Unit → Bolt → Task</strong>. Mỗi Bolt gói một phạm vi rõ trong Unit, đi qua <em>Domain Design → Logical Design + ADR → Code + Unit Test</em>; các Bolt của những Unit độc lập chạy song song, không xếp theo sprint:</p>
+    <div class="table-scroll">
+    <table>
+      <tr><th>Unit</th><th>Bolt đề xuất</th><th>Vì sao</th><th>Kết quả bàn giao được</th></tr>
+      <tr><td>UOW-01 Release Planning</td><td>Bolt 1.1 (contract + BE + FE + test — 1 bolt đủ)</td><td>Không phụ thuộc gì; là nền cho UOW-03</td><td>APM tạo/sửa release thật trên dev</td></tr>
+      <tr><td>UOW-02 Milestone Timeline</td><td>Bolt 2.1 · <strong>chạy song song Bolt 1.1</strong></td><td>Entity độc lập với UOW-01</td><td>Gantt xem được với dữ liệu thật</td></tr>
+      <tr><td>UOW-03 Liên kết + badge</td><td>Bolt 3.1</td><td>Khóa tới khi UOW-01 + UOW-02 <em>done và được approver duyệt</em></td><td>Release gắn milestone, badge gate tham khảo</td></tr>
+      <tr><td>UOW-04 Backlog</td><td>Bolt 4.1 (có thể tách 4.2 khi LakeHouse sẵn sàng)</td><td>Theo quyết định Gate C — mock-first hoặc chờ data</td><td>SCR-BACK-10 xem được</td></tr>
+    </table>
+    </div>
+    <p class="note">Mỗi Bolt xong là một lần anh/chị <em>nhìn thấy phần chạy được</em> — không đợi 2–4 tuần cuối sprint như ticket-driven.</p>
+
+    <h3>Zoom vào Bolt 1.1 (UOW-01 Release Planning): các agent làm với nhau thế nào</h3>
+    <div class="tl">
+      <div class="tl-item agent">
+        <div class="tl-head"><span class="who ai">qa-reviewer</span> DoR check</div>
+        <div class="tl-body">Đối chiếu <code>UOW-01/spec.md</code> với <code>dor.md</code>: AC đo được? (ví dụ "Release Name unique trong project — tạo trùng phải báo lỗi 409"), open questions liên quan đã đóng? Fail → trả về stage 5, không vào Bolt.</div>
+      </div>
+      <div class="tl-item agent">
+        <div class="tl-head"><span class="who ai">bolt-coordinator</span> Domain + Logical Design, rồi chia task board</div>
+        <div class="tl-body">Design: entity <code>Release</code> (name unique/project, version, planned/actual date, status enum 4 giá trị, scope, notes), API theo pattern router→service→model sẵn có của app-be, FE theo pattern component + next-intl sẵn có.<br><span class="artifact">UOW-01/design.md</span></div>
+      </div>
+      <div class="tl-item agent">
+        <div class="tl-head"><span class="who ai">tech-lead-reviewer + security-reviewer</span> Review design — TRƯỚC khi có code</div>
+        <div class="tl-body">tech-lead: đúng pattern PCT chưa, có migration rollback chưa, đụng bảng nào của QG P1.2 không. security: authz — APM ghi, DM/CXO read-only theo đúng role-matrix sẵn có; input validation cho form. Verdict <code>approve</code> → mới được code. <span class="artifact">RV-002 · RV-003</span></div>
+      </div>
+      <div class="tl-item agent">
+        <div class="tl-head"><span class="who ai">be-dev ↔ fe-dev</span> Contract handshake (teammate, có ghi lại)</div>
+        <div class="tl-body">be-dev draft <code>contract.md</code>: <code>GET/POST/PATCH /api/releases</code>, shape response. fe-dev review và hỏi qua MSG — ví dụ thật kiểu PCT: <em>"status enum trả code hay label? i18n phía nào?"</em> · <em>"date trả ISO có timezone không — Gantt cần so ngày VN?"</em> · <em>"lỗi unique name trả 409 body dạng gì để FE hiện đúng field?"</em>. Chốt xong → <strong>contract FREEZE</strong>. Nếu tranh cãi lộ ra design sai từ gốc → không tự vá, escalate tech-lead.<br><span class="artifact">MSG-0058..0061</span><span class="artifact">contract.md v2 (frozen)</span></div>
+      </div>
+      <div class="tl-item agent">
+        <div class="tl-head"><span class="who ai">be-dev ∥ fe-dev</span> Thực thi song song theo task board</div>
+        <div class="tl-body">
+          <div class="board">
+            <div class="board-row"><span class="tid">TSK-01</span><span class="tstat done">done</span><span class="tbody">API contract draft + freeze<span class="tmeta">claim: be-dev · duyệt: fe-dev + tech-lead · comms: MSG-0058..61</span></span></div>
+            <div class="board-row"><span class="tid">TSK-02</span><span class="tstat act">in-prog</span><span class="tbody">BE: migration + model + service + router + tests<span class="tmeta">claim: be-dev · approver: backend-reviewer · depends: TSK-01</span></span></div>
+            <div class="board-row"><span class="tid">TSK-03</span><span class="tstat act">in-prog</span><span class="tbody">FE: SCR-REL-10 list + filter (bỏ cột QG theo Q52)<span class="tmeta">claim: fe-dev · approver: frontend-reviewer · depends: TSK-01 (chạy với mock theo contract)</span></span></div>
+            <div class="board-row"><span class="tid">TSK-04</span><span class="tstat">blocked</span><span class="tbody">FE: SCR-REL-11 popup tạo/sửa nối API thật<span class="tmeta">chưa claim — depends: TSK-02 done + backend-reviewer duyệt</span></span></div>
+            <div class="board-row"><span class="tid">TSK-05</span><span class="tstat">todo</span><span class="tbody">Integration + E2E theo AC<span class="tmeta">approver: qa-reviewer · depends: TSK-03, TSK-04</span></span></div>
+          </div>
+          TSK-03 chạy song song với TSK-02 nhờ contract đã freeze (FE code với mock đúng shape); TSK-04 thì <strong>bắt buộc chờ</strong> BE xong + được duyệt — đúng luật "bên này xong, approver ký, bên kia mới nối".</div>
+      </div>
+      <div class="tl-item human">
+        <div class="tl-head"><span class="who hu">Anh/chị (dev validate)</span> Gate E — checkpoint trong Bolt</div>
+        <div class="tl-body">Hai điểm dừng nhẹ: (1) sau design + contract freeze — nhìn 1 trang tóm tắt, ok thì code; (2) sau khi review board duyệt code — xem demo SCR-REL-10/11 chạy trên dev. Đây là <strong>lần confirm #5</strong>, lặp lại mỗi Bolt.</div>
+      </div>
+      <div class="tl-item agent">
+        <div class="tl-head"><span class="who ai">backend/frontend/security/qa reviewers</span> Review code + tests</div>
+        <div class="tl-body">Mỗi reviewer theo checklist version hiện hành. 2× request-changes cùng một điểm → tự động thành escalation lên tower chờ anh/chị. <span class="artifact">RV-004..007</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Hành trình · Stage 7 → 8 + Retro</div>
+    <h2>Nghiệm thu, release, và đội agent tự rút kinh nghiệm</h2>
+    <div class="tl">
+      <div class="tl-item agent">
+        <div class="tl-head"><span class="who ai">acceptance-recorder + qa-reviewer</span> Stage 7 · Acceptance Evidence</div>
+        <div class="tl-body">qa chạy lại tests, đối chiếu AC từng dòng theo <code>dod.md</code>; security xác nhận MUST findings = 0. Gói evidence: AC ✓, test output, screenshots SCR-REL-10/11, limitations (ví dụ: "Backlog dùng mock — chờ LakeHouse").<br><span class="artifact">UOW-01/evidence/</span></div>
+        <div class="stop"><span class="stop-label">◇ GATE F — DỪNG, CHỜ ANH/CHỊ (lần confirm #6)</span>UAT trên dev + approve deploy. Evidence đầy đủ nằm sẵn trong tower — anh/chị không phải đi gom.</div>
+      </div>
+      <div class="tl-item agent">
+        <div class="tl-head"><span class="who ai">acceptance-recorder</span> Stage 8 · Release + Context Memory</div>
+        <div class="tl-body">Verify chuỗi truy vết <code>code → design → spec → DEC → RV → MSG → intent</code> đủ, persist toàn bộ, cập nhật changelog. Intent sau (Phase 3, batch mới…) tái dùng AS-IS + decisions của intent này.</div>
+      </div>
+      <div class="tl-item agent">
+        <div class="tl-head"><span class="who ai">retro-keeper</span> Retro</div>
+        <div class="tl-body">Ví dụ lesson có thể rút từ chính dry-run này: "tài liệu phase mapping của PCT đổi theo quyết định CTO ngoài repo → thêm vào checklist review-intent: <em>luôn hỏi bản tracker/plan mới nhất nằm ở đâu, repo hay PMO giữ</em>."<br><span class="artifact">LL-001 + patch đề xuất</span></div>
+        <div class="stop"><span class="stop-label">◇ GATE G — DỪNG, CHỜ ANH/CHỊ (lần confirm #7)</span>Duyệt lesson + patch checklist → skill lên version mới, intent sau không lặp lại lỗi.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Tổng hợp</div>
+    <h2>Toàn bộ các lần anh/chị được hỏi / phải confirm — theo thời gian</h2>
+    <div class="table-scroll">
+    <table>
+      <tr><th>#</th><th>Khi nào</th><th>Gate</th><th>Anh/chị quyết gì (ví dụ cụ thể của PCT Phase 2)</th><th>Nếu không quyết</th></tr>
+      <tr><td>1</td><td>Ngay sau /intent (~phút)</td><td>A</td><td>Scope Phase 2 = Release + Milestone + Backlog (không QG)? Outcome đo bằng gì? Backlog thuộc đợt này?</td><td>Flow đứng ở stage 1</td></tr>
+      <tr><td>2</td><td>Sau discovery (~giờ)</td><td>B</td><td>AS-IS đúng chưa — nhất là trạng thái QG P1.2 và bản tracker mới nhất</td><td>Không sang Clarify</td></tr>
+      <tr><td>3</td><td>Sau clarify</td><td>C</td><td>Chốt open questions (mock-first cho Backlog? luật sửa milestone khi release Cancelled?)</td><td>Unit liên quan gắn assumption + risk</td></tr>
+      <tr><td>4</td><td>Sau unit definition</td><td>D</td><td>Approve 4 Units + thứ tự Bolt + DoD v1 (kèm decision brief của ba-reviewer)</td><td>Không dòng code nào được viết</td></tr>
+      <tr><td>5</td><td>Trong mỗi Bolt (×4 bolt)</td><td>E</td><td>(a) OK Domain/Logical Design + ADR + contract; (b) OK demo sau review</td><td>Bolt đứng tại checkpoint</td></tr>
+      <tr><td>6</td><td>Cuối mỗi Unit</td><td>F</td><td>UAT + approve deploy (evidence gói sẵn trên tower)</td><td>Không release</td></tr>
+      <tr><td>7</td><td>Sau release</td><td>G</td><td>Duyệt lesson learned + patch checklist</td><td>Skill giữ version cũ</td></tr>
+      <tr><td>±</td><td>Bất kỳ lúc nào</td><td>động</td><td>Escalation: 2× request-changes, logic sai từ gốc, tài liệu thiếu chạm scope</td><td>—</td></tr>
+    </table>
+    </div>
+    <p class="note">Ngoài 7 loại điểm dừng này, agents không hỏi vặt — mọi thứ khác tự chạy và tự ghi lại, anh/chị xem qua Control Tower lúc nào tiện.</p>
+  </section>
+
+  <div class="footer-note">
+    <h2 style="margin-bottom:8px">Đây là bản chiếu trước — chưa có gì chạy</h2>
+    <p style="margin-bottom:6px">Nếu kịch bản này đúng ý, bước tiếp theo là scaffold bộ agent (theo blueprint v3 đã duyệt nội dung) rồi chạy thật <code>/intent</code> cho PCT Phase 2 — dừng ở Gate A chờ anh/chị, đúng như trang này vẽ.</p>
+    <p class="note" style="margin-bottom:0">Blueprint đầy đủ của mô hình: xem artifact "Agent Team &amp; Control Tower" (bản v3).</p>
+  </div>
+</div>

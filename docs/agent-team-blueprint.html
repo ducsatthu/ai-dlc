@@ -1,0 +1,634 @@
+<title>AI-DLC Agent Team — Blueprint chờ duyệt</title>
+<style>
+  :root {
+    --bg: #F2F4F6;
+    --surface: #FFFFFF;
+    --surface-2: #E9EDF1;
+    --ink: #18222C;
+    --muted: #5B6874;
+    --line: #CFD7DE;
+    --accent: #B96E00;
+    --accent-bg: rgba(185, 110, 0, 0.10);
+    --blue: #33689E;
+    --blue-bg: rgba(51, 104, 158, 0.10);
+    --ok: #2E7D4F;
+    --ok-bg: rgba(46, 125, 79, 0.10);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0E1419;
+      --surface: #161D24;
+      --surface-2: #1D262F;
+      --ink: #E6ECF2;
+      --muted: #93A1AE;
+      --line: #2A3540;
+      --accent: #E9A23B;
+      --accent-bg: rgba(233, 162, 59, 0.13);
+      --blue: #7FAEDC;
+      --blue-bg: rgba(127, 174, 220, 0.12);
+      --ok: #58B383;
+      --ok-bg: rgba(88, 179, 131, 0.13);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0E1419;
+    --surface: #161D24;
+    --surface-2: #1D262F;
+    --ink: #E6ECF2;
+    --muted: #93A1AE;
+    --line: #2A3540;
+    --accent: #E9A23B;
+    --accent-bg: rgba(233, 162, 59, 0.13);
+    --blue: #7FAEDC;
+    --blue-bg: rgba(127, 174, 220, 0.12);
+    --ok: #58B383;
+    --ok-bg: rgba(88, 179, 131, 0.13);
+  }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.6;
+    font-size: 16px;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 48px 24px 96px; }
+  header.masthead { border-bottom: 2px solid var(--ink); padding-bottom: 24px; margin-bottom: 8px; }
+  .masthead-top { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+  .kicker { font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  h1 { font-size: clamp(28px, 4.5vw, 44px); font-weight: 750; letter-spacing: -0.02em; line-height: 1.12; margin: 10px 0 12px; text-wrap: balance; }
+  .lede { max-width: 68ch; color: var(--muted); font-size: 17px; }
+  .status-chip {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em;
+    color: var(--accent); background: var(--accent-bg); border: 1px solid var(--accent);
+    padding: 5px 12px; border-radius: 999px; white-space: nowrap;
+  }
+  section { margin-top: 64px; }
+  .eyebrow {
+    display: flex; align-items: baseline; gap: 12px;
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 8px;
+  }
+  .eyebrow::after { content: ""; flex: 1; border-top: 1px solid var(--line); transform: translateY(-3px); }
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 12px; text-wrap: balance; }
+  h3 { font-size: 18px; font-weight: 650; margin: 28px 0 8px; }
+  p { max-width: 68ch; margin-bottom: 12px; }
+  p.note { color: var(--muted); font-size: 14.5px; }
+  .tag { font-family: var(--mono); font-size: 11px; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.04em; }
+  .tag.pipe { color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); }
+  .tag.rev { color: var(--blue); background: var(--blue-bg); border: 1px solid var(--blue); }
+  .tag.hum { color: var(--accent); background: var(--accent-bg); border: 1px solid var(--accent); }
+  .tag.learn { color: var(--ok); background: var(--ok-bg); border: 1px solid var(--ok); }
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; margin-top: 16px; }
+  th { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-align: left; padding: 8px 12px; border-bottom: 2px solid var(--ink); }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  td:first-child { font-family: var(--mono); font-size: 13px; white-space: nowrap; }
+  .table-scroll { overflow-x: auto; }
+  figure { margin: 24px 0 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; overflow-x: auto; }
+  figure svg { display: block; min-width: 900px; max-width: 100%; height: auto; margin: 0 auto; }
+  figure.small svg { min-width: 720px; }
+  figcaption { font-size: 13.5px; color: var(--muted); margin-top: 14px; max-width: 80ch; }
+  pre {
+    font-family: var(--mono); font-size: 13px; line-height: 1.55;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px 20px; overflow-x: auto; margin: 14px 0;
+  }
+  code { font-family: var(--mono); font-size: 0.92em; background: var(--surface-2); padding: 1px 5px; border-radius: 4px; }
+  pre code { background: none; padding: 0; }
+  /* Control tower mock */
+  .tower-mock { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-top: 20px; }
+  .tower-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--line); background: var(--surface-2); flex-wrap: wrap; }
+  .tower-head .t-title { font-family: var(--mono); font-size: 13px; letter-spacing: 0.08em; font-weight: 600; }
+  .tower-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 0; }
+  @media (max-width: 760px) { .tower-grid { grid-template-columns: 1fr; } }
+  .tower-cell { padding: 16px 20px; border-top: 1px solid var(--line); }
+  .tower-cell:nth-child(odd) { border-right: 1px solid var(--line); }
+  @media (max-width: 760px) { .tower-cell:nth-child(odd) { border-right: none; } }
+  .tower-cell.span { grid-column: 1 / -1; border-right: none; }
+  .tower-cell h5 { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+  .gate-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1px solid var(--accent); background: var(--accent-bg); border-radius: 8px; margin-bottom: 8px; font-size: 13.5px; }
+  .gate-item .g-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); margin-top: 6px; flex: none; }
+  .gate-item strong { font-weight: 650; }
+  .stage-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; font-size: 13px; }
+  .stage-row .int { font-family: var(--mono); font-size: 12px; width: 72px; flex: none; color: var(--muted); }
+  .chip { font-family: var(--mono); font-size: 10.5px; padding: 3px 7px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted); }
+  .chip.done { background: var(--ok-bg); color: var(--ok); border-color: var(--ok); }
+  .chip.active { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+  .feed { font-family: var(--mono); font-size: 12px; line-height: 1.9; }
+  .feed .frm { color: var(--blue); }
+  .feed .typ { color: var(--muted); }
+  .verdict { font-family: var(--mono); font-size: 11px; padding: 2px 8px; border-radius: 4px; }
+  .verdict.ok { color: var(--ok); background: var(--ok-bg); border: 1px solid var(--ok); }
+  .verdict.rc { color: var(--accent); background: var(--accent-bg); border: 1px solid var(--accent); }
+  ol.plan { max-width: 72ch; padding-left: 22px; margin-top: 12px; }
+  ol.plan li { margin-bottom: 10px; }
+  ol.plan li::marker { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+  .approve-box {
+    margin-top: 56px; border: 2px solid var(--accent); border-radius: 12px;
+    background: var(--accent-bg); padding: 24px 28px;
+  }
+  .approve-box h2 { margin-bottom: 8px; }
+  .approve-box p { margin-bottom: 6px; }
+  ul { max-width: 70ch; padding-left: 22px; margin-bottom: 12px; }
+  li { margin-bottom: 6px; }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div class="masthead-top">
+      <div class="kicker">AI-DLC · Engineering process · TechTus</div>
+      <div class="status-chip">● BẢN THIẾT KẾ v3 — CHỜ DUYỆT</div>
+    </div>
+    <h1>Agent Team &amp; Control Tower</h1>
+    <p class="lede">Bản thiết kế đầy đủ trước khi triển khai: 9 pipeline agents chạy flow 8 stage (có dev agents góc nhìn BE/FE riêng), 6 review agents độc lập theo vai trò, task board trong từng Unit với dependency — claim — approver, giao thức teammate để FE/BE làm rõ API contract trước khi code, vòng retro — lesson learned, governance DoR/DoD có version, và Control Tower theo dõi toàn bộ. Mọi quyết định và thay đổi của AI đều thành tài liệu truy vết được.</p>
+  </header>
+
+  <section id="roster">
+    <div class="eyebrow">01 · Đội hình</div>
+    <h2>Bốn nhóm, một nguyên tắc: AI thực thi — người quyết định</h2>
+    <p>Đội hình chia bốn nhóm. <strong>Pipeline agents</strong> đẩy công việc qua 8 stage của AI-DLC. <strong>Review Board</strong> — các agent độc lập theo vai trò, không tham gia thực thi, chỉ review đúng đoạn thuộc chuyên môn và ra verdict. <strong>Learning</strong> — retro-keeper biến lesson learned thành nâng cấp skill cho agent. <strong>Hạ tầng quan sát</strong> ghi lại mọi trao đổi và hiển thị qua Control Tower.</p>
+
+    <h3><span class="tag pipe">PIPELINE</span> — 9 agents thực thi theo stage</h3>
+    <div class="table-scroll">
+    <table>
+      <tr><th>Agent</th><th>Stage</th><th>Trách nhiệm</th><th>Output</th></tr>
+      <tr><td>orchestrator</td><td>xuyên suốt</td><td>Điều phối flow, giữ state, enforce gate — không cho stage sau chạy khi gate trước chưa có quyết định. Ghi DEC cho mọi gate approval. Cập nhật Control Tower sau mỗi sự kiện.</td><td>status.md · decisions-log.md</td></tr>
+      <tr><td>intent-analyst</td><td>1 · Request</td><td>Capture problem · outcome · priority; nhận diện brownfield type và vùng ảnh hưởng</td><td>intent.md</td></tr>
+      <tr><td>context-archaeologist</td><td>2 · Discovery</td><td>Đọc code · docs · tickets · tests · DB → AS-IS model (kích hoạt khi ≥2 dấu hiệu brownfield)</td><td>as-is/</td></tr>
+      <tr><td>context-validator</td><td>3–4 · Validation + Clarify</td><td>Trình bày AS-IS cho Validation Mob; generate open questions và phân loại đúng người trả lời</td><td>open-questions.md</td></tr>
+      <tr><td>unit-planner</td><td>5 · Unit Definition</td><td>Chia Intent thành Units theo business capability; reject pseudo-unit; mỗi Unit spec phải đạt DoR trước khi vào Bolt</td><td>units/UOW-xx/spec.md</td></tr>
+      <tr><td>bolt-coordinator</td><td>6 · Construction</td><td>Điều phối Bolt theo white paper — phân cấp <strong>Intent → Unit → Bolt → Task</strong>: mỗi Unit chạy qua một hoặc nhiều Bolt (song song hoặc tuần tự), mỗi Bolt gói một phạm vi rõ trong Unit và đi Domain Design → Logical Design + ADR → Code + Unit Test. Mỗi Bolt có <strong>task board</strong> (dependency + approver assign sẵn), điều phối be-dev/fe-dev, enforce luật claim — task chỉ được nhận khi mọi task phụ thuộc đã <em>done và được approver duyệt</em></td><td>tasks.md + design.md</td></tr>
+      <tr><td>be-dev</td><td>6 · Construction</td><td>Thực thi task góc nhìn Backend: API contract draft, service, DB migration, tests. Trao đổi teammate với fe-dev qua comms khi contract chưa rõ</td><td>code BE + contract.md</td></tr>
+      <tr><td>fe-dev</td><td>6 · Construction</td><td>Thực thi task góc nhìn Frontend: review contract trước khi code, component, state, tests. Có quyền chặn contract chưa đủ rõ — hỏi làm rõ trước, không đoán</td><td>code FE</td></tr>
+      <tr><td>acceptance-recorder</td><td>7–8 · Acceptance + Release</td><td>Gom Acceptance Evidence; trace decision → requirement → design → code; persist Context Memory + changelog</td><td>evidence/ · changelog.md</td></tr>
+    </table>
+    </div>
+
+    <h3><span class="tag rev">REVIEW BOARD</span> — 7 agents review độc lập theo vai trò</h3>
+    <div class="table-scroll">
+    <table>
+      <tr><th>Agent</th><th>Vai trò</th><th>Review cái gì · khi nào</th><th>Bộ skill chuyên biệt</th></tr>
+      <tr><td>ba-reviewer</td><td>Business Analyst</td><td>Góc nhìn business ở stage 1–4: intent có đúng outcome business không, thông tin business trong AS-IS và open questions có nhất quán/đủ căn cứ không. <strong>Hỗ trợ anh/chị ra quyết định</strong>: tại mỗi gate A–D chuẩn bị decision brief — bối cảnh, các phương án, trade-off, khuyến nghị — để anh/chị quyết nhanh và có căn cứ</td><td>review-intent · business-validation · decision-brief</td></tr>
+      <tr><td>pm-po-reviewer</td><td>PM / PO</td><td>Plan &amp; task breakdown (sau stage 5), risk register mỗi bolt, quality management: DoD/DoR compliance ở gate D</td><td>plan-review · risk-register · quality-gate</td></tr>
+      <tr><td>tech-lead-reviewer</td><td>Technical Leader</td><td>Technical approach &amp; design (stage 6, trước khi viết code): infra, techstack, kiến trúc; giữ tech-debt-register xuyên suốt</td><td>review-approach · review-infra · review-techstack · tech-debt-register</td></tr>
+      <tr><td>security-reviewer</td><td>Security / DevSecOps</td><td>Threat model ở bước design; code security (secrets, injection, authz); dependency &amp; supply chain; CI/CD pipeline security. Có quyền <strong>block release</strong> — security finding mức MUST chưa đóng thì Gate F không mở</td><td>review-threat-model · review-code-security · review-dependencies · review-pipeline</td></tr>
+      <tr><td>backend-reviewer</td><td>Dev góc nhìn BE</td><td>Code BE trong bolt (sau Code + Tests): API contract, DB migration, performance</td><td>review-api · review-db · review-perf</td></tr>
+      <tr><td>frontend-reviewer</td><td>Dev góc nhìn FE</td><td>Code FE trong bolt: kiến trúc component, state, accessibility, tính nhất quán UX</td><td>review-component · review-state · review-a11y</td></tr>
+      <tr><td>qa-reviewer</td><td>QA / QC</td><td><strong>QA</strong> (quy trình): check Unit spec đạt DoR trước Bolt, test strategy &amp; độ phủ AC trong bolt. <strong>QC</strong> (sản phẩm): verify Acceptance Evidence ở stage 7 — chạy lại tests, đối chiếu AC từng dòng, regression risk — trước khi tới UAT của anh/chị</td><td>review-test-strategy · review-ac-coverage · review-regression · qc-evidence</td></tr>
+    </table>
+    </div>
+
+    <h3><span class="tag learn">LEARNING</span> — 1 agent giữ vòng học</h3>
+    <div class="table-scroll">
+    <table>
+      <tr><th>Agent</th><th>Khi nào chạy</th><th>Trách nhiệm</th><th>Output</th></tr>
+      <tr><td>retro-keeper</td><td>Sau mỗi Release (stage 8) hoặc gọi <code>/retro</code></td><td>Phân tích comms + review verdicts + escalations + gate rejections của intent vừa xong → rút lesson learned → đề xuất patch cụ thể vào checklist/định nghĩa agent để lỗi không lặp lại. Patch chỉ được apply sau Gate G (anh/chị duyệt), và mỗi lần apply ghi version mới vào changelog của skill đó</td><td>lessons-learned/LL-xx.md · skill patch + version</td></tr>
+    </table>
+    </div>
+    <p class="note">Mỗi bộ skill là một checklist file có version trong <code>.claude/skills/</code> — reviewer load đúng checklist cho đoạn được review, nên tiêu chí đánh giá được chuẩn hóa và <em>tiến hóa có kiểm soát</em> qua retro, không tùy hứng theo từng lần chạy.</p>
+  </section>
+
+  <section id="workflow">
+    <div class="eyebrow">02 · Workflow</div>
+    <h2>Bản vẽ kết nối: ai làm gì, ai nói với ai, dừng ở đâu</h2>
+    <figure>
+      <svg viewBox="0 0 1240 800" role="img" aria-label="Sơ đồ workflow: lane Human với các gate duyệt, lane Pipeline 8 stage, lane Review Board 6 reviewer gồm QA và Security, Comms Bus ghi mọi trao đổi, Context Memory và Governance lưu artifact, Control Tower đọc state và hiển thị UI cho người duyệt.">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+          <marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+          </marker>
+          <marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--blue)"/>
+          </marker>
+        </defs>
+
+        <!-- HUMAN lane strip -->
+        <rect x="70" y="52" width="1126" height="66" rx="8" fill="var(--accent-bg)" stroke="var(--accent)" stroke-dasharray="4 4"/>
+        <text x="86" y="78" font-family="var(--mono)" font-size="11" letter-spacing="2" fill="var(--accent)">HUMAN — QUYẾT ĐỊNH &amp; DUYỆT</text>
+        <text x="86" y="98" font-family="var(--sans)" font-size="12" fill="var(--muted)">Flow dừng tại mỗi gate ◇ · orchestrator báo và chờ · mọi approval ghi thành DEC-xxx</text>
+
+        <!-- Pipeline lane label -->
+        <text x="70" y="172" font-family="var(--mono)" font-size="11" letter-spacing="2" fill="var(--muted)">PIPELINE AGENTS — 8 STAGE</text>
+
+        <!-- Stage boxes: x_i = 90 + i*140, w=112, y=200..270 -->
+        <g font-family="var(--sans)" font-size="12" fill="currentColor">
+          <g><rect x="90" y="200" width="112" height="70" rx="8" fill="var(--surface-2)" stroke="currentColor"/><text x="146" y="224" text-anchor="middle" font-weight="600">1 Request</text><text x="146" y="244" text-anchor="middle" font-size="10.5" fill="var(--muted)">intent-</text><text x="146" y="257" text-anchor="middle" font-size="10.5" fill="var(--muted)">analyst</text></g>
+          <g><rect x="230" y="200" width="112" height="70" rx="8" fill="var(--surface-2)" stroke="currentColor"/><text x="286" y="224" text-anchor="middle" font-weight="600">2 Discovery</text><text x="286" y="244" text-anchor="middle" font-size="10.5" fill="var(--muted)">context-</text><text x="286" y="257" text-anchor="middle" font-size="10.5" fill="var(--muted)">archaeologist</text></g>
+          <g><rect x="370" y="200" width="112" height="70" rx="8" fill="var(--surface-2)" stroke="currentColor"/><text x="426" y="224" text-anchor="middle" font-weight="600">3 Validation</text><text x="426" y="244" text-anchor="middle" font-size="10.5" fill="var(--muted)">context-</text><text x="426" y="257" text-anchor="middle" font-size="10.5" fill="var(--muted)">validator</text></g>
+          <g><rect x="510" y="200" width="112" height="70" rx="8" fill="var(--surface-2)" stroke="currentColor"/><text x="566" y="224" text-anchor="middle" font-weight="600">4 Clarify</text><text x="566" y="244" text-anchor="middle" font-size="10.5" fill="var(--muted)">context-</text><text x="566" y="257" text-anchor="middle" font-size="10.5" fill="var(--muted)">validator</text></g>
+          <g><rect x="650" y="200" width="112" height="70" rx="8" fill="var(--surface-2)" stroke="currentColor"/><text x="706" y="224" text-anchor="middle" font-weight="600">5 Units</text><text x="706" y="244" text-anchor="middle" font-size="10.5" fill="var(--muted)">unit-planner</text><text x="706" y="257" text-anchor="middle" font-size="10.5" fill="var(--muted)">+ DoR check</text></g>
+          <g><rect x="790" y="200" width="112" height="70" rx="8" fill="var(--surface-2)" stroke="currentColor" stroke-width="1.6"/><text x="846" y="224" text-anchor="middle" font-weight="600">6 Construction</text><text x="846" y="244" text-anchor="middle" font-size="10.5" fill="var(--muted)">bolt-coordinator</text><text x="846" y="257" text-anchor="middle" font-size="10.5" fill="var(--muted)">+ be-dev · fe-dev</text></g>
+          <g><rect x="930" y="200" width="112" height="70" rx="8" fill="var(--surface-2)" stroke="currentColor"/><text x="986" y="224" text-anchor="middle" font-weight="600">7 Acceptance</text><text x="986" y="244" text-anchor="middle" font-size="10.5" fill="var(--muted)">acceptance-</text><text x="986" y="257" text-anchor="middle" font-size="10.5" fill="var(--muted)">recorder</text></g>
+          <g><rect x="1070" y="200" width="112" height="70" rx="8" fill="var(--surface-2)" stroke="currentColor"/><text x="1126" y="224" text-anchor="middle" font-weight="600">8 Release</text><text x="1126" y="244" text-anchor="middle" font-size="10.5" fill="var(--muted)">acceptance-</text><text x="1126" y="257" text-anchor="middle" font-size="10.5" fill="var(--muted)">recorder</text></g>
+        </g>
+
+        <!-- Flow arrows between stages (plain where no gate) -->
+        <g stroke="currentColor" stroke-width="1.4" fill="none">
+          <line x1="342" y1="235" x2="368" y2="235" marker-end="url(#arr)"/>
+          <line x1="622" y1="235" x2="648" y2="235" marker-end="url(#arr)"/>
+        </g>
+
+        <!-- Gated boundaries -->
+        <g>
+          <g stroke="var(--accent)" fill="none"><line x1="202" y1="235" x2="207" y2="235"/><line x1="225" y1="235" x2="228" y2="235" marker-end="url(#arrA)"/><line x1="216" y1="222" x2="216" y2="122" stroke-dasharray="3 4" marker-end="url(#arrA)"/></g>
+          <polygon points="216,222 229,235 216,248 203,235" fill="var(--accent-bg)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="216" y="240" text-anchor="middle" font-family="var(--mono)" font-size="11" fill="var(--accent)" font-weight="700">A</text>
+          <g stroke="var(--accent)" fill="none"><line x1="482" y1="235" x2="487" y2="235"/><line x1="505" y1="235" x2="508" y2="235" marker-end="url(#arrA)"/><line x1="496" y1="222" x2="496" y2="122" stroke-dasharray="3 4" marker-end="url(#arrA)"/></g>
+          <polygon points="496,222 509,235 496,248 483,235" fill="var(--accent-bg)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="496" y="240" text-anchor="middle" font-family="var(--mono)" font-size="11" fill="var(--accent)" font-weight="700">B</text>
+          <g stroke="var(--accent)" fill="none"><line x1="622" y1="235" x2="627" y2="235"/><line x1="645" y1="235" x2="648" y2="235" marker-end="url(#arrA)"/><line x1="636" y1="222" x2="636" y2="122" stroke-dasharray="3 4" marker-end="url(#arrA)"/></g>
+          <polygon points="636,222 649,235 636,248 623,235" fill="var(--accent-bg)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="636" y="240" text-anchor="middle" font-family="var(--mono)" font-size="11" fill="var(--accent)" font-weight="700">C</text>
+          <g stroke="var(--accent)" fill="none"><line x1="762" y1="235" x2="767" y2="235"/><line x1="785" y1="235" x2="788" y2="235" marker-end="url(#arrA)"/><line x1="776" y1="222" x2="776" y2="122" stroke-dasharray="3 4" marker-end="url(#arrA)"/></g>
+          <polygon points="776,222 789,235 776,248 763,235" fill="var(--accent-bg)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="776" y="240" text-anchor="middle" font-family="var(--mono)" font-size="11" fill="var(--accent)" font-weight="700">D</text>
+          <path d="M 826 200 C 826 176, 866 176, 866 200" fill="none" stroke="var(--accent)" stroke-width="1.4" stroke-dasharray="3 4" marker-end="url(#arrA)"/>
+          <text x="846" y="170" text-anchor="middle" font-family="var(--mono)" font-size="10.5" fill="var(--accent)">E · dev validate từng bước</text>
+          <g stroke="var(--accent)" fill="none"><line x1="1042" y1="235" x2="1047" y2="235"/><line x1="1065" y1="235" x2="1068" y2="235" marker-end="url(#arrA)"/><line x1="1056" y1="222" x2="1056" y2="122" stroke-dasharray="3 4" marker-end="url(#arrA)"/></g>
+          <polygon points="1056,222 1069,235 1056,248 1043,235" fill="var(--accent-bg)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="1056" y="240" text-anchor="middle" font-family="var(--mono)" font-size="11" fill="var(--accent)" font-weight="700">F</text>
+        </g>
+
+        <!-- Review board lane: 7 boxes w=145 -->
+        <text x="70" y="360" font-family="var(--mono)" font-size="11" letter-spacing="2" fill="var(--blue)">REVIEW BOARD — REVIEW ĐỘC LẬP THEO VAI TRÒ</text>
+        <g font-family="var(--sans)" font-size="11.5" fill="currentColor">
+          <g><rect x="90" y="385" width="145" height="64" rx="8" fill="var(--blue-bg)" stroke="var(--blue)"/><text x="162" y="408" text-anchor="middle" font-weight="600" fill="var(--blue)">ba</text><text x="162" y="425" text-anchor="middle" font-size="10" fill="var(--muted)">business · decision brief</text></g>
+          <g><rect x="246" y="385" width="145" height="64" rx="8" fill="var(--blue-bg)" stroke="var(--blue)"/><text x="318" y="408" text-anchor="middle" font-weight="600" fill="var(--blue)">pm-po</text><text x="318" y="425" text-anchor="middle" font-size="10" fill="var(--muted)">plan · risks · quality</text></g>
+          <g><rect x="402" y="385" width="145" height="64" rx="8" fill="var(--blue-bg)" stroke="var(--blue)"/><text x="474" y="408" text-anchor="middle" font-weight="600" fill="var(--blue)">tech-lead</text><text x="474" y="425" text-anchor="middle" font-size="10" fill="var(--muted)">infra · stack · debt</text></g>
+          <g><rect x="558" y="385" width="145" height="64" rx="8" fill="var(--blue-bg)" stroke="var(--blue)" stroke-width="1.6"/><text x="630" y="408" text-anchor="middle" font-weight="600" fill="var(--blue)">security</text><text x="630" y="425" text-anchor="middle" font-size="10" fill="var(--muted)">DevSecOps · threat</text></g>
+          <g><rect x="714" y="385" width="145" height="64" rx="8" fill="var(--blue-bg)" stroke="var(--blue)"/><text x="786" y="408" text-anchor="middle" font-weight="600" fill="var(--blue)">backend</text><text x="786" y="425" text-anchor="middle" font-size="10" fill="var(--muted)">API · DB · perf</text></g>
+          <g><rect x="870" y="385" width="145" height="64" rx="8" fill="var(--blue-bg)" stroke="var(--blue)"/><text x="942" y="408" text-anchor="middle" font-weight="600" fill="var(--blue)">frontend</text><text x="942" y="425" text-anchor="middle" font-size="10" fill="var(--muted)">component · a11y</text></g>
+          <g><rect x="1026" y="385" width="145" height="64" rx="8" fill="var(--blue-bg)" stroke="var(--blue)"/><text x="1098" y="408" text-anchor="middle" font-weight="600" fill="var(--blue)">qa</text><text x="1098" y="425" text-anchor="middle" font-size="10" fill="var(--muted)">DoR · test · QC</text></g>
+        </g>
+        <!-- Review arrows (blue, elbow) -->
+        <g stroke="var(--blue)" stroke-width="1.4" fill="none">
+          <path d="M 162 385 V 330 H 426 V 272" marker-end="url(#arrB)"/>
+          <path d="M 318 385 V 302 H 690 V 272" marker-end="url(#arrB)"/>
+          <path d="M 474 385 V 316 H 806 V 272" marker-end="url(#arrB)"/>
+          <path d="M 630 385 V 344 H 830 V 272" marker-end="url(#arrB)"/>
+          <path d="M 786 385 V 360 H 856 V 272" marker-end="url(#arrB)"/>
+          <path d="M 942 385 V 310 H 882 V 272" marker-end="url(#arrB)"/>
+          <path d="M 1098 385 V 330 H 986 V 272" marker-end="url(#arrB)"/>
+        </g>
+        <g font-family="var(--sans)" font-size="10.5" fill="var(--blue)">
+          <text x="180" y="326">intent · business info · brief cho gate A–D</text>
+          <text x="330" y="298">review plan · risks</text>
+          <text x="500" y="312">review design trước code</text>
+          <text x="640" y="340">threat · code security</text>
+          <text x="700" y="356">code BE</text>
+          <text x="886" y="306">code FE</text>
+          <text x="994" y="326">QC evidence</text>
+        </g>
+
+        <!-- Comms bus -->
+        <rect x="90" y="510" width="1092" height="46" rx="8" fill="var(--surface-2)" stroke="currentColor"/>
+        <text x="636" y="533" text-anchor="middle" font-family="var(--mono)" font-size="12" letter-spacing="1.5" fill="currentColor" font-weight="600">COMMS BUS · context-memory/comms/MSG-xxxx.md</text>
+        <text x="636" y="548" text-anchor="middle" font-size="10.5" fill="var(--muted)" font-family="var(--sans)">mọi trao đổi giữa agents đều thành file — from · to · re · type · status</text>
+        <g stroke="var(--muted)" stroke-width="1.2" fill="none" stroke-dasharray="2 3">
+          <line x1="146" y1="272" x2="146" y2="507" marker-end="url(#arr)"/>
+          <line x1="162" y1="449" x2="162" y2="507" marker-end="url(#arr)"/>
+          <line x1="1126" y1="272" x2="1126" y2="507" marker-end="url(#arr)"/>
+          <line x1="1098" y1="449" x2="1098" y2="507" marker-end="url(#arr)"/>
+        </g>
+        <text x="105" y="480" font-size="10.5" fill="var(--muted)" font-family="var(--sans)">ghi chú / handoff</text>
+
+        <!-- Context memory + Control tower -->
+        <g font-family="var(--sans)" font-size="12" fill="currentColor">
+          <rect x="90" y="610" width="560" height="110" rx="8" fill="var(--surface-2)" stroke="currentColor"/>
+          <text x="110" y="638" font-family="var(--mono)" font-size="12" letter-spacing="1.5" font-weight="600">CONTEXT MEMORY &amp; GOVERNANCE</text>
+          <text x="110" y="660" font-size="11.5" fill="var(--muted)">intents/ · units/ · as-is/ · comms/ · reviews/ · risks.md</text>
+          <text x="110" y="678" font-size="11.5" fill="var(--muted)">dor.md · dod.md (có version) · decisions-log.md (DEC-xxx)</text>
+          <text x="110" y="696" font-size="11.5" fill="var(--muted)">changelog.md · lessons-learned/ · tech-debt-register.md</text>
+
+          <rect x="860" y="596" width="322" height="124" rx="8" fill="var(--accent-bg)" stroke="var(--accent)" stroke-width="1.6"/>
+          <text x="880" y="626" font-family="var(--mono)" font-size="13" letter-spacing="1.5" font-weight="700" fill="var(--accent)">CONTROL TOWER</text>
+          <text x="880" y="648" font-size="11.5" fill="var(--muted)">pipeline board · gate queue · comms feed</text>
+          <text x="880" y="666" font-size="11.5" fill="var(--muted)">review verdicts · risks · lessons · changelog</text>
+          <text x="880" y="692" font-size="11.5" fill="currentColor">Dashboard HTML — cập nhật sau mỗi sự kiện</text>
+        </g>
+        <g stroke="currentColor" stroke-width="1.4" fill="none">
+          <line x1="370" y1="556" x2="370" y2="607" marker-end="url(#arr)"/>
+          <path d="M 650 660 H 856" marker-end="url(#arr)"/>
+          <path d="M 1040 556 V 593" marker-end="url(#arr)"/>
+        </g>
+        <text x="380" y="586" font-size="10.5" fill="var(--muted)" font-family="var(--sans)">persist</text>
+        <text x="700" y="652" font-size="10.5" fill="var(--muted)" font-family="var(--sans)">đọc state</text>
+        <text x="1050" y="580" font-size="10.5" fill="var(--muted)" font-family="var(--sans)">đọc comms</text>
+        <path d="M 1182 630 H 1216 V 90 H 1200" fill="none" stroke="var(--accent)" stroke-width="1.6" marker-end="url(#arrA)"/>
+        <text x="1226" y="370" font-size="11" fill="var(--accent)" font-family="var(--sans)" transform="rotate(90 1226 370)" text-anchor="middle">UI: tiến độ · gate đang chờ duyệt</text>
+      </svg>
+      <figcaption><strong>Cơ chế vận hành:</strong> flow chạy trái→phải qua 8 stage; tại các gate ◇ (màu cam) flow dừng chờ quyết định của anh/chị, mỗi approval thành một DEC. Review Board (xanh) móc vào stage 1–7: ba validate business info ở intent/discovery/validation và soạn decision brief cho các gate; pm-po review plan trước Gate D; tech-lead + security review design <em>trước khi code tồn tại</em>; backend/frontend/security review code; qa verify evidence trước UAT. Mọi trao đổi rơi xuống Comms Bus, persist vào Context Memory &amp; Governance, và Control Tower đọc tất cả để dựng UI.</figcaption>
+    </figure>
+
+    <h3>Thứ tự bắt buộc trong một Bolt (stage 6)</h3>
+    <p><code>DoR check (qa) → Domain Design → Logical Design → <strong>tech-lead + security review design</strong> → task board (bolt-coordinator) → contract freeze → be-dev ∥ fe-dev thực thi → <strong>BE/FE + security + qa review code &amp; tests</strong> → Fix → Gate E (dev validate) → Acceptance</code></p>
+    <p>Tech Lead và Security chặn approach sai và lỗ hổng thiết kế <em>trước khi</em> code tồn tại — rẻ hơn nhiều so với review sau. Reviewer chỉ được gọi cho phần thuộc góc nhìn của mình; bolt thuần backend không gọi frontend-reviewer.</p>
+  </section>
+
+  <section id="taskboard">
+    <div class="eyebrow">03 · Trong một Unit</div>
+    <h2>Task board: dependency rõ, claim rõ, approver được assign sẵn</h2>
+    <p>Khi một Unit đã rõ (qua Gate D), bolt-coordinator chia nó thành task board: mỗi task gắn góc nhìn (BE/FE), dependency, và <strong>approver được assign ngay từ đầu</strong> — không có task nào "xong" chỉ vì người làm nói xong. Luật cứng: <strong>task chỉ được claim khi mọi task nó phụ thuộc đã done <em>và</em> được approver có góc nhìn độc lập ký duyệt</strong>. Đoạn ráp nối nhạy cảm nhất — API giữa BE và FE — xử lý bằng contract handshake:</p>
+    <figure class="small">
+      <svg viewBox="0 0 1000 460" role="img" aria-label="Task board trong một Unit: bolt-coordinator chia task, be-dev draft API contract, fe-dev review và làm rõ qua comms, contract freeze rồi hai bên code song song, hội tụ ở integration test; bất đồng do logic sai từ đầu hoặc tài liệu thiếu được escalate lên tech-lead rồi tới người.">
+        <defs>
+          <marker id="tarr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+          <marker id="tarrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+          </marker>
+          <marker id="tarrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--blue)"/>
+          </marker>
+        </defs>
+        <g font-family="var(--sans)" font-size="12" fill="currentColor">
+          <rect x="40" y="24" width="430" height="50" rx="8" fill="var(--surface-2)" stroke="currentColor"/>
+          <text x="60" y="45" font-weight="600">bolt-coordinator</text>
+          <text x="60" y="63" font-size="10.5" fill="var(--muted)">chia UOW thành tasks · gán dependency + approver · enforce luật claim</text>
+          <line x1="120" y1="74" x2="120" y2="126" stroke="currentColor" stroke-width="1.4" marker-end="url(#tarr)"/>
+
+          <!-- BE lane -->
+          <text x="40" y="120" font-family="var(--mono)" font-size="10" letter-spacing="1.5" fill="var(--muted)">BE LANE</text>
+          <rect x="60" y="130" width="200" height="58" rx="8" fill="var(--surface-2)" stroke="currentColor"/>
+          <text x="160" y="152" text-anchor="middle" font-weight="600">TSK-03 · API contract draft</text>
+          <text x="160" y="170" text-anchor="middle" font-size="10.5" fill="var(--muted)">claim: be-dev</text>
+
+          <!-- FE lane -->
+          <text x="40" y="268" font-family="var(--mono)" font-size="10" letter-spacing="1.5" fill="var(--muted)">FE LANE</text>
+          <rect x="60" y="278" width="200" height="58" rx="8" fill="var(--surface-2)" stroke="currentColor"/>
+          <text x="160" y="300" text-anchor="middle" font-weight="600">TSK-04 · Contract review</text>
+          <text x="160" y="318" text-anchor="middle" font-size="10.5" fill="var(--muted)">claim: fe-dev · hỏi trước, không đoán</text>
+
+          <!-- handshake -->
+          <line x1="160" y1="188" x2="160" y2="274" stroke="var(--blue)" stroke-width="1.4" marker-start="url(#tarrB)" marker-end="url(#tarrB)"/>
+          <text x="172" y="228" font-size="10.5" fill="var(--blue)">MSG clarification ×n</text>
+          <text x="172" y="243" font-size="10.5" fill="var(--blue)">(pagination? error codes? auth?)</text>
+
+          <!-- freeze -->
+          <rect x="320" y="204" width="150" height="58" rx="8" fill="var(--accent-bg)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="395" y="227" text-anchor="middle" font-weight="700" fill="var(--accent)">contract.md v2</text>
+          <text x="395" y="245" text-anchor="middle" font-size="10.5" fill="var(--accent)">FREEZE — đổi là DEC</text>
+          <path d="M 260 159 H 290 V 218 H 316" fill="none" stroke="currentColor" stroke-width="1.4" marker-end="url(#tarr)"/>
+          <path d="M 260 307 H 290 V 248 H 316" fill="none" stroke="currentColor" stroke-width="1.4" marker-end="url(#tarr)"/>
+
+          <!-- parallel impl -->
+          <rect x="530" y="130" width="200" height="58" rx="8" fill="var(--surface-2)" stroke="currentColor"/>
+          <text x="630" y="152" text-anchor="middle" font-weight="600">TSK-05 · BE implement</text>
+          <text x="630" y="170" text-anchor="middle" font-size="10.5" fill="var(--muted)">approver: backend-reviewer</text>
+          <rect x="530" y="278" width="200" height="58" rx="8" fill="var(--surface-2)" stroke="currentColor"/>
+          <text x="630" y="300" text-anchor="middle" font-weight="600">TSK-06 · FE implement</text>
+          <text x="630" y="318" text-anchor="middle" font-size="10.5" fill="var(--muted)">approver: frontend-reviewer</text>
+          <path d="M 470 218 H 500 V 159 H 526" fill="none" stroke="currentColor" stroke-width="1.4" marker-end="url(#tarr)"/>
+          <path d="M 470 248 H 500 V 307 H 526" fill="none" stroke="currentColor" stroke-width="1.4" marker-end="url(#tarr)"/>
+          <text x="478" y="146" font-size="10" fill="var(--muted)">depends_on: freeze</text>
+          <text x="478" y="336" font-size="10" fill="var(--muted)">blocked tới khi freeze</text>
+
+          <!-- integration -->
+          <rect x="790" y="204" width="180" height="58" rx="8" fill="var(--surface-2)" stroke="currentColor"/>
+          <text x="880" y="227" text-anchor="middle" font-weight="600">TSK-08 · Integration</text>
+          <text x="880" y="245" text-anchor="middle" font-size="10.5" fill="var(--muted)">cả hai · approver: qa-reviewer</text>
+          <path d="M 730 159 H 760 V 218 H 786" fill="none" stroke="currentColor" stroke-width="1.4" marker-end="url(#tarr)"/>
+          <path d="M 730 307 H 760 V 248 H 786" fill="none" stroke="currentColor" stroke-width="1.4" marker-end="url(#tarr)"/>
+
+          <!-- escalation -->
+          <rect x="240" y="392" width="520" height="50" rx="8" fill="var(--accent-bg)" stroke="var(--accent)" stroke-dasharray="4 4"/>
+          <text x="500" y="413" text-anchor="middle" font-size="11.5" fill="var(--accent)" font-weight="600">Escalation: logic sai từ đầu · tài liệu thiếu gây hiểu nhầm</text>
+          <text x="500" y="431" text-anchor="middle" font-size="10.5" fill="var(--muted)">không tự sửa — bolt-coordinator → tech-lead-reviewer → gate chờ anh/chị (nếu chạm scope/business)</text>
+          <line x1="200" y1="336" x2="290" y2="388" stroke="var(--accent)" stroke-width="1.3" stroke-dasharray="3 4" marker-end="url(#tarrA)"/>
+        </g>
+      </svg>
+      <figcaption><strong>Contract handshake:</strong> fe-dev không code dựa trên phỏng đoán — TSK-04 tồn tại để cãi cho ra lẽ với be-dev qua MSG clarification (có ghi lại từng câu). Chỉ khi hai bên chốt, contract freeze; sau freeze mọi thay đổi là DEC + mở lại task phụ thuộc. Nếu gốc rễ là logic sai từ đầu hoặc tài liệu thiếu, không bên nào tự vá — escalate lên tech-lead, chạm scope thì lên anh/chị.</figcaption>
+    </figure>
+<pre><code>units/UOW-02/tasks.md                       # TASK BOARD — share cho mọi agent
+## TSK-05 · Implement GET /onboarding/personal-info
+perspective: BE
+status: review                # todo · claimed · in-progress · blocked · review · done
+claimed_by: be-dev            # claim ghi danh — một task một người nhận
+approver: backend-reviewer    # assign sẵn từ lúc tạo board, không tự chọn
+depends_on: TSK-03 (contract v2 frozen — đã được fe-dev đồng ý)
+comms: MSG-0058 (fe-dev hỏi pagination) · MSG-0060 (chốt cursor-based)
+notes: đổi offset → cursor sau trao đổi với fe-dev; contract v1→v2 (DEC-0024)</code></pre>
+    <ul>
+      <li><strong>Tuần tự khi cần, song song khi được:</strong> dependency trên board là DAG — task độc lập chạy song song; task phụ thuộc bị khóa cứng tới khi upstream <em>done + approver duyệt</em>. Không có "làm trước rồi tính".</li>
+      <li><strong>Claim minh bạch:</strong> agent claim task bằng cách ghi tên vào board (một dòng commit) — tower hiển thị ai đang giữ gì; task claimed quá lâu không tiến triển sẽ bị bolt-coordinator hỏi thăm qua MSG.</li>
+      <li><strong>Mọi liên lạc dính vào task:</strong> field <code>comms</code> nối task với đúng các MSG đã trao đổi về nó — đọc một task là thấy lịch sử ai đã nói gì với ai, vì sao quyết như vậy.</li>
+    </ul>
+  </section>
+
+  <section id="comms">
+    <div class="eyebrow">04 · Giao tiếp &amp; truy vết</div>
+    <h2>Mọi trao đổi là file, mọi quyết định là DEC, mọi thay đổi có changelog</h2>
+    <p>Agent không "nói chuyện miệng" — mọi giao tiếp đi qua message bus dạng file để truy vết được, hiển thị trên tower, và giữ qua nhiều phiên. Orchestrator route message và cập nhật status. Ba loại bản ghi tạo thành chuỗi truy vết đầy đủ:</p>
+<pre><code>context-memory/comms/MSG-0042.md          # ① TRAO ĐỔI
+---
+from: unit-planner
+to: pm-po-reviewer
+re: INT-001 / UOW-03
+type: review-request        # review-request · finding · question · answer · clarification · handoff · note
+status: answered            # open · answered · closed
+---
+Đề nghị review breakdown 5 Units cho INT-001. Risk chính: UOW-03
+phụ thuộc data migration chưa rõ scope.</code></pre>
+<pre><code>context-memory/reviews/RV-012.md          # ② REVIEW VERDICT
+---
+reviewer: tech-lead-reviewer
+target: INT-001 / UOW-03 / design.md
+verdict: request-changes    # approve · approve-with-notes · request-changes
+checklist: review-approach v2, review-infra v1
+---
+[MUST] Sync call sang legacy API sẽ timeout với batch &gt;500 records — chuyển qua queue.
+[SHOULD] Thêm Redis chỉ để cache 1 endpoint — dùng in-memory trước, ghi vào tech-debt-register.</code></pre>
+<pre><code>context-memory/decisions-log.md           # ③ QUYẾT ĐỊNH
+## DEC-0018 · 2026-08-11 · Gate D · INT-001
+- Quyết định: approve scope 5 Units, loại UOW-06 khỏi phase này
+- Người quyết: HUMAN (anh/chị) · đề xuất bởi: unit-planner
+- Căn cứ: RV-010 (pm-po approve-with-notes) · MSG-0042
+- Ảnh hưởng: units/UOW-01..05 unlocked · changelog cập nhật</code></pre>
+    <ul>
+      <li><strong>Chuỗi truy vết:</strong> mọi dòng code đều trace ngược được: <code>code → design.md → UOW spec → DEC (gate approval) → RV (review) → MSG (trao đổi) → intent</code>. Stage 8 verify chuỗi này đủ trước khi đóng intent.</li>
+      <li><strong>No silent change:</strong> agent muốn đổi bất kỳ artifact nào đã qua duyệt (spec, design, DoD…) phải tạo DEC mới + một dòng changelog; nếu thay đổi ảnh hưởng scope thì gate tương ứng mở lại chờ anh/chị. Không có ngoại lệ.</li>
+      <li><strong>Changelog hai cấp:</strong> mỗi intent có <code>changelog.md</code> riêng (những gì thay đổi trong intent đó), và changelog toàn cục ghi thay đổi về governance/skill (DoD đổi version, checklist được patch sau retro).</li>
+      <li><strong>Escalation lên người:</strong> reviewer ra <code>request-changes</code> 2 lần cho cùng artifact → orchestrator dừng, đưa bất đồng vào Gate Queue chờ anh/chị quyết.</li>
+      <li><strong>Ghi chú bắt buộc:</strong> mỗi agent kết thúc lượt làm việc phải ghi <code>note</code> tóm tắt việc đã làm + bàn giao gì — nguồn dữ liệu cho Agent Activity trên tower.</li>
+    </ul>
+  </section>
+
+  <section id="governance">
+    <div class="eyebrow">05 · Governance</div>
+    <h2>DoR / DoD: định nghĩa thành văn, có version, có lịch sử</h2>
+    <p>"Hoàn thành" và "sẵn sàng" không nằm trong đầu agent — chúng là hai tài liệu chuẩn trong <code>context-memory/governance/</code>, được mọi agent tham chiếu theo version, và chỉ được sửa qua DEC do anh/chị duyệt:</p>
+    <div class="table-scroll">
+    <table>
+      <tr><th>Tài liệu</th><th>Trả lời câu hỏi</th><th>Ai enforce · ở đâu</th></tr>
+      <tr><td>dor.md — Definition of Ready</td><td>Một Unit đủ điều kiện vào Bolt chưa? (AC đo được, dependency rõ, open questions đã đóng, dữ liệu test có sẵn…)</td><td>qa-reviewer check trước mỗi Bolt — fail thì Unit quay lại stage 5, không vào Construction</td></tr>
+      <tr><td>dod.md — Definition of Done</td><td>Một Unit được coi là xong chưa? (tests pass, quality gate, security gate — MUST findings đã đóng, evidence đủ, docs cập nhật, trace chain đủ…)</td><td>qa-reviewer + security-reviewer verify ở stage 7 — thiếu mục nào Gate F không mở</td></tr>
+    </table>
+    </div>
+<pre><code>context-memory/governance/dod.md
+---
+version: 3                  # mỗi lần sửa tăng version + 1 dòng changelog
+updated: 2026-08-11
+updated_by: DEC-0021 (đề xuất từ LL-002, anh/chị duyệt tại Gate G)
+---
+## Changelog
+- v3 · DEC-0021: thêm mục "migration script phải có rollback test" (từ lesson LL-002)
+- v2 · DEC-0009: thêm security gate — MUST findings phải đóng trước release
+- v1 · DEC-0001: bản đầu do anh/chị approve khi khởi tạo</code></pre>
+    <p class="note">Mỗi RV và mỗi lần check DoR/DoD đều ghi rõ đã dùng version nào — nên khi nhìn lại một release cũ, anh/chị biết chính xác nó được nghiệm thu theo chuẩn nào tại thời điểm đó.</p>
+  </section>
+
+  <section id="learning">
+    <div class="eyebrow">06 · Learning loop</div>
+    <h2>Retro sau mỗi release: lesson learned trở thành skill mới của agent</h2>
+    <p>Không có vòng này, agent lặp lại cùng một lỗi ở mọi intent. Sau mỗi Release (hoặc khi anh/chị gọi <code>/retro</code>), retro-keeper phân tích toàn bộ dấu vết của intent vừa xong — message nào lặp lại, review nào bị request-changes vì lý do gì, escalation nào phải lên người, gate nào bị reject — rồi chưng cất thành lesson và <em>patch cụ thể</em> vào checklist của agent liên quan:</p>
+    <figure class="small">
+      <svg viewBox="0 0 1000 250" role="img" aria-label="Vòng học: Release cấp dữ liệu cho retro-keeper, retro-keeper viết lesson learned và đề xuất patch, qua Gate G do người duyệt, patch được apply vào skill với version mới, vòng intent sau chạy với checklist đã nâng cấp.">
+        <defs>
+          <marker id="larr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+          <marker id="larrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/>
+          </marker>
+          <marker id="larrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--ok)"/>
+          </marker>
+        </defs>
+        <g font-family="var(--sans)" font-size="12" fill="currentColor">
+          <rect x="30" y="100" width="130" height="60" rx="8" fill="var(--surface-2)" stroke="currentColor"/>
+          <text x="95" y="126" text-anchor="middle" font-weight="600">8 · Release</text>
+          <text x="95" y="144" text-anchor="middle" font-size="10.5" fill="var(--muted)">intent đóng</text>
+
+          <rect x="215" y="100" width="200" height="60" rx="8" fill="var(--ok-bg)" stroke="var(--ok)"/>
+          <text x="315" y="126" text-anchor="middle" font-weight="600" fill="var(--ok)">retro-keeper</text>
+          <text x="315" y="144" text-anchor="middle" font-size="10.5" fill="var(--muted)">phân tích comms · reviews · escalations</text>
+
+          <rect x="470" y="100" width="200" height="60" rx="8" fill="var(--ok-bg)" stroke="var(--ok)"/>
+          <text x="570" y="126" text-anchor="middle" font-weight="600" fill="var(--ok)">LL-xxx + đề xuất patch</text>
+          <text x="570" y="144" text-anchor="middle" font-size="10.5" fill="var(--muted)">lesson · sửa checklist/DoD nào, vì sao</text>
+
+          <polygon points="735,105 765,130 735,155 705,130" fill="var(--accent-bg)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="735" y="135" text-anchor="middle" font-family="var(--mono)" font-size="11" fill="var(--accent)" font-weight="700">G</text>
+          <line x1="735" y1="105" x2="735" y2="62" stroke="var(--accent)" stroke-dasharray="3 4" marker-end="url(#larrA)" fill="none"/>
+          <text x="735" y="50" text-anchor="middle" font-size="10.5" fill="var(--accent)">anh/chị duyệt</text>
+
+          <rect x="800" y="100" width="180" height="60" rx="8" fill="var(--surface-2)" stroke="currentColor"/>
+          <text x="890" y="126" text-anchor="middle" font-weight="600">apply patch</text>
+          <text x="890" y="144" text-anchor="middle" font-size="10.5" fill="var(--muted)">skill vN+1 · changelog</text>
+        </g>
+        <g stroke="currentColor" stroke-width="1.4" fill="none">
+          <line x1="160" y1="130" x2="211" y2="130" marker-end="url(#larr)"/>
+          <line x1="415" y1="130" x2="466" y2="130" marker-end="url(#larr)"/>
+          <line x1="670" y1="130" x2="701" y2="130" marker-end="url(#larr)"/>
+          <line x1="765" y1="130" x2="796" y2="130" marker-end="url(#larr)"/>
+        </g>
+        <path d="M 890 100 V 30 H 95 V 96" fill="none" stroke="var(--ok)" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#larrG)"/>
+        <text x="492" y="22" text-anchor="middle" font-size="11" fill="var(--ok)" font-family="var(--sans)">intent sau chạy với checklist đã nâng cấp — lỗi cũ không lặp lại</text>
+      </svg>
+      <figcaption><strong>Luật của vòng học:</strong> retro-keeper chỉ được <em>đề xuất</em> — không agent nào tự sửa skill/DoD/định nghĩa của agent khác. Patch chỉ apply sau Gate G, và mỗi lần apply tăng version + ghi changelog, nên năng lực của đội agent tiến hóa có kiểm soát và có lịch sử đầy đủ.</figcaption>
+    </figure>
+<pre><code>context-memory/lessons-learned/LL-002.md
+---
+from_intent: INT-001
+trigger: RV-012 request-changes ×2 + escalation (queue vs sync call)
+status: applied             # proposed · approved (Gate G) · applied
+applied_to: review-approach v2→v3 · dod.md v2→v3 (DEC-0021)
+---
+Lesson: các integration với legacy API đều có batch limit không tài liệu hóa.
+Patch: thêm vào checklist review-approach: "hỏi batch limit / timeout của mọi
+external call ngay ở bước Domain Design"; thêm DoD: "migration script phải có rollback test".</code></pre>
+  </section>
+
+  <section id="tower">
+    <div class="eyebrow">07 · Control Tower</div>
+    <h2>Một màn hình trả lời: đang ở đâu, ai đang làm gì, cái gì chờ tôi</h2>
+    <p>Control Tower là dashboard HTML generate từ chính Context Memory — không phải hệ thống riêng phải nuôi. Sau mỗi sự kiện (chuyển stage, review verdict, gate mở, lesson được apply), orchestrator regenerate và cập nhật cùng một URL. Lệnh <code>/tower</code> mở xem bất cứ lúc nào:</p>
+
+    <div class="tower-mock" aria-label="Mock giao diện Control Tower">
+      <div class="tower-head">
+        <span class="t-title">🗼 CONTROL TOWER</span>
+        <span class="chip active">2 gate đang chờ anh/chị</span>
+      </div>
+      <div class="tower-grid">
+        <div class="tower-cell">
+          <h5>Gate Queue — chờ quyết định của bạn</h5>
+          <div class="gate-item"><span class="g-dot"></span><span><strong>Gate D · INT-001</strong> — duyệt scope 5 Units + DoD v3 (quality + security gate). pm-po-reviewer verdict: approve-with-notes (RV-010).</span></div>
+          <div class="gate-item"><span class="g-dot"></span><span><strong>Escalation · UOW-03</strong> — tech-lead-reviewer và bolt-executor bất đồng về queue vs sync call (2× request-changes, RV-012).</span></div>
+        </div>
+        <div class="tower-cell">
+          <h5>Pipeline Board</h5>
+          <div class="stage-row"><span class="int">INT-001</span><span class="chip done">1</span><span class="chip done">2</span><span class="chip done">3</span><span class="chip done">4</span><span class="chip active">5 ◇D</span><span class="chip">6</span><span class="chip">7</span><span class="chip">8</span></div>
+          <div class="stage-row"><span class="int">INT-002</span><span class="chip done">1</span><span class="chip active">2</span><span class="chip">3</span><span class="chip">4</span><span class="chip">5</span><span class="chip">6</span><span class="chip">7</span><span class="chip">8</span></div>
+          <h5 style="margin-top:16px">Review Verdicts</h5>
+          <div class="stage-row"><span class="verdict ok">RV-011 security · approve</span><span class="verdict ok">RV-010 pm-po · notes</span><span class="verdict rc">RV-012 tech-lead · changes</span></div>
+        </div>
+        <div class="tower-cell">
+          <h5>Comms Feed</h5>
+          <div class="feed">
+            <div><span class="frm">unit-planner</span> → <span class="frm">pm-po-reviewer</span> <span class="typ">· review-request · INT-001</span></div>
+            <div><span class="frm">qa-reviewer</span> → <span class="frm">orchestrator</span> <span class="typ">· finding · UOW-02 thiếu DoR (AC chưa đo được)</span></div>
+            <div><span class="frm">security-reviewer</span> → <span class="frm">bolt-executor</span> <span class="typ">· finding · dependency CVE-2026-xxxx</span></div>
+            <div><span class="frm">orchestrator</span> → <span class="frm">HUMAN</span> <span class="typ">· gate-open · Gate D</span></div>
+          </div>
+        </div>
+        <div class="tower-cell">
+          <h5>Activity · Risks · Lessons</h5>
+          <div class="feed">
+            <div><span class="typ">10:42</span> be-dev <span class="typ">· hoàn thành TSK-03 contract draft UOW-02</span></div>
+            <div><span class="typ">RISK-04</span> <span class="verdict rc">high</span> <span class="typ">migration case cũ chưa có câu trả lời từ client</span></div>
+            <div><span class="typ">LL-002</span> <span class="verdict ok">applied</span> <span class="typ">· review-approach v3 · dod v3 (DEC-0021)</span></div>
+          </div>
+        </div>
+        <div class="tower-cell span">
+          <h5>Task Board — UOW-02 · Personal Info</h5>
+          <div class="stage-row"><span class="int">TSK-03</span><span class="chip done">done</span><span class="typ" style="font-family:var(--mono);font-size:11.5px">API contract draft · be-dev · duyệt: fe-dev + tech-lead</span></div>
+          <div class="stage-row"><span class="int">TSK-05</span><span class="chip active">review</span><span class="typ" style="font-family:var(--mono);font-size:11.5px">BE implement · claim: be-dev · approver: backend-reviewer · comms: MSG-0058, MSG-0060</span></div>
+          <div class="stage-row"><span class="int">TSK-06</span><span class="chip">blocked</span><span class="typ" style="font-family:var(--mono);font-size:11.5px">FE implement · chưa claim — chờ TSK-05 done + approver duyệt</span></div>
+        </div>
+      </div>
+    </div>
+    <p class="note" style="margin-top:12px">Cơ chế "dừng và báo": khi một gate mở, orchestrator (1) đưa gate lên đầu Gate Queue, (2) kết thúc lượt làm việc với thông báo rõ cần anh/chị quyết gì, kèm link tower. Không có cơ chế nào cho agent tự vượt gate.</p>
+  </section>
+
+  <section id="gates">
+    <div class="eyebrow">08 · Human Gates</div>
+    <h2>Bảy điểm dừng bắt buộc</h2>
+    <div class="table-scroll">
+    <table>
+      <tr><th>Gate</th><th>Vị trí</th><th>Anh/chị quyết định gì</th></tr>
+      <tr><td>A</td><td>sau 1 · Request</td><td>Intent đúng chưa — outcome, không phải solution</td></tr>
+      <tr><td>B</td><td>sau 3 · Validation</td><td>AS-IS model đúng thực tế chưa (cùng Validation Mob)</td></tr>
+      <tr><td>C</td><td>sau 4 · Clarify</td><td>Chốt các open questions về business</td></tr>
+      <tr><td>D</td><td>sau 5 · Units</td><td>Approve scope + danh sách Units + DoD/DoR version áp dụng — sau khi pm-po-reviewer đã review</td></tr>
+      <tr><td>E</td><td>trong 6 · Construction</td><td>Validate từng bước design → code trong Bolt</td></tr>
+      <tr><td>F</td><td>sau 7 · Acceptance</td><td>UAT / approve deploy — chỉ mở khi qa-reviewer đã QC evidence và security MUST findings đã đóng</td></tr>
+      <tr><td>G</td><td>sau retro</td><td>Duyệt lesson learned + patch skill/DoD trước khi apply</td></tr>
+    </table>
+    </div>
+    <p class="note">Cộng thêm gate động: mọi escalation từ Review Board (2× request-changes), escalation teammate (logic sai từ đầu / tài liệu thiếu chạm scope), và mọi thay đổi artifact đã duyệt có ảnh hưởng scope đều thành điểm dừng chờ anh/chị. Tại mỗi gate A–D, ba-reviewer đính kèm <strong>decision brief</strong> (bối cảnh · phương án · trade-off · khuyến nghị) để anh/chị quyết nhanh, có căn cứ.</p>
+  </section>
+
+  <section id="plan">
+    <div class="eyebrow">09 · Triển khai</div>
+    <h2>Kế hoạch scaffold sau khi được duyệt</h2>
+    <ol class="plan">
+      <li><strong><code>.claude/agents/</code></strong> — 17 agent definitions: 9 pipeline (có bolt-coordinator, be-dev, fe-dev) + 7 review board (có ba-reviewer) + retro-keeper, mỗi file ghi rõ vai trò, input/output, giao thức comms, luật claim và điều kiện gate.</li>
+      <li><strong><code>.claude/skills/</code></strong> — commands điều khiển flow: <code>/intent</code> <code>/discover</code> <code>/validate</code> <code>/units</code> <code>/bolt</code> <code>/tasks</code> <code>/accept</code> <code>/retro</code> <code>/status</code> <code>/tower</code> + ~20 review checklists có version cho Review Board.</li>
+      <li><strong><code>context-memory/</code></strong> — cấu trúc template: intents/, comms/, reviews/, lessons-learned/, governance/ (dor.md v1 + dod.md v1 để anh/chị duyệt nội dung ban đầu), decisions-log.md, changelog.md, risks.md, tech-debt-register.md.</li>
+      <li><strong>Control Tower generator</strong> — script đọc context-memory → render dashboard, publish lần đầu để anh/chị có URL cố định.</li>
+      <li><strong>CLAUDE.md</strong> — cập nhật để mọi phiên Claude Code sau đều hiểu đội hình, giao thức, luật gate và luật no-silent-change.</li>
+      <li><strong>Dry-run</strong> — chạy thử 1 intent mẫu (Foreign National Onboarding từ tài liệu AI-DLC) tới Gate D để anh/chị thấy flow, comms, DoR check và tower hoạt động thật.</li>
+    </ol>
+  </section>
+
+  <div class="approve-box">
+    <h2>Chờ anh/chị duyệt</h2>
+    <p>Bản v3 bổ sung thêm: tầng thực thi trong Unit (bolt-coordinator + be-dev/fe-dev với góc nhìn riêng), task board có dependency — claim — approver assign sẵn, contract handshake FE↔BE trước khi code (trao đổi teammate có ghi lại, escalate khi logic sai từ đầu hoặc tài liệu thiếu), và ba-reviewer hỗ trợ anh/chị ra quyết định bằng decision brief tại gate A–D. Nếu đồng ý toàn bộ, trả lời <strong>"ổn"</strong> — tôi sẽ scaffold theo kế hoạch mục 09.</p>
+    <p class="note">Muốn chỉnh phần nào (thêm/bớt reviewer, đổi vị trí gate, nội dung DoR/DoD ban đầu, thông tin tower hiển thị) — nói rõ, tôi cập nhật bản vẽ này trước rồi mới triển khai.</p>
+  </div>
+</div>
