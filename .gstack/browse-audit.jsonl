@@ -1,0 +1,6 @@
+{"ts":"2026-08-11T15:05:25.007Z","cmd":"goto","args":"http://127.0.0.1:8642/?token=21OZ_JRG8DBycA37","origin":"http://127.0.0.1:8642/?token=21OZ_JRG8DBycA37","durationMs":847,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-08-11T15:05:29.080Z","cmd":"console","args":"--errors","origin":"http://127.0.0.1:8642/?token=21OZ_JRG8DBycA37","durationMs":2,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-08-11T15:05:29.233Z","cmd":"screenshot","args":"/tmp/tower-v2.png","origin":"http://127.0.0.1:8642/?token=21OZ_JRG8DBycA37","durationMs":124,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-08-11T15:05:50.795Z","cmd":"snapshot","args":"-i","origin":"http://127.0.0.1:8642/?token=21OZ_JRG8DBycA37","durationMs":14,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-08-11T15:05:50.861Z","cmd":"click","args":"text=Gate B","origin":"http://127.0.0.1:8642/?token=21OZ_JRG8DBycA37","durationMs":37,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-08-11T15:05:51.960Z","cmd":"screenshot","args":"/tmp/tower-gate.png","origin":"http://127.0.0.1:8642/?token=21OZ_JRG8DBycA37","durationMs":28,"status":"ok","hasCookies":false,"mode":"launched"}

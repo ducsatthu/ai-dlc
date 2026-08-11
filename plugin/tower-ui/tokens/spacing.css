@@ -1,0 +1,18 @@
+/* Spacing + layout */
+:root{
+  --sp-1:2px; --sp-2:4px; --sp-3:6px; --sp-4:8px; --sp-5:10px; --sp-6:12px;
+  --sp-7:14px; --sp-8:16px; --sp-9:20px; --sp-10:24px; --sp-11:28px;
+  --sp-12:32px; --sp-14:48px; --sp-15:56px; --sp-16:64px; --sp-18:96px;
+
+  --gap-chip:6px;        /* stage chip rows */
+  --gap-inline:10px;
+  --gap-stack:8px;
+  --pad-cell:10px 12px;  /* table cell */
+  --pad-panel:16px 20px; /* tower cell */
+  --pad-card:20px;
+  --pad-page:48px 24px 96px;
+
+  --width-doc:1100px;    /* blueprint */
+  --width-doc-narrow:980px; /* simulation */
+  --section-gap:64px;
+}
