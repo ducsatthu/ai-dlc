@@ -1,0 +1,47 @@
+/* Colors — exact values from docs/agent-team-blueprint.html + docs/simulation-phase2-pct.html */
+:root{
+  /* base — light (document surfaces) */
+  --bg:#F2F4F6; --surface:#FFFFFF; --surface-2:#E9EDF1;
+  --ink:#18222C; --muted:#5B6874; --line:#CFD7DE;
+  --accent:#B96E00; --accent-bg:rgba(185,110,0,0.10);
+  --blue:#33689E; --blue-bg:rgba(51,104,158,0.10);
+  --ok:#2E7D4F; --ok-bg:rgba(46,125,79,0.10);
+  /* derived (not in source — see readme "Intentional additions") */
+  --danger:#A83B2B; --danger-bg:rgba(168,59,43,0.10);
+  --on-accent:#FFFFFF;
+
+  /* semantic aliases */
+  --surface-page:var(--bg);
+  --surface-card:var(--surface);
+  --surface-sunken:var(--surface-2);
+  --text-body:var(--ink);
+  --text-muted:var(--muted);
+  --text-invert:#FFFFFF;
+  --border-default:var(--line);
+  --border-strong:var(--ink);
+  /* status semantics — consistent app-wide */
+  --status-gate:var(--accent);        /* cần con người quyết: gate, escalation */
+  --status-gate-bg:var(--accent-bg);
+  --status-agent:var(--blue);         /* hoạt động của agent / review */
+  --status-agent-bg:var(--blue-bg);
+  --status-done:var(--ok);            /* done / approved */
+  --status-done-bg:var(--ok-bg);
+  --status-pending:var(--muted);      /* chưa tới lượt */
+  --status-pending-bg:transparent;
+  --status-blocked:var(--danger);
+  --status-blocked-bg:var(--danger-bg);
+}
+:root[data-theme="dark"]{
+  --bg:#0E1419; --surface:#161D24; --surface-2:#1D262F;
+  --ink:#E6ECF2; --muted:#93A1AE; --line:#2A3540;
+  --accent:#E9A23B; --accent-bg:rgba(233,162,59,0.13);
+  --blue:#7FAEDC; --blue-bg:rgba(127,174,220,0.12);
+  --ok:#58B383; --ok-bg:rgba(88,179,131,0.13);
+  --danger:#E1786A; --danger-bg:rgba(225,120,106,0.13);
+  --on-accent:#10151B;
+  --text-invert:#10151B;
+}
+/* Theme is set explicitly with data-theme on <html> ("dark" for the console, "light" for
+   documents). An OS-preference block would have to redeclare every token under a selector the
+   token compiler can't register, so consumers opt in instead:
+   document.documentElement.dataset.theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; */

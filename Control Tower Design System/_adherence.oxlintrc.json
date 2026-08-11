@@ -1,0 +1,503 @@
+{
+  "plugins": [
+    "react",
+    "import"
+  ],
+  "rules": {
+    "react/forbid-elements": [
+      "warn",
+      {
+        "forbid": []
+      }
+    ],
+    "no-restricted-imports": [
+      "warn",
+      {
+        "patterns": [
+          {
+            "group": [
+              "components/core/**",
+              "components/diagrams/**",
+              "components/tower/**",
+              "ui_kits/control-tower/**",
+              "ui_kits/engineering-docs/**"
+            ],
+            "message": "Import design-system components from 'index.js', not component internals."
+          }
+        ]
+      }
+    ],
+    "no-restricted-syntax": [
+      "warn",
+      {
+        "selector": "Literal[value=/#[0-9a-fA-F]{3,8}\\b/]",
+        "message": "Raw hex color — use a design-system color token via var()."
+      },
+      {
+        "selector": "Literal[value=/\\b\\d+px\\b/]",
+        "message": "Raw px value — use a design-system spacing token via var()."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='AgentAvatar'] > JSXAttribute > JSXIdentifier[name!=/^(?:name|lane|size|withName|key|ref|className|style|children)$/]",
+        "message": "<AgentAvatar> doesn't accept that prop. Declared props: name, lane, size, withName."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='AgentAvatar'] > JSXAttribute[name.name='lane'] > Literal[value!=/^(?:pipeline|review|human|learning)$/]",
+        "message": "<AgentAvatar> lane must be one of 'pipeline' | 'review' | 'human' | 'learning'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='WorkStep'] > JSXAttribute > JSXIdentifier[name!=/^(?:label|state|key|ref|className|style|children)$/]",
+        "message": "<WorkStep> doesn't accept that prop. Declared props: label, state."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='WorkStep'] > JSXAttribute[name.name='state'] > Literal[value!=/^(?:done|doing|todo)$/]",
+        "message": "<WorkStep> state must be one of 'done' | 'doing' | 'todo'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute > JSXIdentifier[name!=/^(?:variant|size|disabled|full|children|key|ref|className|style|children)$/]",
+        "message": "<Button> doesn't accept that prop. Declared props: variant, size, disabled, full, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute[name.name='variant'] > Literal[value!=/^(?:primary|secondary|ghost|danger|ok)$/]",
+        "message": "<Button> variant must be one of 'primary' | 'secondary' | 'ghost' | 'danger' | 'ok'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute[name.name='size'] > Literal[value!=/^(?:sm|md|lg)$/]",
+        "message": "<Button> size must be one of 'sm' | 'md' | 'lg'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Callout'] > JSXAttribute > JSXIdentifier[name!=/^(?:tone|children|key|ref|className|style|children)$/]",
+        "message": "<Callout> doesn't accept that prop. Declared props: tone, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Callout'] > JSXAttribute[name.name='tone'] > Literal[value!=/^(?:agent|gate|done)$/]",
+        "message": "<Callout> tone must be one of 'agent' | 'gate' | 'done'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Chip'] > JSXAttribute > JSXIdentifier[name!=/^(?:tone|children|key|ref|className|style|children)$/]",
+        "message": "<Chip> doesn't accept that prop. Declared props: tone, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Chip'] > JSXAttribute[name.name='tone'] > Literal[value!=/^(?:pending|done|active|agent|blocked|here|neutral)$/]",
+        "message": "<Chip> tone must be one of 'pending' | 'done' | 'active' | 'agent' | 'blocked' | 'here' | 'neutral'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='DataTable'] > JSXAttribute > JSXIdentifier[name!=/^(?:columns|rows|monoFirst|key|ref|className|style|children)$/]",
+        "message": "<DataTable> doesn't accept that prop. Declared props: columns, rows, monoFirst."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Eyebrow'] > JSXAttribute > JSXIdentifier[name!=/^(?:rule|children|key|ref|className|style|children)$/]",
+        "message": "<Eyebrow> doesn't accept that prop. Declared props: rule, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='FeedItem'] > JSXAttribute > JSXIdentifier[name!=/^(?:time|id|from|to|type|summary|isNew|onClick|key|ref|className|style|children)$/]",
+        "message": "<FeedItem> doesn't accept that prop. Declared props: time, id, from, to, type, summary, isNew, onClick."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='FeedItem'] > JSXAttribute[name.name='type'] > Literal[value!=/^(?:review-request|finding|question|answer|clarification|handoff|note|decision|escalation)$/]",
+        "message": "<FeedItem> type must be one of 'review-request' | 'finding' | 'question' | 'answer' | 'clarification' | 'handoff' | 'note' | 'decision' | 'escalation'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='GateCard'] > JSXAttribute > JSXIdentifier[name!=/^(?:gate|target|title|brief|options|recommendation|evidence|kind|expanded|defaultExpanded|onApprove|onReject|onDiscuss|key|ref|className|style|children)$/]",
+        "message": "<GateCard> doesn't accept that prop. Declared props: gate, target, title, brief, options, recommendation, evidence, kind, expanded, defaultExpanded, onApprove, onReject, onDiscuss."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='GateCard'] > JSXAttribute[name.name='kind'] > Literal[value!=/^(?:gate|escalation)$/]",
+        "message": "<GateCard> kind must be one of 'gate' | 'escalation'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='GateStop'] > JSXAttribute > JSXIdentifier[name!=/^(?:label|children|key|ref|className|style|children)$/]",
+        "message": "<GateStop> doesn't accept that prop. Declared props: label, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='IdCode'] > JSXAttribute > JSXIdentifier[name!=/^(?:variant|children|key|ref|className|style|children)$/]",
+        "message": "<IdCode> doesn't accept that prop. Declared props: variant, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='IdCode'] > JSXAttribute[name.name='variant'] > Literal[value!=/^(?:plain|inline|artifact)$/]",
+        "message": "<IdCode> variant must be one of 'plain' | 'inline' | 'artifact'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='KpiItem'] > JSXAttribute > JSXIdentifier[name!=/^(?:value|label|tone|key|ref|className|style|children)$/]",
+        "message": "<KpiItem> doesn't accept that prop. Declared props: value, label, tone."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='KpiItem'] > JSXAttribute[name.name='tone'] > Literal[value!=/^(?:gate|agent|done|neutral)$/]",
+        "message": "<KpiItem> tone must be one of 'gate' | 'agent' | 'done' | 'neutral'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='MermaidDiagram'] > JSXAttribute > JSXIdentifier[name!=/^(?:chart|caption|scroll|key|ref|className|style|children)$/]",
+        "message": "<MermaidDiagram> doesn't accept that prop. Declared props: chart, caption, scroll."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Panel'] > JSXAttribute > JSXIdentifier[name!=/^(?:title|meta|pad|flush|children|key|ref|className|style|children)$/]",
+        "message": "<Panel> doesn't accept that prop. Declared props: title, meta, pad, flush, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='PipelineRow'] > JSXAttribute > JSXIdentifier[name!=/^(?:id|name|current|gate|holder|holderLane|onClick|key|ref|className|style|children)$/]",
+        "message": "<PipelineRow> doesn't accept that prop. Declared props: id, name, current, gate, holder, holderLane, onClick."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='PipelineRow'] > JSXAttribute[name.name='holderLane'] > Literal[value!=/^(?:pipeline|review|human|learning)$/]",
+        "message": "<PipelineRow> holderLane must be one of 'pipeline' | 'review' | 'human' | 'learning'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='StageStrip'] > JSXAttribute > JSXIdentifier[name!=/^(?:current|gate|labels|compact|key|ref|className|style|children)$/]",
+        "message": "<StageStrip> doesn't accept that prop. Declared props: current, gate, labels, compact."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='StatusChip'] > JSXAttribute > JSXIdentifier[name!=/^(?:tone|dot|children|key|ref|className|style|children)$/]",
+        "message": "<StatusChip> doesn't accept that prop. Declared props: tone, dot, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='StatusChip'] > JSXAttribute[name.name='tone'] > Literal[value!=/^(?:gate|agent|done|danger|muted)$/]",
+        "message": "<StatusChip> tone must be one of 'gate' | 'agent' | 'done' | 'danger' | 'muted'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Tag'] > JSXAttribute > JSXIdentifier[name!=/^(?:kind|children|key|ref|className|style|children)$/]",
+        "message": "<Tag> doesn't accept that prop. Declared props: kind, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Tag'] > JSXAttribute[name.name='kind'] > Literal[value!=/^(?:pipeline|review|human|learning)$/]",
+        "message": "<Tag> kind must be one of 'pipeline' | 'review' | 'human' | 'learning'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='TaskRow'] > JSXAttribute > JSXIdentifier[name!=/^(?:id|title|status|claimedBy|approver|dependsOn|msgCount|onClick|key|ref|className|style|children)$/]",
+        "message": "<TaskRow> doesn't accept that prop. Declared props: id, title, status, claimedBy, approver, dependsOn, msgCount, onClick."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='TaskRow'] > JSXAttribute[name.name='status'] > Literal[value!=/^(?:todo|claimed|in-progress|blocked|review|done)$/]",
+        "message": "<TaskRow> status must be one of 'todo' | 'claimed' | 'in-progress' | 'blocked' | 'review' | 'done'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='TimelineItem'] > JSXAttribute > JSXIdentifier[name!=/^(?:actor|lane|heading|last|children|key|ref|className|style|children)$/]",
+        "message": "<TimelineItem> doesn't accept that prop. Declared props: actor, lane, heading, last, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='TimelineItem'] > JSXAttribute[name.name='lane'] > Literal[value!=/^(?:agent|human)$/]",
+        "message": "<TimelineItem> lane must be one of 'agent' | 'human'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='TraceStep'] > JSXAttribute > JSXIdentifier[name!=/^(?:kind|id|note|key|ref|className|style|children)$/]",
+        "message": "<TraceStep> doesn't accept that prop. Declared props: kind, id, note."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='TraceStep'] > JSXAttribute[name.name='kind'] > Literal[value!=/^(?:code|design|spec|task|dec|gate|rv|msg|intent)$/]",
+        "message": "<TraceStep> kind must be one of 'code' | 'design' | 'spec' | 'task' | 'dec' | 'gate' | 'rv' | 'msg' | 'intent'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='VerdictBadge'] > JSXAttribute > JSXIdentifier[name!=/^(?:id|reviewer|verdict|key|ref|className|style|children)$/]",
+        "message": "<VerdictBadge> doesn't accept that prop. Declared props: id, reviewer, verdict."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='VerdictBadge'] > JSXAttribute[name.name='verdict'] > Literal[value!=/^(?:approve|approve-with-notes|request-changes)$/]",
+        "message": "<VerdictBadge> verdict must be one of 'approve' | 'approve-with-notes' | 'request-changes'."
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/index.js"
+      ],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ],
+  "x-omelette": {
+    "components": {
+      "AgentAvatar": {
+        "replaces": []
+      },
+      "WorkStep": {
+        "replaces": []
+      },
+      "Button": {
+        "replaces": []
+      },
+      "Callout": {
+        "replaces": []
+      },
+      "Chip": {
+        "replaces": []
+      },
+      "DataTable": {
+        "replaces": []
+      },
+      "Eyebrow": {
+        "replaces": []
+      },
+      "FeedItem": {
+        "replaces": []
+      },
+      "GateCard": {
+        "replaces": []
+      },
+      "GateStop": {
+        "replaces": []
+      },
+      "IdCode": {
+        "replaces": []
+      },
+      "KpiItem": {
+        "replaces": []
+      },
+      "MermaidDiagram": {
+        "replaces": []
+      },
+      "Panel": {
+        "replaces": []
+      },
+      "PipelineRow": {
+        "replaces": []
+      },
+      "StageStrip": {
+        "replaces": []
+      },
+      "StatusChip": {
+        "replaces": []
+      },
+      "Tag": {
+        "replaces": []
+      },
+      "TaskRow": {
+        "replaces": []
+      },
+      "TimelineItem": {
+        "replaces": []
+      },
+      "TraceStep": {
+        "replaces": []
+      },
+      "VerdictBadge": {
+        "replaces": []
+      }
+    },
+    "tokens": [
+      "--accent",
+      "--accent-bg",
+      "--bg",
+      "--blue",
+      "--blue-bg",
+      "--border-default",
+      "--border-emphasis",
+      "--border-frame",
+      "--border-hair",
+      "--border-rule",
+      "--border-strong",
+      "--danger",
+      "--danger-bg",
+      "--dur-enter",
+      "--dur-fast",
+      "--dur-pulse",
+      "--ease-standard",
+      "--font-mono",
+      "--font-sans",
+      "--fs-body",
+      "--fs-body-sm",
+      "--fs-caption",
+      "--fs-h1",
+      "--fs-h2",
+      "--fs-h3",
+      "--fs-lede",
+      "--fs-micro",
+      "--fs-mono-xs",
+      "--fs-row",
+      "--fs-sm",
+      "--fw-bold",
+      "--fw-display",
+      "--fw-medium",
+      "--fw-normal",
+      "--fw-semibold",
+      "--gap-chip",
+      "--gap-inline",
+      "--gap-stack",
+      "--ink",
+      "--lh-body",
+      "--lh-feed",
+      "--lh-heading",
+      "--lh-mono",
+      "--lh-tight",
+      "--line",
+      "--ls-chip",
+      "--ls-eyebrow",
+      "--ls-h1",
+      "--ls-h2",
+      "--ls-label",
+      "--measure-note",
+      "--measure-prose",
+      "--mono",
+      "--muted",
+      "--ok",
+      "--ok-bg",
+      "--on-accent",
+      "--pad-card",
+      "--pad-cell",
+      "--pad-page",
+      "--pad-panel",
+      "--radius-chip",
+      "--radius-lg",
+      "--radius-md",
+      "--radius-pill",
+      "--radius-sm",
+      "--radius-xl",
+      "--sans",
+      "--section-gap",
+      "--shadow-none",
+      "--shadow-overlay",
+      "--sp-1",
+      "--sp-10",
+      "--sp-11",
+      "--sp-12",
+      "--sp-14",
+      "--sp-15",
+      "--sp-16",
+      "--sp-18",
+      "--sp-2",
+      "--sp-3",
+      "--sp-4",
+      "--sp-5",
+      "--sp-6",
+      "--sp-7",
+      "--sp-8",
+      "--sp-9",
+      "--status-agent",
+      "--status-agent-bg",
+      "--status-blocked",
+      "--status-blocked-bg",
+      "--status-done",
+      "--status-done-bg",
+      "--status-gate",
+      "--status-gate-bg",
+      "--status-pending",
+      "--status-pending-bg",
+      "--surface",
+      "--surface-2",
+      "--surface-card",
+      "--surface-page",
+      "--surface-sunken",
+      "--text-body",
+      "--text-eyebrow-size",
+      "--text-id-family",
+      "--text-invert",
+      "--text-muted",
+      "--text-reading-family",
+      "--width-doc",
+      "--width-doc-narrow"
+    ],
+    "tokenKinds": {
+      "--bg": "color",
+      "--surface": "color",
+      "--surface-2": "color",
+      "--ink": "color",
+      "--muted": "color",
+      "--line": "color",
+      "--accent": "color",
+      "--accent-bg": "color",
+      "--blue": "color",
+      "--blue-bg": "color",
+      "--ok": "color",
+      "--ok-bg": "color",
+      "--danger": "color",
+      "--danger-bg": "color",
+      "--on-accent": "color",
+      "--surface-page": "color",
+      "--surface-card": "color",
+      "--surface-sunken": "color",
+      "--text-body": "font",
+      "--text-muted": "font",
+      "--text-invert": "font",
+      "--border-default": "color",
+      "--border-strong": "color",
+      "--status-gate": "color",
+      "--status-gate-bg": "color",
+      "--status-agent": "color",
+      "--status-agent-bg": "color",
+      "--status-done": "color",
+      "--status-done-bg": "color",
+      "--status-pending": "color",
+      "--status-pending-bg": "color",
+      "--status-blocked": "color",
+      "--status-blocked-bg": "color",
+      "--font-sans": "font",
+      "--font-mono": "font",
+      "--sans": "color",
+      "--mono": "color",
+      "--fs-micro": "spacing",
+      "--fs-mono-xs": "spacing",
+      "--fs-caption": "spacing",
+      "--fs-sm": "spacing",
+      "--fs-row": "spacing",
+      "--fs-body-sm": "spacing",
+      "--fs-body": "spacing",
+      "--fs-lede": "spacing",
+      "--fs-h3": "spacing",
+      "--fs-h2": "spacing",
+      "--fs-h1": "font",
+      "--fw-normal": "font",
+      "--fw-medium": "font",
+      "--fw-semibold": "font",
+      "--fw-bold": "font",
+      "--fw-display": "font",
+      "--lh-tight": "font",
+      "--lh-heading": "font",
+      "--lh-body": "font",
+      "--lh-mono": "font",
+      "--lh-feed": "font",
+      "--ls-eyebrow": "font",
+      "--ls-label": "font",
+      "--ls-chip": "font",
+      "--ls-h1": "font",
+      "--ls-h2": "font",
+      "--text-eyebrow-size": "font",
+      "--text-id-family": "font",
+      "--text-reading-family": "font",
+      "--measure-prose": "other",
+      "--measure-note": "other",
+      "--sp-1": "spacing",
+      "--sp-2": "spacing",
+      "--sp-3": "spacing",
+      "--sp-4": "spacing",
+      "--sp-5": "spacing",
+      "--sp-6": "spacing",
+      "--sp-7": "spacing",
+      "--sp-8": "spacing",
+      "--sp-9": "spacing",
+      "--sp-10": "spacing",
+      "--sp-11": "spacing",
+      "--sp-12": "spacing",
+      "--sp-14": "spacing",
+      "--sp-15": "spacing",
+      "--sp-16": "spacing",
+      "--sp-18": "spacing",
+      "--gap-chip": "spacing",
+      "--gap-inline": "spacing",
+      "--gap-stack": "spacing",
+      "--pad-cell": "spacing",
+      "--pad-panel": "spacing",
+      "--pad-card": "spacing",
+      "--pad-page": "spacing",
+      "--width-doc": "spacing",
+      "--width-doc-narrow": "spacing",
+      "--section-gap": "spacing",
+      "--radius-chip": "radius",
+      "--radius-sm": "radius",
+      "--radius-md": "radius",
+      "--radius-lg": "radius",
+      "--radius-xl": "radius",
+      "--radius-pill": "radius",
+      "--border-hair": "color",
+      "--border-emphasis": "color",
+      "--border-rule": "color",
+      "--border-frame": "color",
+      "--shadow-none": "shadow",
+      "--shadow-overlay": "shadow",
+      "--ease-standard": "other",
+      "--dur-fast": "other",
+      "--dur-enter": "other",
+      "--dur-pulse": "other"
+    },
+    "fontFamilies": []
+  }
+}

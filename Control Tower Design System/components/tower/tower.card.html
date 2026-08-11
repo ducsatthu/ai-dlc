@@ -1,0 +1,50 @@
+<!-- @dsCard group="Components" viewport="700x400" name="Control Tower blocks" subtitle="Gate card, KPI strip, pipeline row, task row, feed" -->
+<!DOCTYPE html><html lang="vi" data-theme="dark"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;padding:16px 20px}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);width:78px;flex:none}</style>
+</head><body><div id="root"></div>
+<script type="text/babel">
+const NS = window.ControlTowerDesignSystem_68131c;
+
+const { KpiStrip, GateCard, PipelineRow, TaskRow, FeedItem, VerdictBadge, AgentAvatar, Panel } = NS;
+function Card(){return (<div style={{display:'flex',flexDirection:'column',gap:14}}>
+  <KpiStrip items={[{value:2,label:'Gates chờ tôi',tone:'gate'},{value:1,label:'Escalations',tone:'gate'},{value:2,label:'Bolts đang chạy',tone:'agent'},{value:3,label:'Units done tuần này',tone:'done'}]}/>
+  <GateCard gate="D" target="INT-001" defaultExpanded
+    title="Duyệt scope 4 Units + DoD v1"
+    brief="unit-planner đề xuất 4 Units; pm-po verdict approve-with-notes (RV-010)."
+    options={['Approve cả 4 Units — UOW-04 Backlog còn chờ dữ liệu LakeHouse','Approve 01–03, quyết riêng 04 sau khi LakeHouse nối xong']}
+    recommendation="approve 01–03, quyết riêng 04"
+    evidence={['RV-010','risks.md']}/>
+  <GateCard kind="escalation" target="UOW-03" title="tech-lead vs be-dev bất đồng: sync call legacy API sẽ timeout batch >500"
+    brief="2× request-changes (RV-012) — đề xuất chuyển sang queue."/>
+  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
+    <Panel title="Pipeline board" pad={false}>
+      <PipelineRow id="INT-001" name="Phase 2 PCT" current={5} gate="D" holder="unit-planner"/>
+      <PipelineRow id="INT-002" name="Slack reminder FB-012" current={2} holder="context-archaeologist"/>
+      <div style={{display:'flex',gap:6,padding:'10px 16px',flexWrap:'wrap'}}>
+        <VerdictBadge id="RV-011" reviewer="security" verdict="approve"/>
+        <VerdictBadge id="RV-012" reviewer="tech-lead" verdict="request-changes"/>
+      </div>
+    </Panel>
+    <Panel title="Live feed" meta="realtime" pad={false}>
+      <FeedItem isNew time="14:22" id="MSG-0058" from="fe-dev" to="be-dev" type="clarification" summary="status enum trả code hay label? i18n phía nào?"/>
+      <FeedItem time="14:19" id="RV-011" from="security" to="bolt-1" type="review-request" summary="threat model OK, không có MUST finding"/>
+      <FeedItem time="14:04" id="DEC-0018" from="orchestrator" type="decision" summary="Gate C đóng — backlog đi mock-first"/>
+    </Panel>
+  </div>
+  <Panel title="UOW-01 · Bolt 1 — task board" meta="3/5 done" pad={false}>
+    <TaskRow id="TSK-01" status="done" title="API contract draft + freeze" claimedBy="be-dev" approver="tech-lead" msgCount={4}/>
+    <TaskRow id="TSK-02" status="in-progress" title="BE: migration + model + service + tests" claimedBy="be-dev" approver="backend-reviewer" dependsOn="TSK-01"/>
+    <TaskRow id="TSK-04" status="blocked" title="FE: SCR-REL-11 popup nối API thật" approver="frontend-reviewer" dependsOn="TSK-02"/>
+  </Panel>
+  <div className="row" style={{marginBottom:0}}><span className="lbl">Agents</span>
+    <AgentAvatar name="be-dev" withName/><AgentAvatar name="fe-dev" withName/>
+    <AgentAvatar name="tech-lead-reviewer" lane="review" withName/><AgentAvatar name="retro-keeper" lane="learning" withName/>
+  </div>
+</div>);}
+ReactDOM.createRoot(document.getElementById('root')).render(<Card/>);
+</script></body></html>

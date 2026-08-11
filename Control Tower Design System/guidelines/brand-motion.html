@@ -1,0 +1,9 @@
+<!-- @dsCard group="Brand" viewport="700x150" name="Motion" subtitle="220ms slide-in for new rows, one-time highlight for new gates, 1.6s breathing empty state" -->
+<!DOCTYPE html><html lang="en" data-theme="dark"><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css"><style>body{margin:0;padding:16px 20px;font-family:var(--sans)}.g{display:flex;gap:10px;flex-wrap:wrap}.sw{flex:1;min-width:96px}.chipbox{height:52px;border-radius:var(--radius-md);border:1px solid var(--line)}.n{font-family:var(--mono);font-size:11px;color:var(--ink);margin-top:6px;display:block}.v{font-family:var(--mono);font-size:10.5px;color:var(--muted);display:block}.lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}</style></head><body>
+<style>@keyframes slidein{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}@keyframes breathe{0%,100%{opacity:.45}50%{opacity:1}}
+.demo{font-family:var(--mono);font-size:12px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}</style>
+<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+<div class="demo" style="border-left:2px solid var(--accent);animation:slidein 220ms cubic-bezier(.2,0,0,1) infinite alternate">feed row · 220ms slide-in</div>
+<div class="demo" style="color:var(--muted);animation:breathe 1600ms ease-in-out infinite">Không có gì chờ bạn — agents đang làm việc</div>
+<div class="demo" style="color:var(--accent);border-color:var(--accent);background:var(--accent-bg)">gate mới · nổi bật 1 lần rồi tĩnh</div>
+</div></body></html>

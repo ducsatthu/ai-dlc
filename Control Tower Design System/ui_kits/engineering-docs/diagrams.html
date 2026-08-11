@@ -1,0 +1,79 @@
+<!-- @dsCard group="Engineering Docs" viewport="1100x820" name="Agent comms diagrams" subtitle="Topology, gate flow, contract handshake, escalation, task graph, trace chain" -->
+<!DOCTYPE html><html lang="vi" data-theme="light"><head><meta charset="utf-8"><title>Agents giao tiếp thế nào — biểu đồ</title>
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="../../components/diagrams/DIAGRAMS.js"></script>
+<style>html,body{margin:0}h1,h2,p{text-wrap:pretty}</style></head><body><div id="root"></div>
+<script type="text/babel">
+(function(){
+const NS = window.ControlTowerDesignSystem_68131c;
+const { Eyebrow, StatusChip, MermaidDiagram, Callout, IdCode } = NS;
+const D = window.CT_DIAGRAMS;
+
+function Section({ n, title, lede, chart, caption }) {
+  return (
+    <section style={{ marginTop: 64 }}>
+      <Eyebrow>{n}</Eyebrow>
+      <h2 style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.01em', marginBottom: 12 }}>{title}</h2>
+      {lede && <p style={{ maxWidth: '68ch', marginBottom: 0 }}>{lede}</p>}
+      <MermaidDiagram chart={chart} caption={caption} />
+    </section>
+  );
+}
+
+function DiagramsDoc() {
+  return (
+    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '48px 24px 96px' }}>
+      <header style={{ borderBottom: '2px solid var(--ink)', paddingBottom: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
+          <div style={{ fontFamily: 'var(--mono)', fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted)' }}>AI-DLC · Engineering process · TechTus</div>
+          <StatusChip tone="agent">BIỂU ĐỒ · MERMAID</StatusChip>
+        </div>
+        <h1 style={{ fontSize: 'clamp(28px,4.5vw,44px)', fontWeight: 750, letterSpacing: '-0.02em', lineHeight: 1.12, margin: '10px 0 12px' }}>Agents giao tiếp với nhau thế nào</h1>
+        <p style={{ maxWidth: '68ch', color: 'var(--muted)', fontSize: 17, margin: 0 }}>
+          Sáu biểu đồ trả lời sáu câu hỏi khác nhau: đội hình nối với nhau ra sao, flow dừng ở đâu, hai dev agent chốt contract kiểu gì, bất đồng bị đẩy lên người lúc nào, task nào khoá task nào, và một dòng code truy ngược về đâu.
+        </p>
+      </header>
+
+      <Section n="01 · Đội hình" title="Bốn nhóm nối qua một Comms Bus"
+        lede="Không agent nào gọi thẳng agent khác ngoài luồng: mọi trao đổi đi qua Comms Bus và trở thành file có ID. Control Tower chỉ đọc bus và hiển thị."
+        chart={D.topology}
+        caption="Pipeline đẩy việc; Review Board ra verdict; retro-keeper đọc lại toàn bộ bus sau release để rút lesson. Người chỉ đứng ở một chỗ — cuối bus, tại gate." />
+
+      <Section n="02 · Điểm dừng" title="Tám stage, bảy gate — không có đường vòng"
+        lede="Gate là điểm dừng bắt buộc. Orchestrator không cho stage sau chạy khi gate trước chưa có quyết định của người."
+        chart={D.gates}
+        caption="◇ = gate chờ người duyệt. Gate E lặp lại trong mỗi Bolt (design + contract, rồi demo)." />
+
+      <Section n="03 · Hai dev agent" title="Contract handshake: hỏi trước, code sau"
+        lede="fe-dev có quyền chặn một contract chưa đủ rõ. Câu hỏi không biến mất trong chat — mỗi lượt là một MSG có ID, gắn vào task."
+        chart={D.contract}
+        caption="Sau MSG-0061 contract FREEZE: TSK-03 (FE) chạy song song TSK-02 (BE) với mock đúng shape." />
+
+      <Section n="04 · Bất đồng" title="Khi nào một tranh cãi thành việc của người"
+        lede="Agents được phép không đồng ý — nhưng chỉ hai lần."
+        chart={D.escalation}
+        caption="2× request-changes cùng một điểm → escalation card màu cam trên tower. Quyết định của người thành DEC, và retro-keeper biến nó thành patch checklist." />
+
+      <Section n="05 · Trong một Bolt" title="Task nào khoá task nào"
+        lede="Luật claim: một task chỉ được nhận khi mọi task phụ thuộc đã done và được approver duyệt."
+        chart={D.tasks}
+        caption="UOW-01 · Bolt 1. TSK-04 bị chặn không phải vì BE chưa xong, mà vì backend-reviewer chưa ký." />
+
+      <Section n="06 · Truy vết" title="Từ một dòng code ngược về intent"
+        chart={D.trace}
+        caption="Chuỗi này là thứ Control Tower mở trong drawer khi click vào một task hoặc một dòng code." />
+
+      <Callout tone="agent" style={{ marginTop: 40, maxWidth: 'none' }}>
+        Mọi biểu đồ ở đây viết bằng Mermaid trong <IdCode variant="inline">components/diagrams/DIAGRAMS.js</IdCode> và render qua <IdCode variant="inline">MermaidDiagram</IdCode> — sửa text là sửa hình, không ai phải vẽ lại SVG.
+      </Callout>
+    </div>
+  );
+}
+const rootEl = document.getElementById('root');
+if (rootEl) ReactDOM.createRoot(rootEl).render(<DiagramsDoc />);
+})();
+</script></body></html>
