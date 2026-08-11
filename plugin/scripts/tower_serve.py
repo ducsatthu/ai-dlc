@@ -72,6 +72,6 @@ class H(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     srv = HTTPServer(("127.0.0.1", PORT), H)
-    print(f"AI-DLC Tower: http://127.0.0.1:{PORT}/?token={TOKEN}")
-    print(f"Inbox: {INBOX}")
+    print(f"AI-DLC Tower: http://127.0.0.1:{PORT}/?token={TOKEN}", flush=True)
+    print(f"Inbox: {INBOX}", flush=True)
     srv.serve_forever()
