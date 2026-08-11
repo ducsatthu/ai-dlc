@@ -4,29 +4,39 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is a **documentation/research repository** (no code, no build) inside the `company-research/rd` monorepo. It captures how **AWS's AI-DLC (AI-Driven Development Lifecycle)** method would change the way Mynavi TechTus Vietnam's teams divide and accept work, compared with their current Agile/Sprint and ticket-driven processes.
+Repo **plugin `ai-dlc`** (kiêm marketplace — 1 repo duy nhất): đóng gói phương pháp **AI-DLC** (AI-Driven Development Lifecycle, theo white paper AWS — bản dịch nội bộ Mynavi TechTus Vietnam) thành Claude Code plugin cài được, có Control Tower, override per project và learning loop qua retro.
 
-Primary content: `docs/ai-dlc-changes-with-techtus.md` — extracted from the slide deck `AI-DLC-changes-with-techtus.html` (source: AWS AI-DLC Method Definition). Documentation is written in Vietnamese with English technical terms kept as-is; follow that convention when editing or adding docs.
+- **Tài liệu chuẩn (SSOT) của phương pháp**: `docs/whitepaper-ai-dlc-vi.md` — mọi mâu thuẫn giữa tài liệu giải quyết theo file này.
+- **Phân cấp**: Project → Intent → Unit → Bolt → Task. Một Unit chạy qua một hoặc nhiều Bolt (song song/tuần tự); mỗi Bolt: Domain Design → Logical Design + ADR → Code + Unit Test.
+- **Nguyên tắc**: AI đề xuất trước — con người xác nhận trước khi đi tiếp. Gates A–G, không agent nào được vượt.
 
-## Key Concepts (AI-DLC vocabulary)
+## Cấu trúc
 
-Use this terminology consistently across documents in this repo:
+| Đường dẫn | Nội dung |
+|---|---|
+| `.claude-plugin/marketplace.json` | Marketplace trỏ `./plugin` |
+| `plugin/` | Gói chính: 17 agents (`agents/`), 14 skills `dlc-*` (`skills/`), 7 checklists có version (`skills/checklists/`), templates, hooks (SessionStart + PreToolUse gate guard), scripts tower |
+| `plugin/references/protocol.md` | **Giao thức chung — mọi agent/skill tuân theo** (gates, layout `.ai-dlc/`, format MSG/RV/DEC/LL, binding rules, model tiers) |
+| `docs/` | White paper, blueprint HTML, plugin plan, dry-run PCT, design prompt Control Tower |
 
-- **Business Intent** — the input unit, replacing backlog items / customer tickets. A customer ticket is only input for context discovery, not an execution unit.
-- **Unit of Work (UOW)** — a deliverable business capability (replaces Epic). A Unit must be an *observable outcome* — "Update DB" / "Add API" / "Update UI" are tasks, not Units.
-- **Bolt** — the build–validate cycle of hours to a few days (replaces Sprint).
-- Hierarchy: **Customer Request → Intent → Unit → Bolt → Task**.
-- Role inversion: AI is the execution engine (analyze intent, ask open questions, generate requirements/design/code/tests); humans keep context, trade-offs, and decisions (validate, review, approve, deploy).
+## Commands (khi plugin đã cài)
 
-## The 8-Stage Brownfield Flow
+```
+claude plugin marketplace add <path-repo-này>   # hoặc org/ai-dlc trên GitHub
+claude plugin install ai-dlc@ai-dlc
+/dlc-init → /dlc-intent "..." → /dlc-discover → /dlc-validate → /dlc-units → /dlc-bolt → /dlc-accept → /dlc-retro
+/dlc-status · /dlc-tower [serve] · /dlc-map · /dlc-tasks · /dlc-doctor · /dlc-contribute
+```
 
-The doc's central artifact is an 8-stage flow across three lanes (Client / Delivery Team / AI Agents):
+Test scripts: `python3 -m py_compile plugin/scripts/*.py plugin/hooks/*.py` · `bash -n plugin/hooks/session_start.sh`.
 
-- **Discovery**: 1 Request → 2 Context Discovery → 3 Context Validation → 4 Clarification
-- **Delivery**: 5 Unit Definition → 6 Construction → 7 Acceptance → 8 Release (persists artifacts to **Context Memory**)
+## Quy ước khi sửa gói
 
-Stages 2–3 (Context Discovery + Validation, producing an AS-IS model before any TO-BE discussion) are the additions to vanilla AI-DLC for projects requiring reverse engineering — mandatory when two or more brownfield signals apply (no up-to-date docs, inherited codebase, business rules only in code, low test coverage, etc.).
+- Sửa checklist/luật trong plugin **phải** đi từ một LL (lesson learned) đã qua Gate G của dự án thật — CHANGELOG entry bắt buộc link LL. Không sửa chay.
+- Command mới phải prefix `dlc-`. Checklist có `version` trong frontmatter + changelog trong file.
+- Semver: patch = sửa checklist/wording · minor = thêm agent/command · major = đổi luật gate/format/layout `.ai-dlc/` (kèm MIGRATION.md).
+- Dự án dùng plugin custom qua `.ai-dlc/overrides/` (thắng bản gói) — không khuyến khích fork.
 
-## Related Context
+## Pilot đang chạy
 
-The parent monorepo (`../CLAUDE.md`) documents the Project Knowledge Bot sub-projects (`project-knowledge-bot-be`, `project-knowledge-bot-fe`, `rag-bot`, etc.). This repo is process research, not part of that codebase, but the same team/audience applies.
+PCT (`../portal-hub/spoke-apps/spoke-project-control-tower`) — INT-001 "Phase 2 (Release + Milestone + Backlog)" đang mở **Gate A**; state tại `.ai-dlc/` của repo đó; tower serve port 8642.
