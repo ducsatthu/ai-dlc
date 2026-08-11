@@ -17,15 +17,27 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 ROOT = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else os.getcwd())
 PORT = int(sys.argv[2]) if len(sys.argv) > 2 else 8642
 A = os.path.join(ROOT, ".ai-dlc")
-TOKEN = secrets.token_urlsafe(12)
 INBOX = os.path.join(A, "inbox")
 os.makedirs(INBOX, exist_ok=True)
+
+# Token BỀN qua restart (lưu file) — URL cũ/bookmark vẫn dùng được.
+TOKEN_FILE = os.path.join(A, ".tower-token")
+if os.path.isfile(TOKEN_FILE):
+    TOKEN = open(TOKEN_FILE).read().strip()
+else:
+    TOKEN = secrets.token_urlsafe(12)
+    with open(TOKEN_FILE, "w") as _f:
+        _f.write(TOKEN)
 
 
 class H(BaseHTTPRequestHandler):
     def _token_ok(self):
         m = re.search(r"token=([\w~-]+)", self.path)
-        return bool(m and m.group(1) == TOKEN)
+        if m and m.group(1) == TOKEN:
+            return True
+        # Chấp nhận cookie đã set từ lần mở URL-có-token đầu tiên
+        cookie = self.headers.get("Cookie", "")
+        return ("ct_token=%s" % TOKEN) in cookie
 
     MIME = {".html": "text/html; charset=utf-8", ".js": "application/javascript; charset=utf-8",
             ".jsx": "text/babel; charset=utf-8", ".css": "text/css; charset=utf-8",
@@ -48,6 +60,9 @@ class H(BaseHTTPRequestHandler):
         self.send_header("Content-Type", self.MIME.get(os.path.splitext(target)[1], "application/octet-stream"))
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
+        # Mở bằng URL có token đúng → set cookie để các lần sau mở URL trần vẫn bấm nút được
+        if self._token_ok():
+            self.send_header("Set-Cookie", "ct_token=%s; Path=/; SameSite=Strict" % TOKEN)
         self.end_headers()
         self.wfile.write(body)
 
