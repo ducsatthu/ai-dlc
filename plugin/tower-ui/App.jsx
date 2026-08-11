@@ -48,14 +48,19 @@ function App() {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ gate: g.gate || 'ESC', intent: g.target || g.intent || '', verdict: action, comment: reason || '', decided_at: new Date().toISOString() })
       }).then(r => {
-        if (!r.ok) throw 0;
-        setGates(gs => gs.filter(x => x.key !== key));
-        setToast(action === 'approve' ? 'Đã approve — ghi vào inbox, session Claude Code sẽ xử lý'
-          : 'Đã reject — lý do đã gửi về orchestrator');
-        setTimeout(() => setToast(null), 3200);
+        if (r.ok) {
+          setGates(gs => gs.filter(x => x.key !== key));
+          setToast(action === 'approve' ? 'Đã approve — ghi vào inbox, session Claude Code sẽ xử lý'
+            : 'Đã reject — lý do đã gửi về orchestrator');
+        } else if (r.status === 403) {
+          setToast('Thiếu/sai token — mở lại tower bằng đúng URL có ?token=… (in ở terminal khi chạy /dlc-tower serve); mở 1 lần là nhớ cookie');
+        } else {
+          setToast('Server từ chối (' + r.status + ') — xem log tower_serve');
+        }
+        setTimeout(() => setToast(null), 4500);
       }).catch(() => {
-        setToast('Không gửi được — chạy /dlc-tower serve để bật nút (file tĩnh chỉ xem)');
-        setTimeout(() => setToast(null), 4200);
+        setToast('Không nối được server — tower đang mở dạng file tĩnh hoặc server đã tắt; chạy /dlc-tower serve');
+        setTimeout(() => setToast(null), 4500);
       });
       return;
     }
