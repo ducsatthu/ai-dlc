@@ -1,0 +1,8 @@
+# Python bytecode — lọt vào repo do chạy script trực tiếp trong cây nguồn
+__pycache__/
+*.pyc
+
+# Log/token của công cụ phiên làm việc (gstack browse) — có chứa token tower trong URL
+.gstack/
+
+.DS_Store
