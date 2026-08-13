@@ -1,5 +1,30 @@
 # MIGRATION — ai-dlc
 
+## 4.x → 5.0.0 — trần 5h/Unit đã bỏ
+
+**Đổi luật gate**: Gate D không còn chặn theo `estimate_hours`. Thay bằng hai điều kiện khai trong
+`spec.md` (protocol §4.9 v5):
+
+| | Trường mới | Chặn khi |
+|---|---|---|
+| Ra được sản phẩm một mình | `releasable: yes\|no` (+ `released_with:` khi `no`) | thiếu, hoặc `no` mà không nói ra chung với ai |
+| Một phiên ôm nổi | `session_fit:` — **phải có con số** | thiếu, hoặc viết chung chung không con số |
+
+`estimate_hours` **giữ nguyên** (đường găng, retro) nhưng không còn ngưỡng. Dự án muốn trần riêng thì đặt
+`unit_max_hours` trong `.ai-dlc/governance/sizing.md` (template mới, mặc định `null`) — vượt chỉ WARN.
+
+**Không phải làm gì với intent đã qua Gate D.** Tower/doctor/brief nhận diện kế hoạch cũ và **không** đòi
+khai lại `releasable`/`session_fit` — dựng bù hồ sơ là thứ gói này cấm. Áp từ intent kế.
+
+**Việc phải làm**: (1) intent đang ở stage ≤5 thì bổ sung hai trường cho mọi Unit trước khi trình Gate D;
+(2) nếu muốn giữ trần cũ, tạo `governance/sizing.md` với `unit_max_hours: 5.0` + một DEC nói vì sao.
+
+**KPI mới để đối chiếu**: `units.releasable` (khai lúc lập kế hoạch) và `units.oneSession` (đo sau bằng số
+HOF trên mỗi Unit — lời khai lúc lập kế hoạch luôn lạc quan).
+
+**Rollback**: hạ về 4.x thì hai trường mới bị bỏ qua và trần 5h sống lại; Unit >5h đã lập dưới 5.0.0 sẽ
+hiện là vấn đề. Không có bước phá hủy.
+
 ## 3.x → 4.0.0 (review phải có địa chỉ · escalations/ · units/_trash/)
 
 Nguồn: retro INT-001 của dự án PCT — `LL-001` + `LL-002` (Gate G · DEC-0027), thêm `LL-003` (chưa qua Gate G,

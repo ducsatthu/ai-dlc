@@ -1,6 +1,6 @@
 ---
 name: dlc-doctor
-description: Audit sức khỏe AI-DLC của project — coverage nguồn (dòng planned còn treo), Unit quá 5h hoặc thiếu US/NFR/risk, gate thiếu gate_doc, override mồ côi/không nguồn gốc, lệch version checklist, inbox tồn đọng, map thiếu mục.
+description: Audit sức khỏe AI-DLC của project — coverage nguồn (dòng planned còn treo), Unit thiếu điều kiện kích thước (releasable/session_fit) hoặc thiếu US/NFR/risk, nhịp HOF khai giả, teammate zombie, tin chết, gate thiếu gate_doc, override mồ côi, lệch version checklist, inbox tồn đọng.
 ---
 
 Chỉ đọc + báo cáo (sửa gì phải được user đồng ý từng mục):
@@ -78,7 +78,14 @@ Chỉ đọc + báo cáo (sửa gì phải được user đồng ý từng mục
    - Nếu tin đó là review-request → đối chiếu `reviews/`: không có RV tương ứng thì đây đúng là `LL-002`
      tái diễn (§4.12) — unit liên quan **không** được tính là đã review.
 2. **Unit (protocol §4.9)** — với mỗi `units/UOW-NN/`:
-   - `estimate_hours` > 5.0 hoặc = 0 hoặc thiếu → **FIX**. Cả loạt Unit cùng đúng 5.0 → **WARN** (ước lượng lấy lệ).
+   - `estimate_hours` = 0 hoặc thiếu → **FIX**; **không còn trần giờ** (§4.9 v5). Cả loạt Unit cùng một con
+     số tròn → **WARN** (ước lượng lấy lệ). Dự án có đặt `unit_max_hours` trong `governance/sizing.md` mà
+     Unit vượt → **WARN**, không chặn.
+   - Thiếu `releasable`, hoặc `releasable: no` mà không có `released_with` → **FIX**: unit không có đường ra
+     sản phẩm nào là pseudo-unit kỹ thuật. Thiếu `session_fit`, hoặc `session_fit` không có con số → **FIX**.
+   - `session_fit` chép giống hệt nhau ở nhiều Unit → **WARN** (khai lấy lệ).
+   - Đối chiếu `units.oneSession` trên tower: Unit đã đóng mà cần ≥2 HOF hoặc có HOF `returned` → **WARN**
+     kèm tên — không phải để phạt, mà là dữ liệu cắt Unit cho intent kế.
    - Thiếu/rỗng `user-stories.md` · `nfr.md` · `risks.md` → **FIX**.
    - `sources:` trỏ tới nguồn không có trong ledger, hoặc nguồn chưa `read` → **FIX**.
    - NFR không có ngưỡng số hoặc không có cách đo → **WARN**.

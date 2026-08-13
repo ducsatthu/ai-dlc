@@ -486,14 +486,74 @@ def norm_unit_status(raw, has_bolts):
     return ("in-bolt" if has_bolts else "pending-gate"), t
 
 
+def unit_max_hours():
+    """Trần giờ/Unit là núm của TỪNG DỰ ÁN, không phải hằng số của gói (protocol §4.9 v5).
+    Mặc định `null` = không trần: cắt Unit theo đường ra sản phẩm và sức chứa một phiên, không theo đồng hồ.
+    Override thắng bản gốc, cùng luật với mọi governance khác."""
+    for p in (os.path.join(A, "overrides", "governance", "sizing.md"),
+              os.path.join(CM, "governance", "sizing.md")):
+        m = re.search(r"^\s*unit_max_hours:\s*(\S+)", read(p), re.M)
+        if m:
+            v = m.group(1).strip().strip('"\'')
+            return None if v.lower() in ("null", "none", "-", "0") else num(v, None)
+    return None
+
+
+UNIT_MAX_H = unit_max_hours()
+_HOF_CACHE = []
+
+
+def hof_rows():
+    """Frontmatter của mọi HOF — quét một lần, dùng cho phép đo "unit có gọn trong một phiên không".
+    Tách riêng khỏi phần dựng `handoffs` phía dưới vì build_metrics chạy TRƯỚC phần đó."""
+    if _HOF_CACHE:
+        return _HOF_CACHE
+    hdir_m = os.path.join(CM, "handoffs")
+    for f in sorted(os.listdir(hdir_m)) if os.path.isdir(hdir_m) else []:
+        if not f.startswith("HOF-"):
+            continue
+        d = fm(read(os.path.join(hdir_m, f)))
+        if d:
+            _HOF_CACHE.append({"id": d.get("id", f.replace(".md", "")), "re": d.get("re", ""),
+                               "status": (d.get("status") or "").strip()})
+    return _HOF_CACHE
+
+
+def sizing_problems(est, us=None, descoped=False):
+    """Kích thước Unit: hai điều kiện thay cho một con số (§4.9 v5).
+
+    Trần 5h cũ bắt tách theo đồng hồ nên đẻ ra unit vụn không tự release được (`DEC-0052` của PCT tách
+    3.5h + 2.75h chỉ để lọt trần). Nay chặn theo: **ra được sản phẩm một mình** và **một phiên ôm nổi**."""
+    out = []
+    if descoped:
+        return out
+    if est <= 0:
+        out.append("thiếu ước lượng")
+    elif UNIT_MAX_H and est > UNIT_MAX_H:
+        out.append("est %.1fh > trần %.1fh của dự án" % (est, UNIT_MAX_H))
+    if us is None:                       # unit mới có trong unit-plan, chưa có spec.md để soi
+        return out
+    rel = (us.get("releasable") or "").strip().strip('"\'').lower()
+    if rel not in ("yes", "no", "true", "false"):
+        out.append("thiếu `releasable`")
+    elif rel in ("no", "false") and not (us.get("released_with") or "").strip():
+        out.append("`releasable: no` mà không nói ra chung với unit nào")
+    fit = (us.get("session_fit") or "").strip().strip('"\'')
+    if not fit:
+        out.append("thiếu `session_fit`")
+    elif not re.search(r"\d", fit):
+        out.append("`session_fit` không có con số")
+    return out
+
+
 def unit_stub(uid, name, est, provisional=True):
     return {"id": uid, "name": name, "status": "proposed", "provisional": provisional,
             "descoped": False, "bolt": "—", "bolts": [], "done": 0, "estimate": est,
             "stories": 0, "nfrs": 0, "risks": [], "riskCount": 0, "sources": [],
-            "problems": (["est %.1fh > 5h" % est] if est > 5.0 else
-                         (["thiếu ước lượng trong unit-plan"] if est <= 0 else [])),
+            "problems": sizing_problems(est) or ([] if est > 0 else ["thiếu ước lượng trong unit-plan"]),
             "tasks": [0, 0], "evidence": 0, "specPath": None, "boltDetails": [],
-            "rawStatus": "", "reviewedBy": "", "rv": "", "reviewWaivedBy": ""}
+            "rawStatus": "", "reviewedBy": "", "rv": "", "reviewWaivedBy": "",
+            "releasable": "", "releasedWith": "", "sessionFit": "", "hofCount": 0}
 
 
 def parse_provisional_units(base):
@@ -629,12 +689,8 @@ def parse_units(base, intent_id, stage):
         srcs = [s.strip() for s in us.get("sources", "").strip("[]").split(",") if s.strip()]
         ustatus, raw_status = norm_unit_status(us.get("status"), bool(nb))
         status = "descoped" if descoped else ustatus
-        problems = []
+        problems = sizing_problems(est, us, descoped)
         if not descoped:
-            if est > 5.0:
-                problems.append("est %.1fh > 5h" % est)
-            if est <= 0:
-                problems.append("thiếu ước lượng")
             for label, ok in (("user-stories", has_us and stories), ("nfr", has_nfr and nfrs),
                               ("risks", has_risk and risks)):
                 if not ok:
@@ -650,6 +706,10 @@ def parse_units(base, intent_id, stage):
             "reviewedBy": (us.get("reviewed_by") or "").strip(),
             "rv": (us.get("rv") or "").strip(),
             "reviewWaivedBy": (us.get("review_waived_by") or "").strip(),
+            # §4.9 v5: kích thước Unit đo bằng đường ra sản phẩm + sức chứa một phiên, không bằng giờ
+            "releasable": (us.get("releasable") or "").strip().strip('"\''),
+            "releasedWith": (us.get("released_with") or "").strip(),
+            "sessionFit": (us.get("session_fit") or "").strip().strip('"\''),
             "tasks": [tasks_done, tasks_total], "evidence": evidence,
             "specPath": os.path.relpath(spec_p, A) if os.path.isfile(spec_p) else None,
         })
@@ -661,7 +721,11 @@ def parse_units(base, intent_id, stage):
     return units
 
 
-def build_metrics(intent_id, base, units, srcs, qs, gates_open):
+SIZING_NEW = ("thiếu `releasable`", "thiếu `session_fit`", "`session_fit` không có con số",
+              "`releasable: no` mà không nói ra chung với unit nào")
+
+
+def build_metrics(intent_id, base, units, srcs, qs, gates_open, passed=()):
     """Mỗi con số hiện trên dashboard kèm CÁCH RA SỐ ĐÓ.
 
     Một metric = {value, label, rule (đếm gì, từ đâu), files (file · mục), rows (dòng thật đã đếm),
@@ -723,13 +787,28 @@ def build_metrics(intent_id, base, units, srcs, qs, gates_open):
         "lấy ô giờ ở `unit-plan.md`. Unit ngoài phạm vi KHÔNG cộng.",
         [{"file": rel + "/units/UOW-NN/spec.md", "section": "frontmatter `estimate_hours`", "rows": len(live)}],
         [{"Unit": u["id"], "Giờ": u["estimate"]} for u in live], (), "agent")
+    # Intent đã qua Gate D được lập kế hoạch dưới luật cũ (trần 5h). Không bắt khai lại `releasable`/
+    # `session_fit` cho chúng — đó là dựng bù hồ sơ. Áp §4.9 v5 từ intent kế; ở đây chỉ WARN.
+    legacy = "D" in (passed or ())
+    if legacy:
+        for _u in live:
+            _u["problemsLegacy"] = [p for p in _u["problems"] if p in SIZING_NEW]
+            _u["problems"] = [p for p in _u["problems"] if p not in SIZING_NEW]
     bad = [u for u in live if u["problems"]]
-    add("units.problems", len(bad), "unit >5h hoặc thiếu US/NFR/risk",
-        "Kiểm mỗi unit trong phạm vi: `estimate_hours` >5.0 hoặc =0 (§4.9), và ba file "
-        "`user-stories.md` · `nfr.md` · `risks.md` phải có nội dung (đếm gạch đầu dòng + dòng bảng + heading con).",
+    legacy_n = sum(1 for u in live if u.get("problemsLegacy"))
+    add("units.problems", len(bad),
+        "unit chưa đủ điều kiện kích thước hoặc thiếu US/NFR/risk",
+        "Kích thước Unit đo bằng ĐƯỜNG RA SẢN PHẨM + SỨC CHỨA MỘT PHIÊN, không bằng giờ (§4.9 v5 — trần 5h "
+        "đã bỏ): mỗi unit phải khai `releasable` (nếu `no` thì kèm `released_with`) và `session_fit` có con "
+        "số; `estimate_hours` vẫn bắt buộc >0 và có breakdown"
+        + (", vượt trần %.1fh mà dự án tự đặt là WARN" % UNIT_MAX_H if UNIT_MAX_H else ", dự án không đặt trần giờ")
+        + ". Cộng ba file `user-stories.md` · `nfr.md` · `risks.md` phải có nội dung "
+          "(đếm gạch đầu dòng + dòng bảng + heading con).",
         [{"file": rel + "/units/UOW-NN/", "section": "spec.md · user-stories.md · nfr.md · risks.md",
           "rows": len(live)}],
-        [{"Unit": u["id"], "Vấn đề": ", ".join(u["problems"])} for u in bad], (),
+        [{"Unit": u["id"], "Vấn đề": ", ".join(u["problems"])} for u in bad],
+        (["%d unit lập kế hoạch dưới luật cũ (trần 5h, chưa có `releasable`/`session_fit`) — đã qua Gate D "
+          "nên KHÔNG bắt khai lại; §4.9 v5 áp từ intent kế" % legacy_n] if legacy_n else []),
         "gate" if bad else "done")
 
     t_rows = [{"Unit": u["id"], "Bolt": ", ".join(u["bolts"]) or "—", "Task done/tổng": "%d/%d" % tuple(u["tasks"])}
@@ -754,6 +833,67 @@ def build_metrics(intent_id, base, units, srcs, qs, gates_open):
         "vẫn hiện là chưa xong.",
         [{"file": rel + "/units/UOW-NN/spec.md", "section": "frontmatter `status`", "rows": len(live)}],
         st_rows, (["%d unit không khai `status` — đang tính là chưa xong" % nodecl] if nodecl else []), "done")
+
+    # Kích thước Unit đo bằng ĐƯỜNG RA (§4.9 v5) — khai lúc lập kế hoạch, kiểm được ngay.
+    rel_rows, rel_ok = [], []
+    for u in live:
+        v = (u.get("releasable") or "").lower()
+        if v in ("yes", "true"):
+            verdict = "ra được một mình"
+        elif v in ("no", "false"):
+            verdict = ("ra chung " + u["releasedWith"]) if u.get("releasedWith") else "KHÔNG có đường ra nào"
+        else:
+            verdict = "chưa khai"
+        if verdict not in ("chưa khai", "KHÔNG có đường ra nào"):
+            rel_ok.append(u)
+        rel_rows.append({"Unit": u["id"], "releasable": u.get("releasable") or "—",
+                         "released_with": u.get("releasedWith") or "—",
+                         "session_fit": (u.get("sessionFit") or "—")[:60], "Kết luận": verdict})
+    if live:
+        add("units.releasable", "%d/%d" % (len(rel_ok), len(live)), "unit có đường ra sản phẩm rõ ràng",
+            "Đọc `releasable:` trong `spec.md`. `yes` = xong là ra được (có thể sau cờ tính năng); `no` thì "
+            "BẮT BUỘC kèm `released_with:` nói ra chung với unit nào. Không khai được đường ra nghĩa là unit "
+            "đó không tự có nghĩa với người dùng — pseudo-unit kỹ thuật, phải gộp hoặc cắt theo trục khác "
+            "(§4.9 v5, thay cho trần 5h cũ).",
+            [{"file": rel + "/units/UOW-NN/spec.md", "section": "frontmatter `releasable` · `released_with`",
+              "rows": len(live)}], rel_rows,
+            ([] if len(rel_ok) == len(live) else
+             ["%d unit chưa khai đường ra%s" % (len(live) - len(rel_ok),
+              " — kế hoạch cũ, không bắt khai lại (§4.9 v5 áp từ intent kế)" if legacy else " — chặn Gate D")]),
+            "done" if len(rel_ok) == len(live) else ("agent" if legacy else "gate"))
+
+    # ... và kiểm SAU bằng dấu vết: thực tế nó có gọn trong một phiên không (lời khai lúc lập kế hoạch
+    # luôn lạc quan — §9.4 đã dạy một lần). Một unit cần nhiều lượt giao việc là một unit cắt quá to.
+    hof_per_unit = {}
+    for h in hof_rows():
+        m = re.search(r"(UOW-\d+)", h.get("re") or "")
+        if m:
+            hof_per_unit.setdefault(m.group(1), []).append(h)
+    closed_now = [u for u in live if u["status"] == "done"]
+    if closed_now and hof_per_unit:
+        rows_1s, ok_1s = [], []
+        for u in closed_now:
+            hs = hof_per_unit.get(u["id"], [])
+            returned = [h for h in hs if h["status"] == "returned"]
+            if not hs:
+                verdict = "không HOF nào — không đo được"
+            elif len(hs) == 1 and not returned:
+                verdict = "một phiên"
+                ok_1s.append(u)
+            else:
+                verdict = "%d lượt giao việc%s" % (len(hs), " (có trả lại)" if returned else "")
+            rows_1s.append({"Unit": u["id"], "Số HOF": len(hs), "Ước lượng": "%.1fh" % u["estimate"],
+                            "session_fit đã khai": (u.get("sessionFit") or "—")[:50], "Thực tế": verdict})
+        add("units.oneSession", "%d/%d" % (len(ok_1s), len(closed_now)), "unit thật sự gọn trong một phiên",
+            "Đếm số `handoffs/HOF-*.md` có `re:` trỏ vào unit đó. Một chuỗi HOF = một phiên làm trọn; cần "
+            "nhiều lượt hoặc có lượt `returned` nghĩa là **thực tế** unit to hơn `session_fit` đã khai. Đây "
+            "KHÔNG phải để phạt: đó là dữ liệu để intent sau cắt unit sát hơn (§4.9 v5).",
+            [{"file": ".ai-dlc/context-memory/handoffs/HOF-*.md", "section": "frontmatter `re` · `status`",
+              "rows": len(hof_rows())}],
+            rows_1s, ([] if len(ok_1s) == len(closed_now) else
+                      ["%d unit cần nhiều hơn một lượt — lời khai `session_fit` lạc quan hơn thực tế"
+                       % (len(closed_now) - len(ok_1s))]),
+            "done" if len(ok_1s) == len(closed_now) else "agent")
 
     # Review có địa chỉ hay không (protocol §4.12). `approved` do chính agent làm unit tự đặt không chứng
     # minh được gì; chỉ `rv:` trỏ một RV có thật, hoặc `review_waived_by:` trỏ một DEC, mới là bằng chứng.
@@ -1167,7 +1307,7 @@ if os.path.isdir(idir):
         flow_by_intent[name] = build_flow(name, base, stage, passed, gate_open, units, srcs, qs,
                                           bool((it.get('brownfield_type') or '').strip()))
         metrics_by_intent[name] = build_metrics(name, base, units, srcs, qs,
-                                                [gate_open[:1]] if gate_open else [])
+                                                [gate_open[:1]] if gate_open else [], passed)
 
         revs = []
         rdir_i = os.path.join(base, "revisions")
@@ -1238,7 +1378,7 @@ if os.path.isdir(idir):
                           "Phương án AI đề xuất có chấp nhận được không?",
                           "Câu nào bạn không quyết được thì ai quyết — đã ghi đúng người chưa?"]
             elif g == "D":
-                checks = ["Phân rã Unit cuối đúng?", "Mọi Unit ≤5h và đủ US/NFR/risk?",
+                checks = ["Phân rã Unit cuối đúng?", "Mọi Unit có `releasable` + `session_fit` có con số, đủ US/NFR/risk?",
                           "Trade-off ở mục 7 chọn phương án nào?"]
             oq_block = [q for q in qs if q["blocking"]]
             gates.append({
@@ -1660,7 +1800,7 @@ if os.path.isdir(idir):
 first = intents[0]["id"] if intents else None
 data = {
     "project": {"name": os.path.basename(ROOT), "root": ROOT,
-                "generated": datetime.datetime.now().strftime("%d/%m %H:%M"), "plugin": "4.1.0"},
+                "generated": datetime.datetime.now().strftime("%d/%m %H:%M"), "plugin": "5.0.0"},
     "intents": intents, "unitsByIntent": units_by_intent, "gates": gates, "docs": docs,
     "sourcesByIntent": sources_by_intent, "flowByIntent": flow_by_intent,
     "metricsByIntent": metrics_by_intent,

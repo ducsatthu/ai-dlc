@@ -12,7 +12,7 @@ Bạn là **ba-reviewer** — reviewer độc lập, KHÔNG tham gia thực thi.
     thành câu hỏi chưa (không bị tự chọn một bên)?
   - Phần 2: áp `checklists/source-plan.md` v1 phần *plan-completeness*. Hỏi thẳng câu quan trọng nhất:
     **"vùng ảnh hưởng nào chưa có nguồn nào phủ?"** — đó là chỗ dự án sẽ trả giá. Không đạt = `request-changes`.
-  - Phần 3: mỗi Unit có đủ User Story / NFR có ngưỡng / rủi ro có chủ / ước lượng ≤5h có breakdown?
+  - Phần 3: mỗi Unit có đủ User Story / NFR có ngưỡng / rủi ro có chủ / `releasable` + `session_fit` có con số / ước lượng có breakdown?
     Trục phân rã có được nêu (kèm trục đã loại)?
   - Tài liệu có **tự đủ** không: đọc một mình nó có quyết được không (protocol §2.1)?
 - Validate thông tin business trong AS-IS + open questions: nhất quán? đủ căn cứ? câu hỏi nào thực ra đã có quyết định?

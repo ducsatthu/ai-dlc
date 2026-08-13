@@ -89,7 +89,7 @@ lúc code. Vì vậy stage 1 phải sinh **một tài liệu markdown hoàn ch�
 |---|---|---|
 | 1 · Intent | problem, outcome đo được, priority, brownfield type, vùng ảnh hưởng, mâu thuẫn cần confirm | `dlc-intent-analyst` |
 | 2 · Source Reading Plan | **bảng liệt kê từng nguồn sẽ đọc**: path/địa chỉ · loại · vì sao cần · **thông tin cụ thể cần lấy** · ai sở hữu · độ ưu tiên · rủi ro nếu thiếu · trạng thái | `dlc-source-planner` |
-| 3 · Provisional Unit Map | phân rã tạm thành Units, mỗi Unit: User Story · NFR · Rủi ro · **ước lượng ≤5h** · nguồn nào chứng minh · AC nháp | `dlc-intent-analyst` (dựa phần 2) |
+| 3 · Provisional Unit Map | phân rã tạm thành Units, mỗi Unit: User Story · NFR · Rủi ro · **`releasable` + `session_fit` có con số** (§4.9) · ước lượng có breakdown · nguồn nào chứng minh · AC nháp | `dlc-intent-analyst` (dựa phần 2) |
 
 Phần 2 phải **quét thật** (Glob/Grep/ls trên workspace-map) — không được liệt kê nguồn theo trí nhớ hay
 theo suy đoán. Nguồn không tồn tại phải ghi `missing` kèm hệ quả, không im lặng bỏ.
@@ -192,19 +192,63 @@ cập nhật tower, gửi PushNotification (nếu có), rồi **KẾT THÚC LƯ�
 - Hai nguồn mâu thuẫn → `[CONFLICT]` trong ledger + câu hỏi Gate C. Agent không tự chọn bên nào.
 - Kết luận không truy được về một dòng ledger phải gắn `[INFERRED]` và không được dùng làm căn cứ AC.
 
-### 4.9 Unit ≤ 5 giờ (v2 — luật chống unit khổng lồ)
+### 4.9 Unit = một phiên · tự ra được sản phẩm (v5 — thay trần 5h)
 
-- Mỗi Unit phải ước lượng **≤5 giờ elapsed** cho toàn bộ vòng đời của nó (design + code + test + review + fix
-  sau review). Ước lượng ghi ở `estimate_hours` trong frontmatter `spec.md` và trong bảng của `unit-plan.md`,
-  kèm **breakdown theo bolt** (bolt nào mấy giờ).
-- Unit ước lượng >5h **BẮT BUỘC tách** trước khi trình Gate D. Không được "làm tròn xuống" hay ghi 5h cho có.
-- Tách nhưng vẫn phải giữ tính chất Unit: **business capability quan sát được**. Nếu tách ra là pseudo-unit
-  ("Update DB", "Add API"), tức trục tách sai → tách theo trục khác (theo actor, theo luồng nghiệp vụ,
-  theo trạng thái dữ liệu, theo happy-path trước / edge-case sau).
-- Ước lượng phải có căn cứ: số màn/endpoint/bảng đụng tới, đã đọc AS-IS chưa, độ quen thuộc vùng code.
-  pm-po-reviewer và qa-reviewer `request-changes` nếu ước lượng không có breakdown hoặc >5h.
-- Mỗi Unit BẮT BUỘC có đủ ba khối: **User Story** (`user-stories.md`), **NFR** (`nfr.md`), **Rủi ro**
-  (`risks.md`). Thiếu bất kỳ khối nào → không đạt DoR, không vào Bolt.
+**Trần 5h đã bỏ.** Nó là phát minh của gói ở v2, không có trong white paper — SSOT chỉ nói chu kỳ tính bằng
+"**giờ hoặc ngày**" và bounded context "độc lập, **đúng kích thước**". Một con số cứng đo sai thứ cần đo:
+nó bắt tách theo *đồng hồ* thay vì theo *đường ra sản phẩm*, nên sinh ra unit vụn không tự release được
+(ca thật: `DEC-0052` tách một unit thành 3.5h + 2.75h chỉ để lọt trần — hai mảnh phải ra chung mới có nghĩa).
+
+Thay bằng **hai điều kiện**, cả hai đều phải khai thành trường và đều kiểm được:
+
+**(1) Tự ra được sản phẩm.** Unit là một lát cắt **dọc**: xong Unit là có thứ đưa ra được, không phải chờ
+unit khác mới có nghĩa.
+
+```yaml
+releasable: yes            # xong là ra được (có thể sau cờ tính năng)
+release_note: "sau cờ qg_v2"   # cách đưa ra nếu cần cờ/route riêng
+depends_on: []             # unit phải xong TRƯỚC nó
+```
+
+`releasable: no` được phép, nhưng khi đó **bắt buộc** `released_with: UOW-NN` — nói rõ nó ra chung với ai.
+Không khai được `released_with` nghĩa là nó không có đường ra sản phẩm nào cả: đó là **pseudo-unit kỹ thuật**
+("Update DB", "Add API"), phải gộp lại hoặc cắt theo trục khác (theo actor · theo luồng nghiệp vụ · theo
+trạng thái dữ liệu · happy-path trước, edge-case sau).
+
+**(2) Vừa một phiên.** Một agent làm trọn Unit trong một phiên: một HOF, không phải chia nhiều lượt, không
+phải compact giữa chừng.
+
+```yaml
+session_fit: "3 màn + 2 endpoint, đọc 4 nguồn (S12,S13,S20,S21), vùng code quen"
+```
+
+Câu này phải có **con số thật** (mấy màn/endpoint/bảng · mấy nguồn phải đọc · vùng code quen hay lạ) — đó là
+thứ quyết định một phiên có ôm nổi không, chứ không phải số giờ. Viết "vừa một phiên" mà không có con số =
+chưa khai.
+
+**`estimate_hours` vẫn giữ** — cần cho đường găng và cho retro — **nhưng không còn ngưỡng chặn**, và vẫn
+phải có breakdown theo bolt kèm căn cứ. Dự án nào muốn trần riêng thì tự đặt, gói không áp:
+
+```yaml
+# .ai-dlc/governance/sizing.md
+unit_max_hours: null       # null = không trần (mặc định). Đặt số thì tower/doctor cảnh báo khi vượt.
+```
+
+**Ai chặn gì ở Gate D**: chặn khi Unit thiếu `releasable` (hoặc `no` mà không có `released_with`), thiếu
+`session_fit` có con số, thiếu breakdown, hoặc thiếu một trong ba khối bắt buộc bên dưới. **Không chặn theo
+giờ nữa.** Vượt `unit_max_hours` (nếu dự án có đặt) chỉ là WARN.
+
+**Kiểm sau, bằng dấu vết — vì lời khai lúc lập kế hoạch luôn lạc quan** (§9.4 đã dạy một lần):
+- `units.oneSession` — Unit đóng bằng **đúng một chuỗi HOF**. Cần ≥2 HOF, hoặc có HOF `returned`, nghĩa là
+  thực tế **không** vừa một phiên. Đây không phải để phạt: đó là dữ liệu để intent sau cắt khác.
+- `units.releasable` — bao nhiêu Unit trong phạm vi khai hợp lệ.
+
+Một Unit vẫn BẮT BUỘC có đủ ba khối: **User Story** (`user-stories.md`), **NFR** (`nfr.md`), **Rủi ro**
+(`risks.md`). Thiếu bất kỳ khối nào → không đạt DoR, không vào Bolt.
+
+> Rủi ro ngược của việc bỏ trần là unit phình to nuốt cả intent. Chốt chặn không phải đồng hồ mà là hai câu
+> hỏi trên: *ra được sản phẩm một mình không* và *một phiên có ôm nổi không*. Thêm một cảnh báo mềm: AC quá
+> 8 mục, hoặc Unit chạm hơn hai bounded context → nhiều khả năng đó là hai Unit.
 
 ### 4.10 Open questions — tách theo NGƯỜI TRẢ LỜI, hỏi bằng ngôn ngữ của họ (v3)
 

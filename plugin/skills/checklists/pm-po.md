@@ -1,15 +1,17 @@
 ---
 name: pm-po
-version: 2
+version: 3
 ---
 # Checklist PM/PO · v2
 ## Unit & phân rã
 - [ ] Mỗi Unit = observable outcome; không có pseudo-unit (Update DB/Add API/Update UI)
 - [ ] AC từng Unit đo được, trace về intent
-- [ ] **Ước lượng mỗi Unit ≤5.0h** và có **breakdown theo hạng mục** (design/BE/FE/test/review)
+- [ ] **Mỗi Unit khai `releasable`** (nếu `no` thì có `released_with`) **và `session_fit` có con số** (§4.9 v5)
+- [ ] Ước lượng có **breakdown theo hạng mục** (design/BE/FE/test/review) — không còn trần giờ cứng
 - [ ] Căn cứ ước lượng là **con số thật** (mấy endpoint, mấy màn, mấy bảng) — không phải cảm tính
-- [ ] Unit >5h đã được tách, và bản tách vẫn là capability quan sát được (không tách thành task kỹ thuật)
-- [ ] Tổng est của các Unit khớp bảng tổng quan; không có Unit nào "ghi 5h cho tròn"
+- [ ] Unit không tự ra được sản phẩm đã gộp/cắt lại, và mỗi mảnh vẫn là capability quan sát được
+      (không cắt thành task kỹ thuật; hai mảnh phải ghép mới release được = cắt sai trục)
+- [ ] Tổng est của các Unit khớp bảng tổng quan; không Unit nào ghi số tròn cho có, không `session_fit` chép nguyên si giữa các Unit
 - [ ] Mỗi Unit có đủ ba khối **User Story · NFR · Rủi ro** (file tồn tại, không rỗng)
 
 ## Kế hoạch & rủi ro
@@ -27,3 +29,4 @@ version: 2
 ## Changelog
 - v2: thêm luật ≤5h + breakdown + US/NFR/risk bắt buộc + coverage nguồn; theo protocol v2
 - v1: bản đầu
+- v3: bỏ trần 5h; Unit đo bằng `releasable` + `session_fit` có con số (protocol §4.9 v5)

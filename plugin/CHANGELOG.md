@@ -1,5 +1,45 @@
 # Changelog — ai-dlc plugin
 
+## 5.0.0 (2026-08-13) — Bỏ trần 5h/Unit: cắt theo đường ra sản phẩm, không theo đồng hồ
+
+**Nguồn: quyết định của chủ gói, KHÔNG phải LL qua Gate G.** Ghi rõ để không tự lừa mình — đây là lần thứ
+hai trong ngày một luật đổi mà chưa có retro chống lưng. Bù lại, ba căn cứ đều kiểm được:
+
+1. **White paper (SSOT) không có trần 5h.** Nó nói chu kỳ tính bằng "**giờ hoặc ngày**" và bounded context
+   "độc lập, **đúng kích thước**". Trần 5h là phát minh của gói ở v2 — **hẹp hơn** tài liệu gốc, tức là
+   chính nó đang lệch SSOT.
+2. **`MIGRATION.md` v2 đã tự đặt câu hỏi này**: *"trần 5h có làm vỡ vụn Unit không"* — treo từ đó tới nay.
+3. **Ca thật**: `DEC-0052` của PCT tách một Unit thành 3.5h + 2.75h **chỉ để lọt trần**; hai mảnh phải ra
+   chung mới có nghĩa. Trần đo sai thứ cần đo: nó bắt cắt theo *thời lượng* thay vì theo *đường ra sản phẩm*.
+
+### Đổi luật gate (major)
+- **protocol §4.9 viết lại**: Unit không còn ngưỡng giờ. Chặn Gate D theo **hai điều kiện**, cả hai là
+  trường khai được và kiểm được:
+  - `releasable: yes|no` (+ `released_with: UOW-NN` bắt buộc khi `no`) — *xong Unit này có ra được sản
+    phẩm không*. Không khai được đường ra nào = pseudo-unit kỹ thuật, phải gộp hoặc cắt trục khác.
+  - `session_fit:` **có con số** (mấy màn/endpoint/bảng · mấy nguồn phải đọc · vùng code quen hay lạ) —
+    *một phiên có ôm nổi không*. Viết "vừa một phiên" không kèm số = chưa khai.
+- `estimate_hours` **giữ** (đường găng + retro) nhưng không còn ngưỡng chặn; vẫn bắt buộc >0 và có breakdown.
+- Trần giờ trở thành **núm của từng dự án**: `governance/sizing.md` → `unit_max_hours` (template mới, mặc
+  định `null`). Có đặt thì vượt chỉ WARN — chặn gate vẫn là hai điều kiện trên.
+
+### KPI mới (luật không kiểm được là luật sẽ trượt)
+- `units.releasable` — bao nhiêu Unit khai đường ra hợp lệ (kiểm **lúc lập kế hoạch**).
+- `units.oneSession` — bao nhiêu Unit đã đóng thật sự gọn trong **một chuỗi HOF** (kiểm **sau, bằng dấu
+  vết**: cần ≥2 HOF hoặc có HOF `returned` nghĩa là thực tế to hơn `session_fit` đã khai). Không phải để
+  phạt — là dữ liệu để intent sau cắt sát hơn. PCT/INT-001 khi đo lần đầu: **13/17**.
+
+### Không dựng bù hồ sơ
+Intent đã qua Gate D được lập dưới luật cũ → tower · `/dlc-doctor` · `session_brief` **không** đòi khai lại
+`releasable`/`session_fit`, chỉ ghi một dòng WARN "kế hoạch cũ, áp §4.9 v5 từ intent kế". Kiểm trên PCT:
+68 Unit của INT-001/002/003 **không** bị biến thành 68 lỗi giả.
+
+### Kèm theo
+`MIGRATION.md` mục 4.x→5.0.0 · template `sizing.md` + `unit-spec.md` (3 trường mới) · `/dlc-init` seed
+`governance/sizing.md` · checklists `pm-po` v3 · `qa` v4 · `ba` v3 · agents `dlc-intent-analyst`,
+`dlc-unit-planner`, `dlc-pm-po-reviewer`, `dlc-qa-reviewer`, `dlc-ba-reviewer`, `dlc-orchestrator` ·
+`/dlc-doctor` mục 2 viết lại · KPI mới trên Mission Control + Dòng chảy.
+
 ## 4.1.0 (2026-08-13) — Nhịp sống phải kiểm chéo được · teammate vào giao thức
 
 **Nguồn: quan sát hiện trường, KHÔNG phải LL đã qua Gate G.** Ca gốc là PCT · INT-003 · `HOF-0039` ngày

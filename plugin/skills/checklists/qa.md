@@ -1,6 +1,6 @@
 ---
 name: qa
-version: 3
+version: 4
 source: LL-002 (Gate G · DEC-0027) — retro INT-001 dự án PCT
 ---
 # Checklist QA/QC · v3
@@ -9,7 +9,8 @@ source: LL-002 (Gate G · DEC-0027) — retro INT-001 dự án PCT
 - [ ] Đủ ba file: `user-stories.md` · `nfr.md` · `risks.md` — và không file nào chỉ có tiêu đề
 - [ ] **Mọi nguồn Unit này cần (`sources:` trong spec.md) đã ở trạng thái `read` trong source-ledger** —
       còn `planned` là chưa đủ điều kiện vào Bolt
-- [ ] Ước lượng ≤5h có breakdown; nếu Unit vừa tách, AC của các mảnh không chồng lấn/bỏ sót
+- [ ] Ước lượng có breakdown; nếu Unit vừa cắt, AC của các mảnh không chồng lấn/bỏ sót **và mỗi mảnh tự
+      release được** (§4.9 v5)
 - [ ] Mỗi NFR có ngưỡng số + cách đo → tức là test được; NFR không đo được → request-changes
 - [ ] Mỗi User Story có edge case/lỗi (hoặc câu hỏi Gate C nếu chưa quyết)
 
@@ -39,3 +40,4 @@ source: LL-002 (Gate G · DEC-0027) — retro INT-001 dự án PCT
 - v3: phép đo tự chứng minh + mutation test + smoke không đủ + test truy ngược về unit + chặn `done` thiếu review (LL-002 P-2/P-5, LL-001 P-3)
 - v2: DoR soi coverage nguồn + ba file US/NFR/risk + ≤5h; NFR phải đo được; theo protocol v2
 - v1: bản đầu
+- v4: bỏ trần 5h; Unit đo bằng `releasable` + `session_fit` có con số (protocol §4.9 v5)

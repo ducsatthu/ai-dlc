@@ -180,7 +180,8 @@ function PhaseFlow({ data, intentId, gates, onDoc, onGate, onOpenUnit, onSelectI
         border: '1px solid var(--line)', borderRadius: 'var(--radius-lg)', background: 'var(--surface)', overflow: 'hidden'
       }}>
         {['sources.read', 'sources.planned', 'sources.conflicts', 'units.count', 'units.estimate',
-          'units.problems', 'tasks.done', 'units.done', 'units.reviewed', 'units.artifacts',
+          'units.problems', 'units.releasable', 'tasks.done', 'units.done', 'units.oneSession',
+          'units.reviewed', 'units.artifacts',
           'phase.consistency']
           .map(key => met[key]).filter(Boolean).map((k, i) => (
           <div key={k.key} onClick={() => onMetric && onMetric(k)} title="Bấm để xem số này ở đâu ra"
