@@ -11,48 +11,88 @@ const NAV = [
   { key: 'gov', label: 'Governance & Learning', mark: '△' }
 ];
 
-function Sidebar({ screen, setScreen, gateCount, intentCount }) {
+// Variant C — cây Intent → Unit → Bolt, nhánh đang chọn mở sẵn
+const MICRO = { fontFamily: 'var(--mono)', fontSize: 9.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--muted)' };
+const TONE = { 'in-bolt': 'var(--accent)', blocked: 'var(--danger)', done: 'var(--ok)', 'pending-gate': 'var(--muted)' };
+function unitsOf(data, id) { return data.unitsByIntent[id] || (id === 'INT-001' ? data.units : []); }
+
+function Leaf({ depth, caret, dot, id, name, on, dim, onClick, onCaret }) {
   return (
-    <nav style={{
-      width: 232, flex: 'none', borderRight: '1px solid var(--line)', background: 'var(--surface)',
-      display: 'flex', flexDirection: 'column', padding: '16px 0'
-    }}>
-      <div style={{ padding: '0 18px 16px', borderBottom: '1px solid var(--line)' }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-          <span style={{ color: 'var(--accent)', fontFamily: 'var(--mono)' }}>◇</span>
-          <span style={{ fontSize: 17, fontWeight: 750, letterSpacing: '-0.02em' }}>Control Tower</span>
-        </div>
-        <div style={{ fontFamily: 'var(--mono)', fontSize: 10.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted)', marginTop: 4 }}>AI-DLC · 17 agents</div>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0 6px 0 ' + (6 + depth * 13) + 'px', height: 24, borderRadius: 'var(--radius-sm)', background: on ? 'var(--accent-bg)' : 'transparent', boxShadow: on ? 'inset 2px 0 0 var(--accent)' : 'none' }}>
+      {caret ? (
+        <button onClick={onCaret} style={{ width: 12, flex: 'none', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontFamily: 'var(--mono)', fontSize: 9, padding: 0 }}>{caret}</button>
+      ) : <span style={{ width: 12, flex: 'none' }} />}
+      {dot && <span style={{ width: 6, height: 6, borderRadius: 999, background: dot, flex: 'none' }} />}
+      <button onClick={onClick} style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'baseline', gap: 6, background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}>
+        <span style={{ fontFamily: 'var(--mono)', fontSize: 11, flex: 'none', color: on ? 'var(--accent)' : dim ? 'var(--muted)' : 'var(--ink)' }}>{id}</span>
+        <span style={{ fontSize: 11.5, color: 'var(--muted)', opacity: on ? 1 : 0.85, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</span>
+      </button>
+    </div>
+  );
+}
+
+function Sidebar({ screen, setScreen, gateCount, data, intentId, setIntentId, unitId, setUnitId }) {
+  const intents = data.intents;
+  const [expanded, setExpanded] = React.useState([intentId]);
+  const isOpen = id => expanded.includes(id);
+  const toggle = id => setExpanded(e => (e.includes(id) ? e.filter(x => x !== id) : e.concat(id)));
+  const openIntent = id => { setIntentId(id); const u = unitsOf(data, id); setUnitId(u[0] ? u[0].id : null); setExpanded(e => (e.includes(id) ? e : e.concat(id))); setScreen('intent'); };
+  const flat = (key, mark, label, badge) => {
+    const on = screen === key;
+    return (
+      <button key={key} onClick={() => setScreen(key)} style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left', padding: '7px 10px', borderRadius: 'var(--radius-sm)', cursor: 'pointer', border: '1px solid ' + (on ? 'var(--line)' : 'transparent'), background: on ? 'var(--surface-2)' : 'transparent', color: on ? 'var(--ink)' : 'var(--muted)', fontSize: 13.5 }}>
+        <span style={{ fontFamily: 'var(--mono)', fontSize: 12, width: 12, color: on ? 'var(--accent)' : 'var(--muted)' }}>{mark}</span>
+        <span style={{ flex: 1 }}>{label}</span>{badge}
+      </button>
+    );
+  };
+  return (
+    <nav style={{ width: 268, flex: 'none', borderRight: '1px solid var(--line)', background: 'var(--surface)', display: 'flex', flexDirection: 'column', padding: '16px 0', overflow: 'auto' }}>
+      <div style={{ padding: '0 18px 14px', borderBottom: '1px solid var(--line)' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}><span style={{ color: 'var(--accent)', fontFamily: 'var(--mono)' }}>◇</span><span style={{ fontSize: 17, fontWeight: 750, letterSpacing: '-0.02em' }}>Control Tower</span></div>
+        <div style={{ ...MICRO, fontSize: 10.5, marginTop: 4 }}>AI-DLC · 17 agents</div>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', padding: '10px 8px', gap: 2 }}>
-        {NAV.map(n => {
-          const on = screen === n.key;
+      <div style={{ padding: '10px 8px 8px' }}>
+        {flat('mission', '◇', 'Mission Control', gateCount > 0 ? <span style={{ fontFamily: 'var(--mono)', fontSize: 10.5, color: 'var(--accent)', border: '1px solid var(--accent)', background: 'var(--accent-bg)', borderRadius: 999, padding: '0 6px' }}>{gateCount}</span> : null)}
+      </div>
+      <div style={{ padding: '8px 6px 10px', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 10px 8px' }}>
+          <span style={MICRO}>Intent → Unit → Bolt</span>
+          <button onClick={() => setScreen('intents')} style={{ marginLeft: 'auto', background: 'transparent', border: 'none', cursor: 'pointer', ...MICRO, fontSize: 9, color: screen === 'intents' ? 'var(--accent)' : 'var(--muted)' }}>bảng {intents.length}</button>
+        </div>
+        {intents.map(i => {
+          const units = unitsOf(data, i.id);
+          const open = isOpen(i.id);
+          const sel = i.id === intentId;
           return (
-            <button key={n.key} onClick={() => setScreen(n.key)} style={{
-              display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left',
-              padding: '8px 10px', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
-              border: '1px solid ' + (on ? 'var(--line)' : 'transparent'),
-              background: on ? 'var(--surface-2)' : 'transparent',
-              color: on ? 'var(--ink)' : 'var(--muted)', fontFamily: 'var(--sans)', fontSize: 13.5,
-              paddingLeft: n.key === 'intent' ? 30 : 10
-            }}>
-              <span style={{ fontFamily: 'var(--mono)', fontSize: 12, color: on ? 'var(--accent)' : 'var(--muted)', width: 12 }}>{n.mark}</span>
-              <span style={{ flex: 1 }}>{n.label}</span>
-              {n.key === 'intents' && intentCount ? (
-                <span style={{ fontFamily: 'var(--mono)', fontSize: 10.5, color: 'var(--muted)' }}>{intentCount}</span>
-              ) : null}
-              {n.key === 'mission' && gateCount > 0 && (
-                <span style={{ fontFamily: 'var(--mono)', fontSize: 10.5, color: 'var(--accent)', border: '1px solid var(--accent)', background: 'var(--accent-bg)', borderRadius: 999, padding: '0 6px' }}>{gateCount}</span>
-              )}
-            </button>
+            <div key={i.id}>
+              <Leaf depth={0} caret={units.length ? (open ? '▾' : '▸') : '·'} onCaret={() => toggle(i.id)}
+                dot={i.gate ? 'var(--accent)' : 'var(--line)'} id={i.id} name={i.name}
+                on={sel && screen === 'intent'} dim={!sel} onClick={() => openIntent(i.id)} />
+              {open && (units.length ? units.map(u => {
+                const uSel = sel && unitId === u.id;
+                return (
+                  <div key={u.id}>
+                    <Leaf depth={1} dot={TONE[u.status]} id={u.id} name={u.name} on={uSel && screen === 'bolt'} dim={!uSel}
+                      onClick={() => { setIntentId(i.id); setUnitId(u.id); setScreen('bolt'); }} />
+                    <Leaf depth={2} id={u.bolt} name={u.status + ' · ' + u.done + '%'} on={false} dim
+                      onClick={() => { setIntentId(i.id); setUnitId(u.id); setScreen('bolt'); }} />
+                  </div>
+                );
+              }) : (
+                <div style={{ padding: '2px 6px 2px 32px', fontSize: 11, color: 'var(--muted)', opacity: 0.8 }}>chưa phân rã thành Unit</div>
+              ))}
+            </div>
           );
         })}
       </div>
-      <div style={{ marginTop: 'auto', padding: '12px 18px 0', borderTop: '1px solid var(--line)' }}>
-        <div style={{ fontFamily: 'var(--mono)', fontSize: 10.5, color: 'var(--muted)', lineHeight: 1.8 }}>
-          <div>supervisor · Human</div>
-          <div>spoke-project-control-tower</div>
-        </div>
+      <div style={{ padding: '10px 8px' }}>
+        <div style={{ ...MICRO, padding: '0 10px 6px' }}>Xuyên suốt</div>
+        {flat('comms', '→', 'Comms & Reviews')}
+        {flat('gov', '△', 'Governance & Learning')}
+      </div>
+      <div style={{ marginTop: 'auto', padding: '12px 18px 0', borderTop: '1px solid var(--line)', fontFamily: 'var(--mono)', fontSize: 10.5, color: 'var(--muted)', lineHeight: 1.8 }}>
+        <div>supervisor · Human</div><div>spoke-project-control-tower</div>
       </div>
     </nav>
   );

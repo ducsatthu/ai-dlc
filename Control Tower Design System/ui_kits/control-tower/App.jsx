@@ -3,7 +3,9 @@ const NSa = window.ControlTowerDesignSystem_68131c;
 const { Panel, IdCode: AId, Chip: AChip, VerdictBadge: AVerdict, Button: ABtn, StatusChip, TraceChain: ATrace } = NSa;
 
 function TaskDrawerBody({ task, data }) {
+  const [doc, setDoc] = React.useState(null);
   if (!task) return null;
+  const previewable = s => !!data.docs[docKey(s.id)];
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div style={{ fontSize: 15, fontWeight: 650 }}>{task.title}</div>
@@ -23,7 +25,61 @@ function TaskDrawerBody({ task, data }) {
         ))}
       </div>
       <SectionLabel>Chuỗi truy vết</SectionLabel>
-      <ATrace direction="vertical" steps={data.trace} />
+      <ATrace direction="vertical" steps={data.trace} activeId={doc} onSelect={s => setDoc(previewable(s) ? (doc === s.id ? null : s.id) : null)} />
+      {doc && <DocPreview path={doc} docs={data.docs} onClose={() => setDoc(null)} />}
+    </div>
+  );
+}
+
+function MsgDrawerBody({ m, data, doc, setDoc }) {
+  const th = data.threads[m.id];
+  const turns = th ? th.turns : [{ id: m.id, time: m.time, from: m.from, to: m.to, type: m.type, body: m.summary }];
+  const TONE = { question: 'var(--blue)', clarification: 'var(--blue)', answer: 'var(--ok)', decision: 'var(--accent)', finding: 'var(--danger)', 'review-request': 'var(--blue)', handoff: 'var(--muted)', note: 'var(--muted)' };
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div>
+        <div style={{ fontSize: 15, fontWeight: 650, textWrap: 'pretty' }}>{th ? th.subject : m.summary}</div>
+        {th && <div style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)', marginTop: 3 }}>{th.scope}</div>}
+      </div>
+
+      <SectionLabel>Hội thoại · {turns.length} lượt</SectionLabel>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {turns.map(t => (
+          <div key={t.id} style={{ border: '1px solid ' + (t.id === m.id ? 'var(--accent)' : 'var(--line)'), borderRadius: 'var(--radius-md)', background: t.id === m.id ? 'var(--accent-bg)' : 'var(--surface-2)', padding: '9px 12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', fontFamily: 'var(--mono)', fontSize: 10.5, letterSpacing: '0.06em' }}>
+              <span style={{ color: 'var(--muted)' }}>{t.time}</span>
+              <span style={{ color: 'var(--ink)' }}>{t.from}</span>
+              <span style={{ color: 'var(--muted)' }}>→</span>
+              <span style={{ color: 'var(--ink)' }}>{t.to}</span>
+              <span style={{ marginLeft: 'auto', color: TONE[t.type] || 'var(--muted)', textTransform: 'uppercase' }}>{t.type}</span>
+              <span style={{ color: 'var(--muted)' }}>{t.id}</span>
+            </div>
+            <div style={{ fontSize: 13.5, lineHeight: 1.6, marginTop: 5, textWrap: 'pretty' }}>{t.body}</div>
+          </div>
+        ))}
+      </div>
+
+      {th && (
+        <div style={{ borderLeft: '2px solid var(--ok)', paddingLeft: 10 }}>
+          <div style={{ fontFamily: 'var(--mono)', fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)' }}>Kết quả</div>
+          <div style={{ fontSize: 13.5, lineHeight: 1.6, marginTop: 3, textWrap: 'pretty' }}>{th.outcome}</div>
+        </div>
+      )}
+
+      {th && th.refs && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)' }}>Artefact liên quan</span>
+          {th.refs.map(r => {
+            const has = !!data.docs[docKey(r)];
+            return (
+              <span key={r} title={has ? 'mở preview markdown' : 'chưa có bản preview'} onClick={() => has && setDoc(doc === r ? null : r)} style={{ cursor: has ? 'pointer' : 'default', opacity: has ? 1 : 0.7, borderBottom: has ? '1px dotted var(--muted)' : 'none' }}>
+                <AId variant="artifact">{r}</AId>
+              </span>
+            );
+          })}
+        </div>
+      )}
+      {doc && <DocPreview path={doc} docs={data.docs} onClose={() => setDoc(null)} />}
     </div>
   );
 }
@@ -32,9 +88,11 @@ function App() {
   const data = window.CT_DATA;
   const [screen, setScreen] = React.useState('mission');
   const [intentId, setIntentId] = React.useState('INT-001');
+  const [unitId, setUnitId] = React.useState('UOW-01');
   const [theme, setTheme] = React.useState('dark');
   const [gates, setGates] = React.useState(data.gates);
   const [drawer, setDrawer] = React.useState(null);
+  const [msgDoc, setMsgDoc] = React.useState(null);
   const [toast, setToast] = React.useState(null);
 
   React.useEffect(() => { document.documentElement.setAttribute('data-theme', theme); }, [theme]);
@@ -47,11 +105,15 @@ function App() {
     setTimeout(() => setToast(null), 3200);
   };
 
+  const unitsSel = data.unitsByIntent[intentId] || (intentId === 'INT-001' ? data.units : []);
+  const unitSel = unitsSel.find(u => u.id === unitId) || unitsSel[0];
+
   const titles = {
-    mission: ['Mission Control', 'cái gì đang chờ tôi · mọi thứ đang ở đâu'],
+    mission: ['Mission Control', 'agents đang làm gì ngay lúc này · dừng sớm trước khi đi sai'],
     intents: ['Intents', data.intents.length + ' intent đang mở · lọc theo trạng thái, loại brownfield, người yêu cầu'],
     intent: [intentId + ' · ' + (data.intents.find(x => x.id === intentId) || data.intents[0]).name, 'Units · Open questions · Decisions · Changelog'],
-    bolt: ['UOW-01 · Bolt 1 — Release Planning', 'task board · contract · checkpoint Gate E'],
+    bolt: [unitSel ? unitSel.id + ' · ' + unitSel.bolt + ' — ' + unitSel.name : intentId + ' — chưa có Unit',
+      unitSel ? 'task board · contract · checkpoint' : 'intent còn ở pha Inception'],
     comms: ['Comms & Reviews', 'mọi trao đổi là văn bản truy vết được'],
     gov: ['Governance & Learning', 'DoR/DoD · risk · tech-debt · lessons']
   };
@@ -59,46 +121,36 @@ function App() {
   const crumbs = {
     intents: [{ label: 'Dự án · spoke-project-control-tower' }, { label: 'Intents' }],
     intent: [{ label: 'Intents', to: 'intents' }, { label: intentId }],
-    bolt: [{ label: 'Intents', to: 'intents' }, { label: intentId, to: 'intent' }, { label: 'UOW-01' }, { label: 'Bolt 1' }],
+    bolt: [{ label: 'Intents', to: 'intents' }, { label: intentId, to: 'intent' }].concat(unitSel ? [{ label: unitSel.id }, { label: unitSel.bolt }] : [{ label: 'chưa có Unit' }]),
     comms: [{ label: 'Dự án' }, { label: 'Comms & Reviews' }],
     gov: [{ label: 'Dự án' }, { label: 'Governance & Learning' }]
   };
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--bg)', color: 'var(--ink)' }}>
-      <Sidebar screen={screen} setScreen={setScreen} gateCount={gates.length} intentCount={data.intents.length} />
+      <Sidebar screen={screen} setScreen={setScreen} gateCount={gates.length} data={data}
+        intentId={intentId} setIntentId={setIntentId} unitId={unitId} setUnitId={setUnitId} />
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <TopBar title={titles[screen][0]} subtitle={titles[screen][1]} theme={theme} setTheme={setTheme}
           crumbs={crumbs[screen]} onCrumb={setScreen}
           right={<StatusChip tone={gates.length ? 'gate' : 'done'}>{gates.length ? gates.length + ' MỤC CHỜ BẠN' : 'KHÔNG CÓ GÌ CHỜ BẠN'}</StatusChip>} />
         <div style={{ flex: 1, overflow: 'auto' }}>
           {screen === 'mission' && <MissionControl data={data} gates={gates} onDecision={decide}
-            onOpenIntent={id => { setIntentId(id); setScreen('intent'); }} onOpenFeed={m => setDrawer({ kind: 'msg', m })} />}
+            onOpenIntent={id => { setIntentId(id); setScreen('intent'); }} onOpenIntents={() => setScreen('intents')}
+            onOpenTask={w => setDrawer({ kind: 'task', t: data.tasks.find(t => t.id === w.taskId) || { id: w.taskId, title: w.title, status: w.status, approver: '—' } })}
+            onOpenFeed={m => setDrawer({ kind: 'msg', m })} />}
           {screen === 'intents' && <IntentList data={data} onOpenIntent={id => { setIntentId(id); setScreen('intent'); }} />}
           {screen === 'intent' && <IntentDetail data={data} intentId={intentId}
             onOpenBolt={() => setScreen('bolt')} onOpenList={() => setScreen('intents')} onSelectIntent={setIntentId} />}
-          {screen === 'bolt' && <BoltBoard data={data} onOpenTask={t => setDrawer({ kind: 'task', t })} />}
+          {screen === 'bolt' && <BoltBoard data={data} intentId={intentId} unitId={unitId} onOpenTask={t => setDrawer({ kind: 'task', t })} />}
           {screen === 'comms' && <CommsReviews data={data} onOpenFeed={m => setDrawer({ kind: 'msg', m })} />}
           {screen === 'gov' && <Governance data={data} />}
         </div>
       </main>
-      <Drawer open={!!drawer} onClose={() => setDrawer(null)}
+      <Drawer open={!!drawer} onClose={() => { setDrawer(null); setMsgDoc(null); }}
         title={drawer ? (drawer.kind === 'task' ? drawer.t.id + ' · task detail' : drawer.m.id + ' · message') : ''}>
         {drawer && drawer.kind === 'task' && <TaskDrawerBody task={drawer.t} data={data} />}
-        {drawer && drawer.kind === 'msg' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ fontFamily: 'var(--mono)', fontSize: 11.5, color: 'var(--muted)' }}>{drawer.m.time} · {drawer.m.from} → {drawer.m.to} · {drawer.m.type}</div>
-            <div style={{ fontSize: 14.5 }}>{drawer.m.summary}</div>
-            <SectionLabel style={{ marginTop: 8 }}>Truy ngược từ message này</SectionLabel>
-            <ATrace direction="vertical" steps={[
-              { kind: 'msg', id: drawer.m.id, note: drawer.m.type },
-              { kind: 'task', id: 'TSK-01', note: 'API contract draft + freeze' },
-              { kind: 'design', id: 'UOW-01/contract.md', note: 'v2 FROZEN' },
-              { kind: 'spec', id: 'UOW-01/spec.md' },
-              { kind: 'intent', id: 'INT-001' }
-            ]} />
-          </div>
-        )}
+        {drawer && drawer.kind === 'msg' && <MsgDrawerBody m={drawer.m} data={data} doc={msgDoc} setDoc={setMsgDoc} />}
       </Drawer>
       {toast && (
         <div style={{

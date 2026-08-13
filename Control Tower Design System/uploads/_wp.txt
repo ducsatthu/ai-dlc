@@ -1,0 +1,945 @@
+AI-DLC · Định nghĩa phương pháp · Bản dịch nội bộ Mynavi TechTus Vietnam
+  
+Nguồn: Raja SP, Amazon Web Services
+  
+  
+WHITE PAPER · SOFTWARE ENGINEERING METHODS
+  
+AI-DLC: vòng đời phát triển phần mềm do AI dẫn dắt.
+  
+Định nghĩa phương pháp AI-Driven Development Lifecycle (AI-DLC) — một phương pháp AI-native được tái hình dung "First Principles Thinking"
+  
+    
+Raja SP, Amazon Web Services
+    
+Bản dịch nội bộ Mynavi TechTus Vietnam
+    
+Dành cho Engineers, APM &amp; Delivery
+    
+  
+  
+Về bản dịch này
+  
+    
+Nội dung giữ nguyên cấu trúc và ý của bản gốc tiếng Anh. Các thuật ngữ phương pháp (Intent, Unit, Bolt, Mob Elaboration…) giữ nguyên tiếng Anh, kèm chú giải tiếng Việt ở lần xuất hiện đầu.
+    
+Bản white paper đã được viết lại so với bản tiếng Anh giữ nguyên các nguyên tắc cốt lõi, giữ bối cảnh, các principal và method.
+Ngôn ngữ và thể hiện phù hợp với Mynavi Techtus
+  
+  
+    
+TÓM TẮT BỐI CẢNH
+    
+AI không nên được thêm vá vào quy trình cũ. Quy trình nên được vẽ lại quanh AI.
+    
+      
+Đảo chiều hội thoại.
+ AI khởi xướng và dẫn dắt, đề xuất kế hoạch cùng các phương án đánh đổi; con người phê duyệt, xác nhận và chốt quyết định tại các điểm then chốt.
+      
+Ba pha, không hơn.
+ Inception, Construction, Operations — số pha tối thiểu nhưng đủ để con người giám sát ở các điểm quyết định.
+      
+Vòng lặp tính bằng giờ hoặc ngày.
+ Sprint được đổi tên thành Bolt để phản ánh chu kỳ xây dựng - xác nhận ngắn hơn hàng chục lần.
+      
+Kỹ thuật thiết kế nằm trong lõi.
+ Khác Scrum hay Kanban, AI-DLC không để Domain-Driven Design ra ngoài phạm vi mà đưa vào trung tâm phương pháp.
+      
+Xác nhận của con người là hàm mất mát.
+ Mỗi lần con người rà soát sẽ cắt bỏ nỗ lực sai hướng trước khi nó lan xuống hạ nguồn.
+    
+  
+  
+    
+Phạm vi áp dụng
+    
+AI-DLC hướng đến hệ thống phức tạp: thay đổi chức năng liên tục, kiến trúc nhiều tầng, nhiều phương án đánh đổi, yêu cầu về mở rộng, tích hợp và tùy biến, thường có nhiều nhóm trong tổ chức lớn hoặc chịu quy định.
+    
+Hệ thống đơn giản, ít hoặc không cần quản lý đánh đổi, có thể do người không phải lập trình viên xây dựng, nằm ngoài phạm vi AI-DLC và phù hợp hơn với low-code/no-code.
+    
+      
+Nội dung tài liệu
+      
+I. Bối cảnh · II. Mười nguyên tắc cốt lõi · III. Framework cốt lõi · IV. Green-field · V. Brown-field · VI. Áp dụng · Thuật ngữ · Phụ lục A: bộ prompt
+    
+  
+I. Bối cảnh
+  
+Sự phát triển của công nghệ phần mềm là một hành trình liên tục nhằm giúp lập trình viên tập trung giải quyết các vấn đề phức tạp bằng cách trừu tượng hóa những công việc cấp thấp, không tạo khác biệt. Từ mã máy ban đầu đến ngôn ngữ lập trình cấp cao, rồi việc áp dụng API và thư viện, mỗi bước đều làm năng suất của lập trình viên tăng đáng kể. Ngày nay, sự tích hợp của các Mô hình Ngôn ngữ Lớn (LLM) đã cách mạng hóa cách phần mềm được tạo ra, đưa tương tác hội thoại bằng ngôn ngữ tự nhiên vào các công việc như sinh mã, phát hiện lỗi và tạo kiểm thử. Đây là kỷ nguyên AI-Assisted (AI hỗ trợ), nơi AI tăng cường cho từng nhiệm vụ cụ thể, chi tiết.
+  
+Khi AI tiếp tục phát triển, phạm vi ứng dụng của nó đang mở rộng ra ngoài việc sinh mã để bao gồm làm rõ yêu cầu, lập kế hoạch, phân rã nhiệm vụ, thiết kế và cộng tác thời gian thực với lập trình viên. Sự chuyển dịch này đang khởi đầu kỷ nguyên AI-Driven (AI dẫn dắt), nơi AI chủ động điều phối quá trình phát triển. Tuy nhiên, các phương pháp phát triển phần mềm hiện có được thiết kế cho quy trình kéo dài và do con người dẫn dắt nên chưa hoàn toàn phù hợp với tốc độ, tính linh hoạt và năng lực nâng cao của AI, ví dụ năng lực tác tử (agentic). Việc phụ thuộc vào workflow thủ công và định nghĩa vai trò cứng nhắc làm hạn chế khả năng khai thác trọn vẹn AI.
+  
+Chắp AI vào các phương pháp này không chỉ giới hạn tiềm năng của nó mà còn củng cố những bất cập lỗi thời. Để tận dụng đầy đủ sức mạnh biến đổi của AI, các phương pháp SDLC cần được tái hình dung. Điều đó đòi hỏi AI trở thành cộng tác viên trung tâm, đồng bộ workflow, vai trò và vòng lặp để ra quyết định nhanh hơn, thực thi nhiệm vụ liền mạch và thích ứng liên tục.
+  
+Tài liệu này giới thiệu và định nghĩa 
+AI-Driven Development Lifecycle (AI-DLC)
+, một phương pháp AI-native được tái hình dung để tích hợp đầy đủ năng lực AI, đặt nền móng cho bước tiến tiếp theo của kỹ nghệ phần mềm.
+II. Mười nguyên tắc cốt lõi
+Các nguyên tắc trong phần này là nền tảng để định nghĩa AI-DLC, định hình các pha, vai trò, artefact và nghi thức. Những giả định này rất quan trọng đối với việc kiểm chứng phương pháp được đề xuất, vì chúng cung cấp lý do nền tảng cho thiết kế của phương pháp.
+  
+    
+1
+Tái hình dung thay vì chắp vá
+  
+Chúng tôi chọn tái hình dung một phương pháp phát triển thay vì giữ các phương pháp hiện có như SDLC hay Agile, ví dụ Scrum, rồi đưa AI vào. Các phương pháp truyền thống này được thiết kế cho những vòng lặp dài theo tháng hoặc tuần, dẫn đến các nghi thức như họp đứng hằng ngày và retrospective. Ngược lại, áp dụng AI đúng cách tạo ra các chu kỳ nhanh, đo bằng giờ hoặc ngày. Điều này cần cơ chế xác nhận và phản hồi liên tục theo thời gian thực, khiến nhiều nghi thức truyền thống bớt phù hợp.
+  
+Việc ước lượng công sức, ví dụ story point, còn quan trọng đến đâu nếu AI làm mờ ranh giới giữa việc đơn giản, trung bình và khó? Chỉ số như velocity còn phù hợp không, hay nên thay bằng Business Value (giá trị kinh doanh)? AI cũng ngày càng tự động hóa các thực hành thủ công như lập kế hoạch, phân rã nhiệm vụ, phân tích yêu cầu và áp dụng kỹ thuật thiết kế, ví dụ mô hình hóa miền, từ đó rút ngắn số pha từ ý định đến mã. Những động lực mới này đòi hỏi tái hình dung dựa trên tư duy nguyên lý đầu tiên thay vì chắp vá. Chúng ta cần ô tô, không phải xe ngựa chạy nhanh hơn.
+  
+  
+    
+2
+Đảo chiều hướng hội thoại
+  
+AI-DLC tạo ra thay đổi căn bản: AI khởi xướng và dẫn dắt hội thoại với con người, thay vì con người khởi xướng hội thoại với AI để hoàn thành nhiệm vụ. AI dẫn dắt workflow bằng cách phân rã các Intent cấp cao, ví dụ triển khai một chức năng kinh doanh mới, thành các nhiệm vụ có thể hành động; tạo khuyến nghị; và đề xuất các phương án đánh đổi. Con người đóng vai trò phê duyệt, xác nhận, lựa chọn phương án và chốt quyết định tại các điểm then chốt.
+  
+Cách tiếp cận do AI dẫn dắt giúp lập trình viên tập trung vào quyết định có giá trị cao, trong khi AI xử lý lập kế hoạch, phân rã nhiệm vụ và tự động hóa. Bằng cách đảo ngược động lực truyền thống, AI-DLC bảo đảm sự tham gia của con người có mục đích, tập trung vào giám sát, giảm thiểu rủi ro và đồng bộ chiến lược, qua đó nâng cả tốc độ lẫn chất lượng. Có thể hình dung như Google Maps: con người đặt đích đến, tức Intent, còn hệ thống đưa ra chỉ dẫn từng bước, tức sự phân rã nhiệm vụ và khuyến nghị của AI. Trên đường đi, con người vẫn giám sát và điều chỉnh hành trình khi cần.
+  
+  
+    
+3
+Tích hợp kỹ thuật thiết kế vào lõi
+  
+Các framework Agile như Scrum hay Kanban để kỹ thuật thiết kế, ví dụ Domain-Driven Design, ngoài phạm vi và khuyến nghị nhóm tự lựa chọn. Khoảng trống quan trọng này đã góp phần làm chất lượng phần mềm suy giảm. Riêng tại Hoa Kỳ, các vấn đề chất lượng phần mềm được ước tính gây thiệt hại 2,41 nghìn tỷ USD vào năm 2022.
+1
+  
+Thay vì tách kỹ thuật thiết kế ra ngoài, AI-DLC đưa chúng vào lõi. AI-DLC sẽ có các biến thể cho nhóm theo Domain-Driven Design (DDD), Behavior-Driven Development (BDD) hoặc Test-Driven Development (TDD). Tài liệu này trình bày biến thể DDD của AI-DLC, sử dụng các nguyên tắc DDD để chia hệ thống thành những bounded context (miền ngữ cảnh có biên rõ ràng) độc lập, đúng kích thước và có thể được xây dựng nhanh theo hướng song song. AI sẽ tự áp dụng các kỹ thuật này trong lúc lập kế hoạch và phân rã nhiệm vụ; lập trình viên chỉ cần xác nhận và điều chỉnh. Việc tích hợp này là chìa khóa cho vòng lặp theo giờ hoặc ngày, đồng thời loại bỏ phần việc thủ công nặng nề và duy trì chất lượng phần mềm, với phương châm "Xây hệ thống tốt hơn, nhanh hơn".
+  
+  
+    
+4
+Phù hợp với năng lực AI hiện tại
+  
+Tài liệu này lạc quan về tiềm năng tương lai của AI nhưng hoàn toàn thực tế về trạng thái hiện tại. AI-DLC thừa nhận AI đang tiến bộ nhưng chưa đủ tin cậy để tự chuyển ý định cấp cao thành mã thực thi hoặc vận hành độc lập mà không có sự giám sát của con người, trong khi vẫn bảo đảm khả năng giải thích và an toàn. Đồng thời, mô hình AI-Assisted, nơi lập trình viên làm phần lớn công việc trí tuệ nặng và AI chỉ tăng cường, không khai mở hết tiềm năng của AI trong phát triển.
+  
+AI-DLC áp dụng mô hình AI-Driven để cân bằng sự tham gia của con người với năng lực và giới hạn của AI hiện tại. Trong đó, lập trình viên vẫn chịu trách nhiệm cuối cùng về xác nhận, ra quyết định và giám sát. Sự cân bằng này giúp tận dụng hiệu quả thế mạnh của AI mà không làm suy yếu các lớp bảo vệ quan trọng từ phán đoán của lập trình viên.
+  
+  
+    
+5
+Phục vụ việc xây dựng hệ thống phức tạp
+  
+AI-DLC hướng đến các hệ thống cần thích ứng chức năng liên tục, có độ phức tạp kiến trúc cao, phải quản lý nhiều phương án đánh đổi, yêu cầu mở rộng, tích hợp và tùy biến. Những hệ thống này cần kỹ thuật thiết kế nâng cao, mẫu thiết kế và thực hành tốt, thường có nhiều nhóm phối hợp trong tổ chức lớn hoặc chịu quy định. Các hệ thống đơn giản có thể do người không phải lập trình viên xây dựng, ít hoặc không cần quản lý đánh đổi, nằm ngoài phạm vi AI-DLC và phù hợp hơn với cách tiếp cận low-code/no-code.
+  
+  
+    
+6
+Giữ lại những gì tăng cộng sinh người - AI
+  
+Khi tái hình dung phương pháp, chúng tôi giữ lại các artefact và điểm tiếp xúc của phương pháp hiện có nếu chúng thiết yếu cho xác nhận của con người và giảm thiểu rủi ro. Ví dụ, user story đồng bộ cách hiểu của con người và AI về thứ cần xây dựng, hoạt động như những hợp đồng rõ ràng. User story vì vậy tiếp tục được giữ trong phương pháp mới. Một ví dụ khác là Risk Register (sổ đăng ký rủi ro của tổ chức), bảo đảm kế hoạch và mã do AI tạo tuân thủ framework quản trị rủi ro. Các thành phần được giữ lại sẽ được tối ưu cho sử dụng thời gian thực, cho phép lặp nhanh mà không đánh đổi sự đồng bộ hoặc an toàn.
+  
+  
+    
+7
+Hỗ trợ chuyển đổi bằng sự quen thuộc
+  
+Phương pháp mới không nên đòi hỏi đào tạo dài ngày; người đã có kinh nghiệm phải có thể định hướng và bắt đầu thực hành trong một ngày. Để dễ áp dụng thông qua học liên tưởng, AI-DLC giữ quan hệ nền tảng giữa các thuật ngữ quen thuộc của phương pháp cũ, đồng thời đưa ra thuật ngữ hiện đại. Ví dụ, Sprint trong Scrum là chu kỳ lặp để xây dựng và xác nhận. Nhưng ở thời kỳ trước AI, Sprint thường kéo dài 4 đến 6 tuần. Với AI-DLC, chu kỳ lặp diễn ra liên tục theo giờ hoặc ngày. Vì vậy cần chủ ý đổi tên Sprint. AI-DLC gọi Sprint là 
+Bolt
+, nhấn mạnh chu kỳ nhanh, tập trung cao độ và tạo ra tốc độ chưa từng có.
+  
+  
+    
+8
+Tinh gọn trách nhiệm để tăng hiệu quả
+  
+Bằng cách tận dụng khả năng phân rã nhiệm vụ và hỗ trợ quyết định của AI, lập trình viên có thể vượt qua các silo chuyên môn truyền thống như hạ tầng, frontend, backend, DevOps và bảo mật. Sự hội tụ trách nhiệm làm giảm nhu cầu có nhiều vai trò chuyên biệt và tinh gọn quá trình phát triển. Tuy nhiên, Product Owner và lập trình viên vẫn là thành phần cốt lõi của framework, giữ trách nhiệm quan trọng về giám sát, xác nhận và quyết định chiến lược. Các vai trò này bảo đảm đồng bộ với mục tiêu kinh doanh, duy trì chất lượng thiết kế và tuân thủ framework quản trị rủi ro, qua đó cân bằng tự động hóa với trách nhiệm của con người. Khi định nghĩa phương pháp, chúng tôi bám vào nguyên lý đầu tiên, giữ số vai trò ở mức tối thiểu và chỉ thêm vai trò khi thực sự cần thiết.
+  
+  
+    
+9
+Giảm thiểu giai đoạn, tối đa hóa dòng chảy
+  
+Thông qua tự động hóa và hội tụ trách nhiệm, AI-DLC muốn giảm handoff và chuyển giao, tạo ra dòng lặp liên tục. Tuy vậy, việc xác nhận và ra quyết định của con người vẫn rất quan trọng để mã do AI tạo không trở nên cứng nhắc như "xi măng đông nhanh" (quick-cement), mà vẫn thích ứng được với các vòng lặp tương lai. Vì vậy, AI-DLC chỉ dùng số pha tối thiểu nhưng đủ để con người giám sát tại các điểm quyết định then chốt. Những lần xác nhận này hoạt động như một hàm mất mát (loss function): phát hiện và cắt bỏ nỗ lực lãng phí ở hạ nguồn trước khi chúng xảy ra.
+  
+  
+    
+10
+Không đóng đinh workflow SDLC cứng nhắc
+  
+AI-DLC không quy định workflow mang tính áp đặt cho từng con đường phát triển, như xây hệ thống mới, refactor, sửa lỗi hay mở rộng microservice. Thay vào đó, AI-DLC áp dụng cách tiếp cận AI-First thực sự: AI đề xuất Kế hoạch Cấp 1 (Level 1 Plan) dựa trên ý định của con đường đã chọn. Con người xác minh và điều chỉnh kế hoạch do AI tạo thông qua hội thoại tương tác với AI; quá trình tiếp tục ở Cấp 2, tức các nhiệm vụ con, và các cấp tiếp theo. Ở mức thực thi, AI triển khai nhiệm vụ còn con người duy trì giám sát bằng cách kiểm chứng và xác nhận kết quả. Cách tiếp cận linh hoạt này bảo đảm phương pháp có thể thích ứng và phát triển cùng năng lực AI, trong khi vẫn duy trì quyền kiểm soát của con người đối với các quyết định quan trọng.
+  
+  
+    
+      
+Bản đồ AI-DLC
+      
+Hình 1 · Vai trò &amp; nghi thức / Pha / Artefact
+    
+    
+      
+Vai trò / Nghi thức
+      
+Dòng chảy công việc
+      
+Artefact
+    
+    
+      
+        
+Inception
+        
+Product Owner, Developers, QA, AI
+        
+Mob Elaboration
+      
+      
+        
+          
+Intent
+        
+        
+        
+          
+Unit 1
+Mob xác nhận
+          
+Unit 2
+Mob xác nhận
+          
+Unit n
+Mob xác nhận
+        
+      
+      
+        
+PR-FAQ
+        
+User Stories
+        
+NFR
+        
+Rủi ro
+        
+Bolt đề xuất
+      
+    
+    
+    
+      
+        
+Construction
+        
+Developers, AI · Product Owner khi cần
+        
+          
+Mob Construction
+          
+Mob Programming
+          
+Mob Testing
+        
+      
+      
+        
+          
+            
+Bolt 1
+            
+              
+Domain Design
+              
+              
+Logical Design + ADR
+              
+              
+Code + Unit Test
+            
+          
+          
+            
+Bolt 2
+            
+              
+Domain Design
+              
+              
+Logical Design + ADR
+              
+              
+Code + Unit Test
+            
+          
+          
+            
+Bolt n
+            
+              
+Domain Design
+              
+              
+Logical Design + ADR
+              
+              
+Code + Unit Test
+            
+          
+          
+            
+Bolt n+1
+            
+              
+Domain Design
+              
+              
+Logical Design + ADR
+              
+              
+Code + Unit Test
+            
+          
+        
+        
+Một Unit chạy qua một hoặc nhiều Bolt, song song hoặc tuần tự · brown-field thêm bước nâng mã lên mô hình tĩnh và động ở đầu pha
+      
+      
+        
+Domain Design
+        
+Logical Design + ADR
+        
+Code + Unit Test
+        
+Deployment Unit đã kiểm thử, bảo mật, 
+đóng gói
+      
+    
+    
+    
+      
+        
+Operations
+        
+Product Owner, Developers, AI
+      
+      
+        
+Deployment Unit
+Production
+        
+Deployment Unit
+Production
+        
+Deployment Unit
+Production
+      
+      
+        
+Telemetry, anomaly, dự báo vi phạm SLA
+        
+Hành động theo runbook, chờ Developer phê duyệt
+      
+    
+    
+Ở mọi điểm phân rã, AI đề xuất trước và con người xác nhận trước khi đi tiếp.
+  
+  
+Hình 1. Intent được phân rã thành Unit ở Inception, mỗi Unit được xây qua một hoặc nhiều Bolt ở Construction, và kết quả là các Deployment Unit đi vào Operations. Cột trái là vai trò và nghi thức, cột phải là artefact sinh ra ở từng pha.
+III. Framework cốt lõi
+Phần này trình bày framework cốt lõi của AI-DLC, gồm các pha, vai trò, workflow và artefact chính.
+1. Artefact
+  
+    
+Intent
+    
+Intent
+ trong AI-DLC là phát biểu mục đích cấp cao, mô tả điều cần đạt được, có thể là mục tiêu kinh doanh, tính năng hoặc kết quả kỹ thuật, ví dụ mở rộng hiệu năng. Đây là điểm xuất phát để AI phân rã thành nhiệm vụ có thể hành động, đồng bộ mục tiêu của con người với kế hoạch do AI tạo.
+  
+  
+    
+Unit
+    
+Unit
+ là phần việc gắn kết, tự chứa, được dẫn xuất từ một Intent và được thiết kế để tạo ra giá trị đo được. Chẳng hạn, Intent triển khai một ý tưởng kinh doanh có thể được phân rã thành các Unit là những khối chức năng độc lập, tương tự Subdomain trong DDD hoặc Epic trong Scrum. Mỗi Unit bao gồm một tập nhiệm vụ, ở đây là các user story mô tả phạm vi chức năng. Trong AI-DLC, AI dẫn dắt việc phân rã Intent thành Unit; lập trình viên và/hoặc Product Owner xác nhận, tinh chỉnh các Unit để phù hợp mục tiêu kinh doanh và kỹ thuật. Các Unit lỏng ghép, cho phép phát triển tự chủ và triển khai độc lập ở hạ nguồn.
+  
+  
+    
+Bolt
+    
+Bolt
+ là vòng lặp nhỏ nhất trong AI-DLC, dành cho việc triển khai nhanh một Unit hoặc một tập nhiệm vụ trong Unit. Bolt, tương tự Sprint trong Scrum, nhấn mạnh sự tập trung cao và tốc độ giao hàng lớn, với chu kỳ xây dựng - xác nhận tính bằng giờ hoặc ngày thay vì tuần. Mỗi Bolt gói một phạm vi rõ ràng, ví dụ tập user story trong một Unit, giúp tiến triển từng bước mà vẫn bám mục tiêu chung của Unit. Một Unit có thể được thực thi qua một hay nhiều Bolt chạy song song hoặc nối tiếp. AI lập kế hoạch Bolt, còn lập trình viên hoặc Product Owner xác nhận.
+  
+  
+    
+Domain Design &amp; Logical Design
+    
+Artefact 
+Domain Design
+ mô hình hóa logic nghiệp vụ cốt lõi của một Unit, độc lập với hạ tầng. Trong phiên bản đầu của AI-DLC, AI sử dụng DDD để tạo các phần tử mô hình chiến lược và chiến thuật, gồm aggregate, value object, entity, domain event, repository và factory. 
+Logical Design
+ chuyển hóa Domain Design bằng cách mở rộng nó để đáp ứng yêu cầu phi chức năng với mẫu kiến trúc phù hợp, ví dụ CQRS hay Circuit Breaker. AI tạo Architecture Decision Record (ADR — biên bản ghi quyết định kiến trúc) để lập trình viên xác nhận. Từ đặc tả Logical Design, AI sinh Code và Unit Test, tuân theo nguyên tắc well-architected bằng cách chọn dịch vụ và cấu trúc AWS phù hợp. Ở bước này, tác tử AI chạy unit test, phân tích kết quả và đề xuất cách sửa cho lập trình viên.
+  
+  
+    
+Deployment Unit
+    
+Deployment Unit
+ là artefact vận hành gồm mã thực thi đã đóng gói, ví dụ container image cho Kubernetes hoặc hàm serverless như AWS Lambda; cấu hình, ví dụ Helm Chart; và thành phần hạ tầng, ví dụ Terraform hoặc CloudFormation stack. Tất cả đã được kiểm thử về chấp nhận chức năng, bảo mật, NFR và các rủi ro khác. AI tạo toàn bộ kiểm thử liên quan, gồm kiểm thử chức năng, bảo mật tĩnh và động, cùng kịch bản tải. Sau khi con người xác nhận và điều chỉnh kịch bản, trường hợp kiểm thử, tác tử AI chạy test suite, phân tích kết quả và liên hệ điểm lỗi với thay đổi mã, cấu hình hoặc phụ thuộc khác. Nhờ đó, các Unit được kiểm thử nghiêm ngặt về chức năng, tuân thủ bảo mật, NFR và giảm thiểu rủi ro vận hành, bảo đảm sẵn sàng triển khai liền mạch.
+  
+2. Các phase và nghi thức
+  
+    
+Phase Inception
+    
+Pha Inception
+ tập trung thu thập Intent và chuyển chúng thành Unit để phát triển. Pha này dùng 
+Mob Elaboration
+, nghi thức cộng tác làm rõ và phân rã yêu cầu. Hoạt động diễn ra trong một phòng với màn hình chung và người điều phối. Trong Mob Elaboration, AI giữ vai trò trung tâm khi đề xuất cách phân rã ban đầu từ Intent thành User Story, Acceptance Criteria và Unit, tận dụng tri thức miền cùng nguyên tắc lỏng ghép, gắn kết cao để thực thi song song nhanh ở hạ nguồn.
+    
+Product Owner, lập trình viên, QA và stakeholder liên quan, tức mob (nhóm cùng ngồi một phòng), cùng rà soát và tinh chỉnh artefact do AI tạo bằng cách sửa các phần thiết kế thiếu hoặc quá mức, đồng thời điều chỉnh theo giới hạn thực tế. Đầu ra của pha gồm các Unit được định nghĩa rõ, mỗi Unit chứa: a) PR-FAQ; b) User Story; c) định nghĩa Non-Functional Requirement (NFR — yêu cầu phi chức năng); d) mô tả rủi ro khớp Risk Register của tổ chức nếu có; e) tiêu chí đo lường truy vết về Intent kinh doanh; và f) Bolt đề xuất để xây dựng Unit. Mob Elaboration rút công việc tuần tự kéo dài vài tuần hoặc vài tháng xuống vài giờ, đồng thời tạo sự đồng thuận sâu trong mob và giữa mob với AI.
+  
+  
+    
+Phase Construction
+    
+Pha Construction
+ bao gồm việc thực thi nhiệm vụ theo vòng lặp, chuyển các Unit đã định nghĩa ở Inception thành Deployment Unit đã kiểm thử và sẵn sàng vận hành. Pha đi từ Domain Design, nơi AI mô hình hóa logic nghiệp vụ độc lập với kỹ thuật, sang Logical Design, nơi áp dụng NFR và mẫu thiết kế cloud phù hợp. AI sinh mã chi tiết từ Logical Design bằng cách ánh xạ thành phần sang dịch vụ AWS thích hợp, tuân theo nguyên tắc well-architected. Pha kết thúc bằng kiểm thử tự động để bảo đảm chức năng, bảo mật và mức sẵn sàng vận hành. Lập trình viên tập trung xác nhận đầu ra do AI tạo ở mỗi bước và đưa ra quyết định quan trọng, bảo đảm chất lượng và khả năng thích ứng trong từng vòng lặp.
+    
+Trong tình huống brown-field, tức ứng dụng hiện có, Construction trước tiên nâng mã lên biểu diễn mô hình giàu ngữ nghĩa để ngữ cảnh cung cấp cho AI ngắn gọn và chính xác. Các biểu diễn được đề xuất là mô hình tĩnh, chỉ ra thành phần miền, trách nhiệm và quan hệ, cùng mô hình động, mô tả cách các thành phần tương tác để hiện thực use case quan trọng.
+    
+Trong suốt pha này, AI giữ vai trò then chốt: khuyến nghị nhiệm vụ và đưa ra lựa chọn về mẫu thiết kế, trải nghiệm người dùng, kiểm thử ở từng task. AI-DLC khuyến nghị các nhóm cùng làm việc trong một phòng như Mob Elaboration. Các nhóm trao đổi đặc tả tích hợp từ giai đoạn mô hình miền, đưa ra quyết định và giao Bolt. AI-DLC gọi nghi thức này là 
+Mob Construction
+.
+  
+  
+    
+Phase Operations
+    
+Pha Operations
+ trong AI-DLC tập trung triển khai, observability và bảo trì hệ thống, tận dụng AI để tăng hiệu quả vận hành. AI chủ động phân tích telemetry, gồm metric, log và trace, để phát hiện mẫu, nhận diện bất thường và dự đoán nguy cơ vi phạm SLA, nhờ đó chủ động xử lý vấn đề. AI cũng tích hợp với incident runbook đã định nghĩa, đề xuất hành động như scale tài nguyên, tinh chỉnh hiệu năng hoặc cô lập lỗi, rồi thực thi khi lập trình viên phê duyệt. Lập trình viên đóng vai trò xác nhận, bảo đảm insight và hành động do AI đề xuất phù hợp SLA và yêu cầu tuân thủ.
+  
+3. Workflow
+  
+Với một Intent kinh doanh, ví dụ phát triển green-field, nâng cấp brown-field, hiện đại hóa hoặc sửa lỗi, AI-DLC bắt đầu bằng việc yêu cầu AI tạo Kế hoạch Cấp 1 mô tả workflow để thực hiện Intent. Kế hoạch là đề xuất ban đầu, sau đó con người xem xét minh bạch, xác nhận và tinh chỉnh để phù hợp mục tiêu kinh doanh và giới hạn kỹ thuật. Cốt lõi của AI-DLC là áp dụng sự giám sát của con người để từng bước làm giàu artefact, biến chúng thành ngữ cảnh giàu ngữ nghĩa cho bước tiếp theo. Mỗi bước là một điểm quyết định chiến lược, nơi sự giám sát của con người hoạt động như hàm mất mát: bắt và sửa lỗi sớm trước khi chúng lan rộng về hạ nguồn. Quá trình lặp lại theo đệ quy. Mỗi bước của Kế hoạch Cấp 1 tiếp tục được AI phân rã thành nhiệm vụ con chi tiết, có thể thực thi, vẫn dưới sự giám sát của con người để bảo đảm chính xác và phù hợp bối cảnh.
+  
+Mọi artefact được tạo, như Intent, user story, mô hình miền hay kế hoạch kiểm thử, đều được lưu bền vững và trở thành bộ nhớ ngữ cảnh (context memory) mà AI tham chiếu xuyên vòng đời. Giống SDLC truyền thống, AI-DLC mang tính lặp, cho phép tinh chỉnh và thích ứng liên tục. Các artefact cũng được liên kết để truy vết xuôi và ngược, ví dụ nối phần tử mô hình miền với user story, bảo đảm AI lấy đúng ngữ cảnh liên quan nhất ở mọi giai đoạn. Xuyên suốt quá trình, AI thực hiện lập kế hoạch chiến lược, phân rã nhiệm vụ, sinh artefact, còn con người giám sát và xác nhận.
+  
+    
+      
+Kế hoạch Cấp 1: chín bước
+      
+Hình 2 · Level 1 Plan
+    
+    
+      
+        
+        
+      
+      
+        
+        
+          
+          
+Inception
+        
+        
+          
+1. Xây ngữ cảnh từ mã hiện có 
+(brown-field)
+          
+2. Làm rõ Intent thành User Story
+          
+3. Lập kế hoạch các Unit công việc
+        
+      
+        
+        
+          
+          
+Construction
+        
+        
+          
+4. Mô hình hóa miền, sinh mã và kiểm thử
+          
+5. Giải quyết yêu cầu phi chức năng
+          
+6. Chốt kiến trúc triển khai, sinh mã và kiểm thử
+          
+7. Sinh IaC và kiểm thử
+        
+      
+        
+        
+          
+          
+Operations
+        
+        
+          
+8. Triển khai lên production
+          
+9. Theo dõi và xử lý sự cố
+        
+      
+      
+      
+        
+      
+      
+        
+Mỗi bước tạo ra ngữ cảnh giàu ngữ nghĩa hơn cho bước tiếp theo.
+      
+    
+  
+  
+Hình 2. AI đề xuất chín bước này như Kế hoạch Cấp 1; con người xác nhận rồi AI phân rã tiếp thành nhiệm vụ con ở Cấp 2 và các cấp sau. Các mũi tên đứt nét bên trái là vòng quay lại khi cần tinh chỉnh; bước 1 chỉ xuất hiện trong tình huống brown-field.
+  
+    
+      
+Tương tác AI ↔ con người theo pha
+      
+Hình 3
+    
+    
+      
+        
+        
+AI
+        
+Tác tử AI chuyên biệt theo miền
+      
+      
+        
+        
+Inception
+        
+          
+          
+Con người thiết lập phiên và đưa Intent
+          
+        
+          
+          
+AI làm rõ Intent thành User Story, NFR, rủi ro
+          
+Intent
+        
+          
+          
+AI đề xuất các Unit và kế hoạch Bolt
+          
+Units · Bolts
+        
+          
+          
+Vòng kiểm chứng và hiệu chỉnh
+          
+        
+        
+      
+        
+        
+Construction
+        
+          
+          
+Developer mở phiên, AI khởi động Bolt được giao
+          
+        
+          
+          
+AI đề xuất Domain Design, Developer xác nhận
+          
+        
+          
+          
+AI đề xuất Logical Design theo NFR; Developer và AI cùng chốt quyết định kiến trúc
+          
+        
+          
+          
+AI sinh mã và kiểm thử; Developer và Product Owner xác nhận
+          
+        
+        
+      
+        
+        
+Operations
+        
+          
+          
+AI phân tích telemetry, phát hiện sự cố, gọi hành động trong playbook và thông báo
+          
+        
+          
+          
+Developer giám sát, xác nhận phương án và cho thực thi
+          
+        
+        
+      
+      
+      
+        
+        
+Product Owner, Developers, QA
+        
+          
+Mob Elaboration
+          
+Mob Programming
+          
+Mob Testing
+        
+      
+    
+    
+      
+      
+Mỗi Bolt là một lần tăng tốc: AI khởi động, con người xác nhận, chu kỳ khép lại trong vài giờ đến vài ngày.
+    
+  
+  
+Hình 3. Mũi tên chỉ chiều khởi xướng: AI mở phần lớn các bước, con người phê duyệt và hiệu chỉnh. Mũi tên hai chiều là các vòng trao đổi qua lại cho tới khi hai bên đồng thuận.
+IV. AI-DLC trong thực tế: phát triển green-field
+Chúng ta xét tình huống Product Owner bắt đầu bằng một Intent cấp cao, chẳng hạn: "Phát triển công cụ gợi ý để bán chéo sản phẩm." AI nhận diện đây là Intent xây dựng ứng dụng mới và tạo Kế hoạch Cấp 1 theo các bước Workflow ở phần trên. Nhóm xác nhận, kiểm chứng, bổ sung hoặc sửa các giai đoạn trong kế hoạch. Khi Kế hoạch Cấp 1 được chốt, AI chuyển sang pha Inception. Có thể tham khảo prompt trong Phụ lục A để tương tác và giám sát AI.
+  
+    
+Phase Inception
+    
+Các ý sau mô tả tương tác chính trong nghi thức Mob Elaboration.
+    
+      
+a. AI đặt câu hỏi làm rõ, ví dụ: "Ai là người dùng chính? Kết quả kinh doanh quan trọng cần đạt là gì?", để hiểu toàn diện mục tiêu và giảm mơ hồ trong Intent ban đầu.
+      
+b. AI làm rõ Intent thành user story, yêu cầu phi chức năng (NFR) và mô tả rủi ro. Nhóm xác nhận các artefact, giám sát và cung cấp phần sửa cần thiết cho AI.
+      
+c. AI nhóm các story có độ gắn kết cao thành Unit, ví dụ "Thu thập Dữ liệu Người dùng", "Lựa chọn Thuật toán Gợi ý" và "Tích hợp API".
+      
+d. Product Owner xác nhận các đầu ra và điều chỉnh để tinh chỉnh Unit. Ví dụ, Product Owner nhận thấy Unit Thu thập Dữ liệu Người dùng thiếu chi tiết tuân thủ quyền riêng tư và bổ sung yêu cầu dành riêng cho GDPR.
+      
+e. AI tạo PR-FAQ cho mô-đun nếu cần, tóm tắt Intent kinh doanh, chức năng và lợi ích kỳ vọng.
+      
+f. Lập trình viên và Product Owner xác nhận PR-FAQ cùng rủi ro liên quan, bảo đảm phù hợp mục tiêu chung.
+    
+  
+  
+    
+Phase Construction
+    
+Các ý sau mô tả hoạt động chính của pha, tập trung vào nghi thức Mob Programming và Mob Testing.
+    
+      
+a. Developer thiết lập phiên với AI. AI yêu cầu Developer bắt đầu bằng Unit được giao.
+      
+b. AI mô hình hóa logic nghiệp vụ cốt lõi của Unit theo DDD. Ví dụ, với Unit "Thuật toán Gợi ý", AI xác định các entity liên quan như Product, Customer, Purchase History và quan hệ giữa chúng.
+      
+c. Developer rà soát và xác nhận mô hình miền, tinh chỉnh logic nghiệp vụ và bảo đảm phù hợp tình huống thực, ví dụ cách xử lý khách hàng mới chưa có lịch sử mua hàng.
+      
+d. AI chuyển mô hình miền thành thiết kế logic, áp dụng NFR như khả năng mở rộng và chịu lỗi. Ví dụ, AI đề xuất mẫu event-driven và công nghệ AWS Lambda cho tính toán serverless.
+      
+e. Developer đánh giá khuyến nghị của AI, phê duyệt trade-off và bổ sung cân nhắc khi cần. Ví dụ, chấp nhận Lambda để mở rộng nhưng đổi kho lưu trữ sang DynamoDB để truy vấn nhanh hơn.
+      
+f. AI sinh mã thực thi cho từng Unit, ánh xạ thành phần logic sang dịch vụ AWS cụ thể.
+      
+g. AI cũng tự sinh kiểm thử chức năng, bảo mật và hiệu năng. Ví dụ, với Unit "Thuật toán Gợi ý", AI tạo mã triển khai collaborative filtering và tích hợp với nguồn dữ liệu DynamoDB.
+      
+h. Developer rà soát mã và kịch bản/trường hợp kiểm thử do AI tạo, điều chỉnh khi cần để bảo đảm chất lượng và tuân thủ.
+    
+  
+  
+    
+Kiểm thử và xác nhận
+    
+      
+a. AI chạy toàn bộ kiểm thử chức năng, bảo mật và hiệu năng; phân tích kết quả và nêu bật vấn đề.
+      
+b. AI đề xuất cách sửa cho test thất bại, ví dụ tối ưu logic truy vấn để tăng hiệu năng.
+      
+c. Developer xác nhận phát hiện của AI, phê duyệt bản sửa và chạy lại test khi cần.
+    
+  
+  
+    
+Phase Operations
+    
+Triển khai
+    
+      
+a. AI đóng gói mô-đun thành Deployment Unit, ví dụ container image hoặc hàm serverless.
+      
+b. Developer phê duyệt cấu hình triển khai và khởi tạo rollout tới môi trường staging và production.
+    
+    
+Quan sát và giám sát
+    
+      
+a. AI phân tích metric, log và trace để nhận diện bất thường và dự đoán nguy cơ vi phạm SLA. Ví dụ, AI phát hiện độ trễ tăng trong giờ cao điểm và đề xuất scale công cụ gợi ý để đáp ứng tải.
+      
+b. AI tích hợp với playbook để đề xuất hành động xử lý vấn đề vận hành. Nếu thời gian phản hồi API giảm, AI khuyến nghị tăng throughput DynamoDB hoặc cân bằng lại lưu lượng API Gateway.
+      
+c. Developer xác nhận khuyến nghị của AI, phê duyệt biện pháp giảm thiểu và theo dõi kết quả xử lý.
+    
+  
+V. AI-DLC trong thực tế: phát triển brown-field
+Brown-field là thay đổi hệ thống hiện có bằng cách thêm tính năng, tối ưu NFR hoặc xử lý nợ kỹ thuật, gồm refactor và sửa lỗi. Ở đây, ta xét tình huống Product Manager cần thêm tính năng mới vào ứng dụng hiện hữu.
+  
+    
+Inception
+    
+Hoạt động Inception trong brown-field giống green-field.
+  
+  
+    
+Construction
+    
+      
+a. AI nâng mã lên biểu diễn mô hình cấp cao hơn: mô hình tĩnh, gồm thành phần, mô tả, trách nhiệm và quan hệ; cùng mô hình động, mô tả cách các thành phần tương tác để hiện thực những use case quan trọng nhất.
+      
+b. Developer cộng tác với Product Manager để rà soát, xác nhận và sửa mô hình tĩnh, động do AI reverse-engineer.
+      
+c. Sau các bước bổ sung này, phần còn lại của Construction tương tự green-field.
+    
+  
+  
+    
+Operations
+    
+Hoạt động Operations trong brown-field giống green-field.
+  
+VI. Áp dụng AI-DLC
+AI-DLC không khác biệt quá xa phương pháp Agile hiện có và được thiết kế với mục tiêu dễ áp dụng. Tuy vậy, tổ chức đã thực hành phương pháp truyền thống lâu năm hoặc đang tự tạo biến thể AI-Native cần chiến lược cụ thể để áp dụng AI-DLC. Chúng tôi cho rằng hai cách sau sẽ giúp việc này dễ hơn.
+  
+    
+a. Học bằng thực hành
+    
+AI-DLC thực chất là một tập nghi thức như Mob Elaboration, Mob Construction, có thể được thực hành theo nhóm. Thay vì học qua tài liệu và đào tạo truyền thống, người thực hành dùng hướng dẫn AI-DLC để luyện các nghi thức trên nhiều tình huống thực tế họ đang xử lý. Các Solutions Architect của AWS đã tạo một field offering (gói hỗ trợ triển khai tại khách hàng) tên 
+AI-DLC Unicorn Gym
+, đóng gói cách tiếp cận này để mở rộng áp dụng nhanh trong tổ chức lớn.
+  
+  
+    
+b. Nhúng AI-DLC vào công cụ Developer Experience mới
+    
+Khách hàng đang xây công cụ điều phối xuyên SDLC để cung cấp trải nghiệm thống nhất cho Developer, ví dụ FlowSource của Cognizant, CodeSpell của Aspire, AIForce của HCL. Khi AI-DLC được nhúng vào các công cụ này, Developer trong tổ chức lớn có thể thực hành liền mạch mà không cần chiến dịch áp dụng quy mô lớn.
+  
+Thuật ngữ Anh - Việt
+  
+    
+      
+Thuật ngữ
+      
+Cách hiểu tiếng Việt
+      
+Ghi chú trong AI-DLC
+    
+  
+  
+    
+Intent
+Ý định, mục đích cấp cao
+Điểm xuất phát của mọi vòng lặp; do con người phát biểu.
+    
+Unit
+Khối công việc tự chứa
+Tương tự Subdomain trong DDD hoặc Epic trong Scrum; lỏng ghép với nhau.
+    
+Bolt
+Vòng lặp nhỏ nhất
+Thay cho Sprint; chu kỳ xây dựng - xác nhận tính bằng giờ hoặc ngày.
+    
+Deployment Unit
+Đơn vị triển khai
+Mã đã đóng gói, cấu hình và hạ tầng, đã kiểm thử chức năng, bảo mật, NFR.
+    
+Mob Elaboration
+Nghi thức làm rõ yêu cầu theo nhóm
+Cả nhóm cùng một phòng, một màn hình, có người điều phối; diễn ra ở Inception.
+    
+Mob Construction
+Nghi thức xây dựng theo nhóm
+Bao gồm Mob Programming và Mob Testing trong pha Construction.
+    
+Level 1 Plan
+Kế hoạch Cấp 1
+Kế hoạch AI đề xuất đầu tiên; con người xác nhận trước khi phân rã tiếp.
+    
+PR-FAQ
+Thông cáo báo chí kèm hỏi đáp
+Tài liệu mô tả sản phẩm theo lối Amazon; tùy chọn ở Inception.
+    
+NFR
+Yêu cầu phi chức năng
+Được giải quyết ở bước Logical Design.
+    
+ADR
+Biên bản quyết định kiến trúc
+AI tạo, Developer xác nhận.
+    
+Risk Register
+Sổ đăng ký rủi ro
+Artefact được giữ lại từ phương pháp cũ để bảo đảm tuân thủ.
+    
+Green-field / Brown-field
+Hệ thống mới / hệ thống hiện có
+Brown-field thêm bước nâng mã lên mô hình tĩnh và động ở đầu Construction.
+    
+Loss function
+Hàm mất mát
+Cách ví về vai trò xác nhận của con người: cắt sai lệch trước khi lan xuống hạ nguồn.
+  
+  
+1
+ Consortium for Information &amp; Software Quality (CISQ), 
+The Cost of Poor Software Quality in the US: A 2022 Report
+. Bản gốc tiếng Anh dẫn nguồn này qua liên kết "study".
+  
+Phụ lục A — bộ prompt
+  
+  
+Các prompt sau có thể được dùng để tương tác với AI khi thực hành AI-DLC. Tên tệp và tên thư mục giữ nguyên như bản gốc để dùng lại được ngay.
+  
+    
+      
+Prompt thiết lập
+      
+Hôm nay chúng ta sẽ xây dựng một ứng dụng. Với mỗi thành phần frontend và backend, chúng ta sẽ tạo một thư mục dự án. Mọi tài liệu nằm trong thư mục 
+aidlc-docs
+. Trong suốt phiên làm việc, tôi sẽ yêu cầu bạn lập kế hoạch trước và tạo tệp md cho kế hoạch. Bạn chỉ được làm việc sau khi tôi phê duyệt kế hoạch đó. Kế hoạch luôn được lưu trong 
+aidlc-docs/plans
+. Bạn sẽ tạo nhiều loại tài liệu định dạng md. Tài liệu yêu cầu và thay đổi tính năng nằm trong 
+aidlc-docs/requirements
+. User story phải nằm trong 
+aidlc-docs/story-artifacts
+. Tài liệu Kiến trúc và Thiết kế phải nằm trong 
+aidlc-docs/design-artifacts
+. Toàn bộ prompt theo đúng thứ tự phải được lưu trong 
+aidlc-docs/prompts.md
+. Hãy xác nhận bạn hiểu prompt này. Tạo các thư mục và tệp cần thiết để lưu trữ nếu chúng chưa tồn tại.
+    
+    
+      
+Inception
+      
+    
+    
+      
+User story
+      
+Vai trò của bạn:
+ Bạn là Product Manager chuyên gia, chịu trách nhiệm tạo user story rõ ràng làm hợp đồng phát triển hệ thống như mô tả trong phần Nhiệm vụ bên dưới. Hãy lập kế hoạch cho công việc và ghi các bước vào tệp md 
+user_stories_plan.md
+, có checkbox cho từng bước. Nếu bước nào cần tôi làm rõ, hãy ghi chú trong bước đó để xin xác nhận. Không tự đưa ra quyết định quan trọng. Sau khi lập kế hoạch, hãy yêu cầu tôi rà soát và phê duyệt. Khi tôi đã phê duyệt, bạn có thể thực thi đúng kế hoạch từng bước. Hoàn thành bước nào thì đánh dấu checkbox của bước đó trong kế hoạch.
+      
+Nhiệm vụ:
+ Xây dựng user story cho yêu cầu cấp cao được mô tả tại đây &lt;&lt; mô tả sản phẩm &gt;&gt;
+      
+&lt;&lt;&lt;Sau khi rà soát và sửa kế hoạch&gt;&gt;&gt;
+Đúng, tôi đồng ý với kế hoạch trong &lt;&lt;tệp md&gt;&gt;. Bây giờ hãy làm chính xác theo kế hoạch đó. Tương tác với tôi như quy định trong kế hoạch. Sau mỗi bước, đánh dấu checkbox hoàn tất.
+    
+    
+      
+Unit
+      
+Vai trò của bạn:
+ Bạn là Software Architect giàu kinh nghiệm. Trước khi bắt đầu nhiệm vụ bên dưới, hãy lập kế hoạch và ghi các bước vào 
+units_plan.md
+, có checkbox cho từng bước. Nếu bước nào cần tôi làm rõ, hãy thêm nội dung tương tác vào bước đó để xin xác nhận. Không tự đưa ra quyết định quan trọng. Sau khi tạo kế hoạch, hãy yêu cầu tôi rà soát và phê duyệt. Khi được phê duyệt, hãy thực thi từng bước đúng kế hoạch. Hoàn thành bước nào thì đánh dấu checkbox của bước đó.
+      
+Nhiệm vụ:
+ Tham khảo user story trong tệp 
+mvp_user_stories.md
+. Nhóm các user story thành nhiều Unit có thể xây dựng độc lập. Mỗi Unit chứa các user story có độ gắn kết cao để một nhóm duy nhất xây dựng. Các Unit lỏng ghép với nhau. Với từng Unit, ghi user story và acceptance criteria tương ứng vào các tệp md riêng trong thư mục 
+design/
+.
+      
+&lt;&lt;&lt;Sau khi rà soát và sửa kế hoạch&gt;&gt;&gt;
+Tôi phê duyệt. Hãy tiếp tục.
+    
+    
+      
+Construction
+      
+    
+    
+      
+Tạo mô hình miền (thành phần)
+      
+Vai trò của bạn:
+ Bạn là Software Engineer giàu kinh nghiệm. Trước khi bắt đầu nhiệm vụ bên dưới, hãy lập kế hoạch và ghi các bước vào tệp 
+design/component_model.md
+, có checkbox cho từng bước. Nếu bước nào cần tôi làm rõ, hãy thêm nội dung tương tác vào bước đó để xin xác nhận. Không tự đưa ra quyết định quan trọng. Sau khi tạo kế hoạch, hãy yêu cầu tôi rà soát và phê duyệt. Khi được phê duyệt, hãy thực thi từng bước đúng kế hoạch. Hoàn thành bước nào thì đánh dấu checkbox của bước đó.
+      
+Nhiệm vụ:
+ Tham khảo user story trong 
+design/seo_optimization_unit.md
+. Thiết kế mô hình thành phần để hiện thực toàn bộ user story. Mô hình phải chứa tất cả thành phần, thuộc tính, hành vi và cách các thành phần tương tác để hiện thực user story. Chưa sinh mã. Ghi mô hình thành phần vào một tệp md riêng trong thư mục 
+/design
+.
+      
+&lt;&lt;&lt;Sau khi rà soát và sửa kế hoạch&gt;&gt;&gt;
+Tôi phê duyệt kế hoạch. Hãy tiếp tục. Sau khi hoàn thành mỗi bước, đánh dấu checkbox trong tệp kế hoạch.
+    
+    
+      
+Sinh mã
+      
+Vai trò của bạn:
+ Bạn là Software Engineer giàu kinh nghiệm. Trước khi bắt đầu nhiệm vụ bên dưới, hãy lập kế hoạch và ghi các bước vào một tệp md, có checkbox cho từng bước. Nếu bước nào cần tôi làm rõ, hãy thêm nội dung tương tác vào bước đó để xin xác nhận. Không tự đưa ra quyết định quan trọng. Sau khi tạo kế hoạch, hãy yêu cầu tôi rà soát và phê duyệt. Khi được phê duyệt, bạn có thể tiếp tục thực thi đúng kế hoạch từng bước. Hoàn thành bước nào thì đánh dấu checkbox của bước đó.
+      
+Nhiệm vụ:
+ Tham khảo thiết kế thành phần trong 
+search_discovery/nlp_component.md
+. Tạo một implementation Python thật đơn giản và trực quan cho thành phần Natural Language Processing (NLP) trong thiết kế. Với phương thức 
+processQuery(queryText)
+, dùng API Amazon Bedrock để trích xuất entity từ nội dung truy vấn. Tạo các lớp trong từng tệp riêng nhưng giữ chúng trong thư mục 
+vocabMapper
+.
+      
+Tham khảo mã đã sinh trong thư mục 
+vocabMapper
+. Tôi muốn thành phần EntityExtractor gọi GenAI. Implementation hiện tại dùng vocabulary_repository cục bộ. Bạn có thể phân tích và lập kế hoạch về cách tận dụng GenAI cho cả Entity Extraction và Intent Extraction không?
+    
+    
+      
+Kiến trúc
+      
+Vai trò của bạn:
+ Bạn là Cloud Architect giàu kinh nghiệm. Trước khi bắt đầu nhiệm vụ bên dưới, hãy lập kế hoạch và ghi các bước vào 
+deployment_plan.md
+, có checkbox cho từng bước. Nếu bước nào cần tôi làm rõ, hãy thêm nội dung tương tác vào bước đó để xin xác nhận. Không tự đưa ra quyết định quan trọng. Sau khi tạo kế hoạch, hãy yêu cầu tôi rà soát và phê duyệt. Khi được phê duyệt, hãy thực thi từng bước đúng kế hoạch. Hoàn thành bước nào thì đánh dấu checkbox của bước đó.
+      
+Nhiệm vụ:
+ Tham khảo mô hình thiết kế thành phần 
+design/core_component_model.md
+, các Unit trong thư mục 
+UNITS/
+, kiến trúc cloud trong thư mục 
+ARCHITECTURE/
+ và mã backend trong thư mục 
+BACKEND/
+. Hoàn thành các nội dung sau:
+      
+        
+Tạo kế hoạch end-to-end để triển khai backend lên AWS bằng [CloudFormation, CDK, Terraform].
+        
+Ghi lại toàn bộ điều kiện tiên quyết cho việc triển khai, nếu có.
+      
+      
+Sau khi tôi phê duyệt kế hoạch:
+      
+        
+Tuân theo thực hành tốt về mã sạch, đơn giản, có thể giải thích.
+        
+Toàn bộ mã đầu ra nằm trong thư mục 
+DEPLOYMENT/
+.
+        
+Xác nhận mã đã sinh hoạt động đúng bằng cách tạo kế hoạch xác nhận và báo cáo xác nhận.
+        
+Rà soát báo cáo xác nhận, sửa mọi vấn đề đã xác định và cập nhật báo cáo.
+      
+    
+    
+      
+Xây dựng IaC / REST API
+      
+Vai trò của bạn:
+ Bạn là Software Engineer giàu kinh nghiệm. Trước khi bắt đầu nhiệm vụ bên dưới, hãy lập kế hoạch và ghi các bước vào một tệp md, có checkbox cho từng bước. Nếu bước nào cần tôi làm rõ, hãy thêm nội dung tương tác vào bước đó để xin xác nhận. Không tự đưa ra quyết định quan trọng. Sau khi tạo kế hoạch, hãy yêu cầu tôi rà soát và phê duyệt. Khi được phê duyệt, hãy thực thi từng bước đúng kế hoạch. Hoàn thành bước nào thì đánh dấu checkbox của bước đó.
+      
+Nhiệm vụ:
+ Tham khảo 
+services.py
+ trong thư mục 
+construction/&lt;&gt;/
+. Tạo API Python Flask cho từng service trong đó.

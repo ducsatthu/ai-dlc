@@ -1,16 +1,22 @@
 
-<!DOCTYPE html><html lang="vi" data-theme="dark"><head><meta charset="utf-8"><title>Control Tower</title>
+<!DOCTYPE html><html lang="vi" data-theme="dark"><head><meta charset="utf-8"><title>Control Tower · AI-DLC</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="styles.css">
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 <script src="_ds_bundle.js"></script>
 <script src="data.js"></script>
+<script src="md.js"></script>
+<!-- theme đã chọn phải có TRƯỚC lần vẽ đầu tiên, nếu không mỗi lần F5 lại nháy một nhịp màu sai -->
+<script>(function(){try{var k='ai-dlc.tower.'+((window.CT_DATA&&window.CT_DATA.project&&window.CT_DATA.project.name)||'default');var p=JSON.parse(localStorage.getItem(k)||'{}');if(p.theme==='light'||p.theme==='dark')document.documentElement.setAttribute('data-theme',p.theme);}catch(e){}})();</script>
 <script src="components/diagrams/DIAGRAMS.js"></script>
 <style>html,body{margin:0;height:100%}button{font-family:var(--sans)}</style>
 </head><body><div id="root"></div>
 <script type="text/babel" src="Shell.jsx"></script>
+<script type="text/babel" src="GateReview.jsx"></script>
 <script type="text/babel" src="MissionControl.jsx"></script>
+<script type="text/babel" src="PhaseFlow.jsx"></script>
 <script type="text/babel" src="IntentList.jsx"></script>
 <script type="text/babel" src="IntentDetail.jsx"></script>
 <script type="text/babel" src="BoltBoard.jsx"></script>

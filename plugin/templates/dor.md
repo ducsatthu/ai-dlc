@@ -1,13 +1,17 @@
 ---
 name: dor
-version: 1
+version: 2
 updated_by: /dlc-init (seed mặc định — duyệt lại tại Gate D đầu tiên)
 ---
-# Definition of Ready · v1 — Unit đủ điều kiện vào Bolt khi:
+# Definition of Ready · v2 — Unit đủ điều kiện vào Bolt khi:
 - [ ] AC đo được, trace về intent
-- [ ] Open questions liên quan đã đóng hoặc có [ASSUMED] + risk
+- [ ] Đủ ba khối: User Story (`user-stories.md`) · NFR (`nfr.md`) · Rủi ro (`risks.md`)
+- [ ] Ước lượng ≤5.0h, có breakdown theo hạng mục và căn cứ bằng con số thật
+- [ ] Mọi nguồn Unit cần (`sources:`) đã ở trạng thái `read` trong `as-is/source-ledger.md` — có evidence
+- [ ] Open questions liên quan đã đóng hoặc có [ASSUMED] + risk có chủ
 - [ ] Dependency với Unit khác đã rõ và thỏa
 - [ ] Dữ liệu test / môi trường có sẵn
-- [ ] NFR liên quan đã khai trong nfr.md
+- [ ] Mỗi NFR có ngưỡng số + cách đo (tức là test được)
 ## Changelog
+- v2: thêm coverage nguồn, trần 5h, ba khối US/NFR/risk, NFR phải đo được (protocol v2)
 - v1: seed mặc định từ plugin

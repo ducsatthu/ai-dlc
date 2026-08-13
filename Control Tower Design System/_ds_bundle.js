@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"ControlTowerDesignSystem_68131c","components":[{"name":"Button","sourcePath":"components/core/Button.jsx"},{"name":"Callout","sourcePath":"components/core/Callout.jsx"},{"name":"Chip","sourcePath":"components/core/Chip.jsx"},{"name":"DataTable","sourcePath":"components/core/DataTable.jsx"},{"name":"Eyebrow","sourcePath":"components/core/Eyebrow.jsx"},{"name":"IdCode","sourcePath":"components/core/IdCode.jsx"},{"name":"Panel","sourcePath":"components/core/Panel.jsx"},{"name":"StatusChip","sourcePath":"components/core/StatusChip.jsx"},{"name":"Tag","sourcePath":"components/core/Tag.jsx"},{"name":"MermaidDiagram","sourcePath":"components/diagrams/MermaidDiagram.jsx"},{"name":"AgentAvatar","sourcePath":"components/tower/AgentAvatar.jsx"},{"name":"AgentWorkCard","sourcePath":"components/tower/AgentWorkCard.jsx"},{"name":"FeedItem","sourcePath":"components/tower/FeedItem.jsx"},{"name":"GateCard","sourcePath":"components/tower/GateCard.jsx"},{"name":"GateStop","sourcePath":"components/tower/GateStop.jsx"},{"name":"KpiStrip","sourcePath":"components/tower/KpiStrip.jsx"},{"name":"PipelineRow","sourcePath":"components/tower/PipelineRow.jsx"},{"name":"STAGES","sourcePath":"components/tower/StageStrip.jsx"},{"name":"StageStrip","sourcePath":"components/tower/StageStrip.jsx"},{"name":"TaskRow","sourcePath":"components/tower/TaskRow.jsx"},{"name":"TimelineItem","sourcePath":"components/tower/TimelineItem.jsx"},{"name":"Timeline","sourcePath":"components/tower/TimelineItem.jsx"},{"name":"TraceChain","sourcePath":"components/tower/TraceChain.jsx"},{"name":"VerdictBadge","sourcePath":"components/tower/VerdictBadge.jsx"}],"sourceHashes":{"components/core/Button.jsx":"70eb08ee13fa","components/core/Callout.jsx":"29eef8cf9ceb","components/core/Chip.jsx":"6652d45c0a40","components/core/DataTable.jsx":"c8e87e1b6a66","components/core/Eyebrow.jsx":"bd3e09f77d1c","components/core/IdCode.jsx":"0b397a54e70e","components/core/Panel.jsx":"01ec1d4b2698","components/core/StatusChip.jsx":"8acb90e04f82","components/core/Tag.jsx":"200805c08813","components/diagrams/DIAGRAMS.js":"25dad37eae2e","components/diagrams/MermaidDiagram.jsx":"0b6485cf054d","components/tower/AgentAvatar.jsx":"98d28630804e","components/tower/AgentWorkCard.jsx":"449e86abb656","components/tower/FeedItem.jsx":"df892ef53a88","components/tower/GateCard.jsx":"a3f3bcc85dcd","components/tower/GateStop.jsx":"5d23d458cff8","components/tower/KpiStrip.jsx":"cee977030a8d","components/tower/PipelineRow.jsx":"09e37fca490e","components/tower/StageStrip.jsx":"1ba7bcee7a3b","components/tower/TaskRow.jsx":"5a98d7b3af58","components/tower/TimelineItem.jsx":"145c2b006c3f","components/tower/TraceChain.jsx":"4e0d73230d88","components/tower/VerdictBadge.jsx":"53ff345a977d","ui_kits/control-tower/App.jsx":"882ed35c9943","ui_kits/control-tower/BoltBoard.jsx":"8b4b03bf0ab4","ui_kits/control-tower/CommsReviews.jsx":"29acd26f1b67","ui_kits/control-tower/Governance.jsx":"e340c2906e66","ui_kits/control-tower/IntentDetail.jsx":"b4e809e55559","ui_kits/control-tower/IntentList.jsx":"3fe75b45e97d","ui_kits/control-tower/MissionControl.jsx":"7e17c4066be6","ui_kits/control-tower/Shell.jsx":"5bc2603cb2a3","ui_kits/control-tower/data.js":"41cedb719337","ui_kits/engineering-docs/BlueprintDoc.jsx":"e9a5c5b4692e"},"inlinedExternals":[],"unexposedExports":[]} */
+/* @ds-bundle: {"format":4,"namespace":"ControlTowerDesignSystem_68131c","components":[{"name":"Button","sourcePath":"components/core/Button.jsx"},{"name":"Callout","sourcePath":"components/core/Callout.jsx"},{"name":"Chip","sourcePath":"components/core/Chip.jsx"},{"name":"DataTable","sourcePath":"components/core/DataTable.jsx"},{"name":"Eyebrow","sourcePath":"components/core/Eyebrow.jsx"},{"name":"IdCode","sourcePath":"components/core/IdCode.jsx"},{"name":"Panel","sourcePath":"components/core/Panel.jsx"},{"name":"StatusChip","sourcePath":"components/core/StatusChip.jsx"},{"name":"Tag","sourcePath":"components/core/Tag.jsx"},{"name":"MermaidDiagram","sourcePath":"components/diagrams/MermaidDiagram.jsx"},{"name":"AgentAvatar","sourcePath":"components/tower/AgentAvatar.jsx"},{"name":"AgentWorkCard","sourcePath":"components/tower/AgentWorkCard.jsx"},{"name":"FeedItem","sourcePath":"components/tower/FeedItem.jsx"},{"name":"GateCard","sourcePath":"components/tower/GateCard.jsx"},{"name":"GateStop","sourcePath":"components/tower/GateStop.jsx"},{"name":"KpiStrip","sourcePath":"components/tower/KpiStrip.jsx"},{"name":"PipelineRow","sourcePath":"components/tower/PipelineRow.jsx"},{"name":"STAGES","sourcePath":"components/tower/StageStrip.jsx"},{"name":"StageStrip","sourcePath":"components/tower/StageStrip.jsx"},{"name":"TaskRow","sourcePath":"components/tower/TaskRow.jsx"},{"name":"TimelineItem","sourcePath":"components/tower/TimelineItem.jsx"},{"name":"Timeline","sourcePath":"components/tower/TimelineItem.jsx"},{"name":"TraceChain","sourcePath":"components/tower/TraceChain.jsx"},{"name":"VerdictBadge","sourcePath":"components/tower/VerdictBadge.jsx"}],"sourceHashes":{"components/core/Button.jsx":"70eb08ee13fa","components/core/Callout.jsx":"29eef8cf9ceb","components/core/Chip.jsx":"6652d45c0a40","components/core/DataTable.jsx":"c8e87e1b6a66","components/core/Eyebrow.jsx":"bd3e09f77d1c","components/core/IdCode.jsx":"0b397a54e70e","components/core/Panel.jsx":"01ec1d4b2698","components/core/StatusChip.jsx":"8acb90e04f82","components/core/Tag.jsx":"200805c08813","components/diagrams/DIAGRAMS.js":"25dad37eae2e","components/diagrams/MermaidDiagram.jsx":"0b6485cf054d","components/tower/AgentAvatar.jsx":"98d28630804e","components/tower/AgentWorkCard.jsx":"449e86abb656","components/tower/FeedItem.jsx":"df892ef53a88","components/tower/GateCard.jsx":"a3f3bcc85dcd","components/tower/GateStop.jsx":"5d23d458cff8","components/tower/KpiStrip.jsx":"cee977030a8d","components/tower/PipelineRow.jsx":"09e37fca490e","components/tower/StageStrip.jsx":"1ba7bcee7a3b","components/tower/TaskRow.jsx":"5a98d7b3af58","components/tower/TimelineItem.jsx":"145c2b006c3f","components/tower/TraceChain.jsx":"4e0d73230d88","components/tower/VerdictBadge.jsx":"53ff345a977d","ui_kits/control-tower/App.jsx":"bdae86e3c358","ui_kits/control-tower/BoltBoard.jsx":"43cb1d6ba959","ui_kits/control-tower/CommsReviews.jsx":"29acd26f1b67","ui_kits/control-tower/DocPreview.jsx":"68cb73d03cfd","ui_kits/control-tower/Governance.jsx":"e340c2906e66","ui_kits/control-tower/IntentDetail.jsx":"b4e809e55559","ui_kits/control-tower/IntentList.jsx":"3fe75b45e97d","ui_kits/control-tower/MissionControl.jsx":"e0dc0756386f","ui_kits/control-tower/Shell.jsx":"f4b1fd4e59b4","ui_kits/control-tower/data.js":"99ac064fa673","ui_kits/engineering-docs/BlueprintDoc.jsx":"e9a5c5b4692e"},"inlinedExternals":[],"unexposedExports":[]} */
 
 (() => {
 
@@ -1904,7 +1904,9 @@ try { (() => {
     task,
     data
   }) {
+    const [doc, setDoc] = React.useState(null);
     if (!task) return null;
+    const previewable = s => !!data.docs[docKey(s.id)];
     return /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
@@ -1947,16 +1949,180 @@ try { (() => {
       }
     }, m.summary)))), /*#__PURE__*/React.createElement(SectionLabel, null, "Chu\u1ED7i truy v\u1EBFt"), /*#__PURE__*/React.createElement(ATrace, {
       direction: "vertical",
-      steps: data.trace
+      steps: data.trace,
+      activeId: doc,
+      onSelect: s => setDoc(previewable(s) ? doc === s.id ? null : s.id : null)
+    }), doc && /*#__PURE__*/React.createElement(DocPreview, {
+      path: doc,
+      docs: data.docs,
+      onClose: () => setDoc(null)
+    }));
+  }
+  function MsgDrawerBody({
+    m,
+    data,
+    doc,
+    setDoc
+  }) {
+    const th = data.threads[m.id];
+    const turns = th ? th.turns : [{
+      id: m.id,
+      time: m.time,
+      from: m.from,
+      to: m.to,
+      type: m.type,
+      body: m.summary
+    }];
+    const TONE = {
+      question: 'var(--blue)',
+      clarification: 'var(--blue)',
+      answer: 'var(--ok)',
+      decision: 'var(--accent)',
+      finding: 'var(--danger)',
+      'review-request': 'var(--blue)',
+      handoff: 'var(--muted)',
+      note: 'var(--muted)'
+    };
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 14
+      }
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 15,
+        fontWeight: 650,
+        textWrap: 'pretty'
+      }
+    }, th ? th.subject : m.summary), th && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: 'var(--mono)',
+        fontSize: 11,
+        color: 'var(--muted)',
+        marginTop: 3
+      }
+    }, th.scope)), /*#__PURE__*/React.createElement(SectionLabel, null, "H\u1ED9i tho\u1EA1i \xB7 ", turns.length, " l\u01B0\u1EE3t"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10
+      }
+    }, turns.map(t => /*#__PURE__*/React.createElement("div", {
+      key: t.id,
+      style: {
+        border: '1px solid ' + (t.id === m.id ? 'var(--accent)' : 'var(--line)'),
+        borderRadius: 'var(--radius-md)',
+        background: t.id === m.id ? 'var(--accent-bg)' : 'var(--surface-2)',
+        padding: '9px 12px'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
+        flexWrap: 'wrap',
+        fontFamily: 'var(--mono)',
+        fontSize: 10.5,
+        letterSpacing: '0.06em'
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: 'var(--muted)'
+      }
+    }, t.time), /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: 'var(--ink)'
+      }
+    }, t.from), /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: 'var(--muted)'
+      }
+    }, "\u2192"), /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: 'var(--ink)'
+      }
+    }, t.to), /*#__PURE__*/React.createElement("span", {
+      style: {
+        marginLeft: 'auto',
+        color: TONE[t.type] || 'var(--muted)',
+        textTransform: 'uppercase'
+      }
+    }, t.type), /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: 'var(--muted)'
+      }
+    }, t.id)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13.5,
+        lineHeight: 1.6,
+        marginTop: 5,
+        textWrap: 'pretty'
+      }
+    }, t.body)))), th && /*#__PURE__*/React.createElement("div", {
+      style: {
+        borderLeft: '2px solid var(--ok)',
+        paddingLeft: 10
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: 'var(--mono)',
+        fontSize: 10.5,
+        letterSpacing: '0.12em',
+        textTransform: 'uppercase',
+        color: 'var(--muted)'
+      }
+    }, "K\u1EBFt qu\u1EA3"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13.5,
+        lineHeight: 1.6,
+        marginTop: 3,
+        textWrap: 'pretty'
+      }
+    }, th.outcome)), th && th.refs && /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
+        flexWrap: 'wrap'
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: 'var(--mono)',
+        fontSize: 10.5,
+        letterSpacing: '0.12em',
+        textTransform: 'uppercase',
+        color: 'var(--muted)'
+      }
+    }, "Artefact li\xEAn quan"), th.refs.map(r => {
+      const has = !!data.docs[docKey(r)];
+      return /*#__PURE__*/React.createElement("span", {
+        key: r,
+        title: has ? 'mở preview markdown' : 'chưa có bản preview',
+        onClick: () => has && setDoc(doc === r ? null : r),
+        style: {
+          cursor: has ? 'pointer' : 'default',
+          opacity: has ? 1 : 0.7,
+          borderBottom: has ? '1px dotted var(--muted)' : 'none'
+        }
+      }, /*#__PURE__*/React.createElement(AId, {
+        variant: "artifact"
+      }, r));
+    })), doc && /*#__PURE__*/React.createElement(DocPreview, {
+      path: doc,
+      docs: data.docs,
+      onClose: () => setDoc(null)
     }));
   }
   function App() {
     const data = window.CT_DATA;
     const [screen, setScreen] = React.useState('mission');
     const [intentId, setIntentId] = React.useState('INT-001');
+    const [unitId, setUnitId] = React.useState('UOW-01');
     const [theme, setTheme] = React.useState('dark');
     const [gates, setGates] = React.useState(data.gates);
     const [drawer, setDrawer] = React.useState(null);
+    const [msgDoc, setMsgDoc] = React.useState(null);
     const [toast, setToast] = React.useState(null);
     React.useEffect(() => {
       document.documentElement.setAttribute('data-theme', theme);
@@ -1966,11 +2132,13 @@ try { (() => {
       setToast(action === 'approve' ? 'Đã approve — ghi DEC-0019, stage 6 mở khoá' : action === 'reject' ? 'Đã reject — lý do gửi về orchestrator: "' + reason + '"' : 'Đã chuyển sang thảo luận — MSG gửi tới ba-reviewer');
       setTimeout(() => setToast(null), 3200);
     };
+    const unitsSel = data.unitsByIntent[intentId] || (intentId === 'INT-001' ? data.units : []);
+    const unitSel = unitsSel.find(u => u.id === unitId) || unitsSel[0];
     const titles = {
-      mission: ['Mission Control', 'cái gì đang chờ tôi · mọi thứ đang ở đâu'],
+      mission: ['Mission Control', 'agents đang làm gì ngay lúc này · dừng sớm trước khi đi sai'],
       intents: ['Intents', data.intents.length + ' intent đang mở · lọc theo trạng thái, loại brownfield, người yêu cầu'],
       intent: [intentId + ' · ' + (data.intents.find(x => x.id === intentId) || data.intents[0]).name, 'Units · Open questions · Decisions · Changelog'],
-      bolt: ['UOW-01 · Bolt 1 — Release Planning', 'task board · contract · checkpoint Gate E'],
+      bolt: [unitSel ? unitSel.id + ' · ' + unitSel.bolt + ' — ' + unitSel.name : intentId + ' — chưa có Unit', unitSel ? 'task board · contract · checkpoint' : 'intent còn ở pha Inception'],
       comms: ['Comms & Reviews', 'mọi trao đổi là văn bản truy vết được'],
       gov: ['Governance & Learning', 'DoR/DoD · risk · tech-debt · lessons']
     };
@@ -1992,11 +2160,13 @@ try { (() => {
       }, {
         label: intentId,
         to: 'intent'
+      }].concat(unitSel ? [{
+        label: unitSel.id
       }, {
-        label: 'UOW-01'
-      }, {
-        label: 'Bolt 1'
-      }],
+        label: unitSel.bolt
+      }] : [{
+        label: 'chưa có Unit'
+      }]),
       comms: [{
         label: 'Dự án'
       }, {
@@ -2020,7 +2190,11 @@ try { (() => {
       screen: screen,
       setScreen: setScreen,
       gateCount: gates.length,
-      intentCount: data.intents.length
+      data: data,
+      intentId: intentId,
+      setIntentId: setIntentId,
+      unitId: unitId,
+      setUnitId: setUnitId
     }), /*#__PURE__*/React.createElement("main", {
       style: {
         flex: 1,
@@ -2051,6 +2225,16 @@ try { (() => {
         setIntentId(id);
         setScreen('intent');
       },
+      onOpenIntents: () => setScreen('intents'),
+      onOpenTask: w => setDrawer({
+        kind: 'task',
+        t: data.tasks.find(t => t.id === w.taskId) || {
+          id: w.taskId,
+          title: w.title,
+          status: w.status,
+          approver: '—'
+        }
+      }),
       onOpenFeed: m => setDrawer({
         kind: 'msg',
         m
@@ -2069,6 +2253,8 @@ try { (() => {
       onSelectIntent: setIntentId
     }), screen === 'bolt' && /*#__PURE__*/React.createElement(BoltBoard, {
       data: data,
+      intentId: intentId,
+      unitId: unitId,
       onOpenTask: t => setDrawer({
         kind: 'task',
         t
@@ -2083,53 +2269,20 @@ try { (() => {
       data: data
     }))), /*#__PURE__*/React.createElement(Drawer, {
       open: !!drawer,
-      onClose: () => setDrawer(null),
+      onClose: () => {
+        setDrawer(null);
+        setMsgDoc(null);
+      },
       title: drawer ? drawer.kind === 'task' ? drawer.t.id + ' · task detail' : drawer.m.id + ' · message' : ''
     }, drawer && drawer.kind === 'task' && /*#__PURE__*/React.createElement(TaskDrawerBody, {
       task: drawer.t,
       data: data
-    }), drawer && drawer.kind === 'msg' && /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 12
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontFamily: 'var(--mono)',
-        fontSize: 11.5,
-        color: 'var(--muted)'
-      }
-    }, drawer.m.time, " \xB7 ", drawer.m.from, " \u2192 ", drawer.m.to, " \xB7 ", drawer.m.type), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 14.5
-      }
-    }, drawer.m.summary), /*#__PURE__*/React.createElement(SectionLabel, {
-      style: {
-        marginTop: 8
-      }
-    }, "Truy ng\u01B0\u1EE3c t\u1EEB message n\xE0y"), /*#__PURE__*/React.createElement(ATrace, {
-      direction: "vertical",
-      steps: [{
-        kind: 'msg',
-        id: drawer.m.id,
-        note: drawer.m.type
-      }, {
-        kind: 'task',
-        id: 'TSK-01',
-        note: 'API contract draft + freeze'
-      }, {
-        kind: 'design',
-        id: 'UOW-01/contract.md',
-        note: 'v2 FROZEN'
-      }, {
-        kind: 'spec',
-        id: 'UOW-01/spec.md'
-      }, {
-        kind: 'intent',
-        id: 'INT-001'
-      }]
-    }))), toast && /*#__PURE__*/React.createElement("div", {
+    }), drawer && drawer.kind === 'msg' && /*#__PURE__*/React.createElement(MsgDrawerBody, {
+      m: drawer.m,
+      data: data,
+      doc: msgDoc,
+      setDoc: setMsgDoc
+    })), toast && /*#__PURE__*/React.createElement("div", {
       style: {
         position: 'fixed',
         bottom: 20,
@@ -2167,11 +2320,60 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
     AgentAvatar,
     AgentWorkCard
   } = NSb;
+  function unitsOfB(data, id) {
+    return data.unitsByIntent[id] || (id === 'INT-001' ? data.units : []);
+  }
   function BoltBoard({
     data,
-    onOpenTask
+    onOpenTask,
+    intentId = 'INT-001',
+    unitId = 'UOW-01'
   }) {
     const [view, setView] = React.useState('hoạt động');
+    const units = unitsOfB(data, intentId);
+    const unit = units.find(u => u.id === unitId) || units[0];
+    const hasWork = intentId === 'INT-001' && unit && unit.id === 'UOW-01';
+    const intent = data.intents.find(i => i.id === intentId) || {};
+    if (!hasWork) {
+      return /*#__PURE__*/React.createElement("div", {
+        style: {
+          padding: 24
+        }
+      }, /*#__PURE__*/React.createElement(Panel, {
+        title: (unit ? unit.id + ' · ' + unit.bolt : intentId) + ' — ' + (unit ? unit.name : intent.name || ''),
+        meta: unit ? unit.status : 'chưa có unit'
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 10,
+          padding: '18px 4px',
+          color: 'var(--muted)'
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontFamily: 'var(--mono)',
+          fontSize: 12,
+          color: 'var(--accent)'
+        }
+      }, "\u25C7 ch\u01B0a c\xF3 task cho unit n\xE0y"), /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 13.5,
+          maxWidth: 560,
+          textWrap: 'pretty'
+        }
+      }, unit ? 'Bản mô phỏng này mới dựng task board cho INT-001 · UOW-01. Unit đang chọn (' + unit.id + ' · ' + unit.name + ') thuộc ' + intentId + ', tiến độ ' + unit.done + '%.' : intentId + ' chưa được phân rã thành Unit — còn ở pha Inception.'), /*#__PURE__*/React.createElement("div", {
+        style: {
+          display: 'flex',
+          gap: 6,
+          flexWrap: 'wrap'
+        }
+      }, /*#__PURE__*/React.createElement(Chip, {
+        tone: "pending"
+      }, intentId), unit && /*#__PURE__*/React.createElement(Chip, {
+        tone: "pending"
+      }, unit.bolt)))));
+    }
     return /*#__PURE__*/React.createElement("div", {
       style: {
         padding: 24,
@@ -2186,7 +2388,7 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
         gap: 16
       }
     }, /*#__PURE__*/React.createElement(Panel, {
-      title: "UOW-01 \xB7 Bolt 1 \u2014 Release Planning",
+      title: unit.id + ' · ' + unit.bolt + ' — ' + unit.name,
       meta: "1/5 done",
       pad: false
     }, /*#__PURE__*/React.createElement("div", {
@@ -2211,17 +2413,24 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
         gap: 12,
         padding: 14
       }
-    }, data.work.map(w => /*#__PURE__*/React.createElement(AgentWorkCard, _extends({
-      key: w.taskId
-    }, w, {
-      lane: w.agent.includes('reviewer') ? 'review' : 'pipeline',
-      onOpenTask: () => onOpenTask(data.tasks.find(t => t.id === w.taskId) || {
-        id: w.taskId,
-        title: w.title,
-        status: w.status,
-        approver: '—'
-      })
-    })))), view === 'list' && data.tasks.map(t => /*#__PURE__*/React.createElement(TaskRow, _extends({
+    }, data.work.map(w => {
+      const {
+        assumption,
+        context,
+        ...cw
+      } = w;
+      return /*#__PURE__*/React.createElement(AgentWorkCard, _extends({
+        key: w.taskId
+      }, cw, {
+        lane: w.agent.includes('reviewer') ? 'review' : 'pipeline',
+        onOpenTask: () => onOpenTask(data.tasks.find(t => t.id === w.taskId) || {
+          id: w.taskId,
+          title: w.title,
+          status: w.status,
+          approver: '—'
+        })
+      }));
+    })), view === 'list' && data.tasks.map(t => /*#__PURE__*/React.createElement(TaskRow, _extends({
       key: t.id
     }, t, {
       onClick: () => onOpenTask(t)
@@ -2539,6 +2748,264 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
   window.CommsReviews = CommsReviews;
 })();
 })(); } catch (e) { __ds_ns.__errors.push({ path: "ui_kits/control-tower/CommsReviews.jsx", error: String((e && e.message) || e) }); }
+
+// ui_kits/control-tower/DocPreview.jsx
+try { (() => {
+(function () {
+  // Preview markdown của artefact ngay trong Control Tower (không rời màn hình)
+  const NSd = window.ControlTowerDesignSystem_68131c;
+  const {
+    Chip: DChip,
+    Button: DBtn
+  } = NSd;
+  const MONO = {
+    fontFamily: 'var(--mono)'
+  };
+
+  // "UOW-01/contract.md v2" · "UOW-01/spec.md#AC-03" → "UOW-01/contract.md"
+  function docKey(s) {
+    const m = (s || '').match(/^\s*([^\s#]+\.(?:md|py|ts|tsx|js|jsx|sql|yml|yaml|json))/i);
+    return m ? m[1] : (s || '').split('#')[0].trim();
+  }
+  function docAnchor(s) {
+    const h = (s || '').split('#')[1];
+    return h ? h.trim() : null;
+  }
+  function inline(s, key) {
+    // `code` và **bold**
+    const out = [];
+    const re = /(`[^`]+`|\*\*[^*]+\*\*)/g;
+    let last = 0,
+      m,
+      i = 0;
+    while (m = re.exec(s)) {
+      if (m.index > last) out.push(s.slice(last, m.index));
+      const t = m[0];
+      if (t[0] === '`') out.push(/*#__PURE__*/React.createElement("code", {
+        key: key + 'c' + i++,
+        style: {
+          ...MONO,
+          fontSize: 11.5,
+          background: 'var(--surface-2)',
+          border: '1px solid var(--line)',
+          borderRadius: 3,
+          padding: '0 4px'
+        }
+      }, t.slice(1, -1)));else out.push(/*#__PURE__*/React.createElement("strong", {
+        key: key + 'b' + i++,
+        style: {
+          fontWeight: 'var(--fw-bold)'
+        }
+      }, t.slice(2, -2)));
+      last = m.index + t.length;
+    }
+    if (last < s.length) out.push(s.slice(last));
+    return out;
+  }
+  function Markdown({
+    src,
+    highlight
+  }) {
+    const lines = src.split('\n');
+    const blocks = [];
+    let list = null;
+    const flush = () => {
+      if (list) {
+        blocks.push({
+          t: 'ul',
+          items: list
+        });
+        list = null;
+      }
+    };
+    lines.forEach(raw => {
+      const l = raw.trimEnd();
+      if (/^\s*[-*] /.test(l)) {
+        (list = list || []).push(l.replace(/^\s*[-*] /, ''));
+        return;
+      }
+      flush();
+      if (!l.trim()) return;
+      const h = l.match(/^(#{1,4}) (.*)$/);
+      if (h) blocks.push({
+        t: 'h',
+        lvl: h[1].length,
+        text: h[2]
+      });else if (/^\|/.test(l)) blocks.push({
+        t: 'tr',
+        cells: l.split('|').slice(1, -1).map(c => c.trim())
+      });else if (/^---+$/.test(l)) blocks.push({
+        t: 'hr'
+      });else blocks.push({
+        t: 'p',
+        text: l
+      });
+    });
+    flush();
+    const rows = [];
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 7
+      }
+    }, blocks.map((b, i) => {
+      const hit = highlight && b.text && b.text.indexOf(highlight) >= 0;
+      if (b.t === 'h') return /*#__PURE__*/React.createElement("div", {
+        key: i,
+        style: {
+          ...MONO,
+          fontSize: b.lvl <= 2 ? 12.5 : 11.5,
+          letterSpacing: '0.06em',
+          textTransform: b.lvl <= 2 ? 'uppercase' : 'none',
+          color: hit ? 'var(--accent)' : b.lvl <= 2 ? 'var(--ink)' : 'var(--muted)',
+          marginTop: i ? 6 : 0,
+          fontWeight: 'var(--fw-bold)'
+        }
+      }, b.text);
+      if (b.t === 'hr') return /*#__PURE__*/React.createElement("div", {
+        key: i,
+        style: {
+          height: 1,
+          background: 'var(--line)',
+          margin: '2px 0'
+        }
+      });
+      if (b.t === 'ul') return /*#__PURE__*/React.createElement("ul", {
+        key: i,
+        style: {
+          margin: 0,
+          paddingLeft: 18,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 3
+        }
+      }, b.items.map((it, j) => /*#__PURE__*/React.createElement("li", {
+        key: j,
+        style: {
+          fontSize: 13,
+          lineHeight: 1.55,
+          textWrap: 'pretty',
+          color: highlight && it.indexOf(highlight) >= 0 ? 'var(--accent)' : 'var(--ink)'
+        }
+      }, inline(it, i + '-' + j))));
+      if (b.t === 'tr') {
+        const head = !rows.length;
+        rows.push(1);
+        if (/^-+$/.test(b.cells.join(''))) return null;
+        return /*#__PURE__*/React.createElement("div", {
+          key: i,
+          style: {
+            display: 'grid',
+            gridTemplateColumns: 'repeat(' + b.cells.length + ', minmax(0,1fr))',
+            gap: 8,
+            padding: '4px 0',
+            borderBottom: '1px solid var(--line)'
+          }
+        }, b.cells.map((c, j) => /*#__PURE__*/React.createElement("span", {
+          key: j,
+          style: {
+            ...MONO,
+            fontSize: 11.5,
+            color: head ? 'var(--muted)' : 'var(--ink)',
+            letterSpacing: head ? '0.08em' : 0,
+            textTransform: head ? 'uppercase' : 'none',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis'
+          }
+        }, c)));
+      }
+      return /*#__PURE__*/React.createElement("div", {
+        key: i,
+        style: {
+          fontSize: 13,
+          lineHeight: 1.6,
+          textWrap: 'pretty',
+          color: hit ? 'var(--accent)' : 'var(--ink)'
+        }
+      }, inline(b.text, i));
+    }));
+  }
+  function DocPreview({
+    path,
+    docs,
+    onClose,
+    highlight
+  }) {
+    const key = docKey(path);
+    const anchor = highlight || docAnchor(path);
+    const doc = docs[key];
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        border: '1px solid var(--line)',
+        borderRadius: 'var(--radius-md)',
+        background: 'var(--surface-2)',
+        overflow: 'hidden'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        padding: '8px 12px',
+        borderBottom: '1px solid var(--line)',
+        background: 'var(--surface)'
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        ...MONO,
+        fontSize: 11.5,
+        color: 'var(--accent)',
+        flex: 1,
+        minWidth: 0,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis'
+      }
+    }, key), doc && /*#__PURE__*/React.createElement(DChip, {
+      tone: "pending"
+    }, doc.rev), onClose && /*#__PURE__*/React.createElement("button", {
+      onClick: onClose,
+      style: {
+        background: 'transparent',
+        border: 'none',
+        cursor: 'pointer',
+        color: 'var(--muted)',
+        ...MONO,
+        fontSize: 12
+      }
+    }, "\u2715")), doc ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...MONO,
+        fontSize: 10.5,
+        letterSpacing: '0.1em',
+        textTransform: 'uppercase',
+        color: 'var(--muted)',
+        padding: '7px 12px 0'
+      }
+    }, "s\u1EEDa l\u1EA7n cu\u1ED1i ", doc.updated, " \xB7 ", doc.by, anchor ? ' · nhảy tới ' + anchor : ''), /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: '8px 12px 12px',
+        maxHeight: 320,
+        overflow: 'auto'
+      }
+    }, /*#__PURE__*/React.createElement(Markdown, {
+      src: doc.md,
+      highlight: anchor
+    }))) : /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: '14px 12px',
+        fontSize: 13,
+        color: 'var(--muted)'
+      }
+    }, "Artefact n\xE0y ch\u01B0a c\xF3 b\u1EA3n markdown trong m\xF4 ph\u1ECFng \u2014 ch\u1EC9 c\xF3 id truy v\u1EBFt."));
+  }
+  Object.assign(window, {
+    DocPreview,
+    Markdown,
+    docKey
+  });
+})();
+})(); } catch (e) { __ds_ns.__errors.push({ path: "ui_kits/control-tower/DocPreview.jsx", error: String((e && e.message) || e) }); }
 
 // ui_kits/control-tower/Governance.jsx
 try { (() => {
@@ -3221,147 +3688,581 @@ function _extends() { return _extends = Object.assign ? Object.assign.bind() : f
 (function () {
   const NSm = window.ControlTowerDesignSystem_68131c;
   const {
-    KpiStrip,
     GateCard,
     Panel,
-    PipelineRow,
     FeedItem,
-    VerdictBadge,
     Chip,
-    IdCode: Id
+    Button,
+    IdCode: Id,
+    AgentWorkCard,
+    AgentAvatar
   } = NSm;
+  const L = {
+    fontFamily: 'var(--mono)',
+    fontSize: 'var(--fs-mono-xs)',
+    letterSpacing: 'var(--ls-label)',
+    textTransform: 'uppercase',
+    color: 'var(--muted)'
+  };
+  const MORE = {
+    fontFamily: 'var(--mono)',
+    fontSize: 10.5,
+    color: 'var(--muted)',
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    padding: 0,
+    whiteSpace: 'nowrap'
+  };
+
+  // Một dải duy nhất: pha nào đang chạy · nghi thức · đồng hồ Bolt
+  function PhaseBar({
+    phase,
+    bolt,
+    onOpenIntents
+  }) {
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        alignItems: 'stretch',
+        flexWrap: 'wrap',
+        gap: 0,
+        border: '1px solid var(--line)',
+        borderRadius: 'var(--radius-lg)',
+        background: 'var(--surface)',
+        overflow: 'hidden'
+      }
+    }, phase.lanes.map((l, i) => {
+      const here = l.key === phase.now;
+      return /*#__PURE__*/React.createElement("button", {
+        key: l.key,
+        onClick: onOpenIntents,
+        style: {
+          flex: '1 1 120px',
+          minWidth: 0,
+          textAlign: 'left',
+          cursor: 'pointer',
+          border: 'none',
+          borderLeft: i ? '1px solid var(--line)' : 'none',
+          background: here ? 'var(--surface-2)' : 'transparent',
+          padding: '10px 12px',
+          display: 'flex',
+          alignItems: 'baseline',
+          gap: 6,
+          overflow: 'hidden'
+        }
+      }, /*#__PURE__*/React.createElement("span", {
+        style: {
+          width: 6,
+          height: 6,
+          borderRadius: 999,
+          background: here ? 'var(--accent)' : 'var(--line)',
+          flex: 'none'
+        }
+      }), /*#__PURE__*/React.createElement("span", {
+        style: {
+          fontFamily: 'var(--mono)',
+          fontSize: 12.5,
+          fontWeight: 'var(--fw-bold)',
+          color: here ? 'var(--accent)' : 'var(--muted)',
+          minWidth: 0,
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis'
+        }
+      }, l.name), /*#__PURE__*/React.createElement("span", {
+        style: {
+          ...L,
+          fontSize: 'var(--fs-micro)',
+          flex: 'none'
+        }
+      }, l.intents.length));
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: '1 1 200px',
+        minWidth: 0,
+        borderLeft: '1px solid var(--line)',
+        background: 'var(--accent-bg)',
+        padding: '8px 12px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: 'var(--mono)',
+        fontSize: 17,
+        fontWeight: 'var(--fw-bold)',
+        color: 'var(--accent)',
+        lineHeight: 1.1
+      }
+    }, bolt.elapsed), /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...L,
+        fontSize: 'var(--fs-micro)',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis'
+      }
+    }, bolt.id, " / ", bolt.budget)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 'none',
+        width: 48,
+        height: 4,
+        background: 'var(--line)',
+        borderRadius: 999,
+        overflow: 'hidden',
+        marginLeft: 'auto'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: bolt.pct + '%',
+        height: '100%',
+        background: 'var(--accent)'
+      }
+    }))));
+  }
+
+  // Một agent = một dòng; chi tiết mở khi cần
+  function AgentRow({
+    w,
+    state,
+    onCmd,
+    docs,
+    onOpenTask,
+    open,
+    onToggle
+  }) {
+    const paused = state === 'paused',
+      asked = state === 'asked';
+    const live = w.status === 'in-progress';
+    const [doc, setDoc] = React.useState(null);
+    const done = (w.steps || []).filter(s => s.state === 'done').length;
+    const tone = paused ? 'var(--danger)' : asked ? 'var(--blue)' : w.status === 'blocked' ? 'var(--danger)' : w.status === 'done' ? 'var(--ok)' : 'var(--accent)';
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        borderBottom: '1px solid var(--line)'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: '9px 14px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 3
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        width: 6,
+        height: 6,
+        borderRadius: 999,
+        background: tone,
+        flex: 'none'
+      }
+    }), /*#__PURE__*/React.createElement(AgentAvatar, {
+      name: w.agent,
+      lane: w.agent.includes('reviewer') ? 'review' : 'pipeline',
+      size: 18
+    }), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: 'var(--mono)',
+        fontSize: 11,
+        color: 'var(--muted)',
+        flex: 'none'
+      }
+    }, w.taskId), /*#__PURE__*/React.createElement("span", {
+      style: {
+        flex: 1
+      }
+    }), w.steps && /*#__PURE__*/React.createElement("span", {
+      style: {
+        ...L,
+        fontSize: 'var(--fs-micro)',
+        flex: 'none'
+      }
+    }, done, "/", w.steps.length), w.elapsed && w.elapsed !== '—' && /*#__PURE__*/React.createElement("span", {
+      style: {
+        ...L,
+        fontSize: 'var(--fs-micro)',
+        flex: 'none'
+      }
+    }, w.elapsed), live && !paused && /*#__PURE__*/React.createElement("button", {
+      onClick: () => onCmd('paused'),
+      title: "d\u1EEBng agent n\xE0y",
+      style: {
+        ...MORE,
+        color: 'var(--danger)',
+        fontSize: 11
+      }
+    }, "d\u1EEBng"), paused && /*#__PURE__*/React.createElement("button", {
+      onClick: () => onCmd('running'),
+      title: "cho ch\u1EA1y ti\u1EBFp",
+      style: {
+        ...MORE,
+        color: 'var(--ok)',
+        fontSize: 11
+      }
+    }, "ch\u1EA1y ti\u1EBFp"), /*#__PURE__*/React.createElement("button", {
+      onClick: onToggle,
+      style: MORE
+    }, open ? '−' : 'chi tiết')), /*#__PURE__*/React.createElement("button", {
+      onClick: onToggle,
+      style: {
+        display: 'block',
+        width: '100%',
+        textAlign: 'left',
+        background: 'transparent',
+        border: 'none',
+        cursor: 'pointer',
+        padding: '0 0 0 32px'
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        display: 'block',
+        fontSize: 13,
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis'
+      }
+    }, w.doing || w.title))), (paused || asked) && /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: '0 14px 8px 40px',
+        fontFamily: 'var(--mono)',
+        fontSize: 10.5,
+        color: paused ? 'var(--danger)' : 'var(--blue)'
+      }
+    }, paused ? 'đã dừng — agent giữ nguyên trạng thái, chờ chỉ dẫn' : 'đã gửi câu hỏi — agent hoãn bước kế tiếp'), open && /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: '0 14px 14px 40px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10
+      }
+    }, w.assumption && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      style: L
+    }, "Gi\u1EA3 \u0111\u1ECBnh \u0111ang d\xF9ng"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13,
+        textWrap: 'pretty'
+      }
+    }, w.assumption)), w.steps && /*#__PURE__*/React.createElement("ul", {
+      style: {
+        listStyle: 'none',
+        margin: 0,
+        padding: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2
+      }
+    }, w.steps.map((s, i) => /*#__PURE__*/React.createElement("li", {
+      key: i,
+      style: {
+        display: 'flex',
+        gap: 8,
+        fontSize: 12.5,
+        color: s.state === 'todo' ? 'var(--muted)' : 'var(--ink)'
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: 'var(--mono)',
+        width: 10,
+        flex: 'none',
+        color: s.state === 'done' ? 'var(--ok)' : s.state === 'doing' ? 'var(--accent)' : 'var(--muted)'
+      }
+    }, s.state === 'done' ? '✓' : s.state === 'doing' ? '●' : '·'), /*#__PURE__*/React.createElement("span", null, s.label)))), w.context && /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 6
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
+        flexWrap: 'wrap'
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        ...L,
+        fontSize: 'var(--fs-micro)'
+      }
+    }, "\u0110ang \u0111\u1ECDc"), w.context.map(c => {
+      const has = docs && docs[docKey(c)];
+      return /*#__PURE__*/React.createElement("span", {
+        key: c,
+        title: has ? 'mở preview markdown' : 'chưa có bản preview',
+        onClick: () => has && setDoc(doc === c ? null : c),
+        style: {
+          cursor: has ? 'pointer' : 'default',
+          opacity: has ? 1 : 0.7,
+          borderBottom: has ? '1px dotted var(--muted)' : 'none'
+        }
+      }, /*#__PURE__*/React.createElement(Id, {
+        variant: "artifact",
+        style: {
+          fontSize: 'var(--fs-micro)'
+        }
+      }, c));
+    })), doc && /*#__PURE__*/React.createElement(DocPreview, {
+      path: doc,
+      docs: docs,
+      onClose: () => setDoc(null)
+    })), w.waitingOn && /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...L,
+        fontSize: 'var(--fs-micro)',
+        color: 'var(--accent)'
+      }
+    }, "ch\u1EDD \xB7 ", w.waitingOn), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        gap: 6,
+        flexWrap: 'wrap',
+        alignItems: 'center'
+      }
+    }, live && !paused && /*#__PURE__*/React.createElement(Button, {
+      size: "sm",
+      onClick: () => onCmd('asked')
+    }, "H\u1ECFi l\u1EA1i gi\u1EA3 \u0111\u1ECBnh"), paused && /*#__PURE__*/React.createElement(Button, {
+      size: "sm",
+      onClick: () => onCmd('running')
+    }, "\u0110\u1ED5i h\u01B0\u1EDBng"), onOpenTask && /*#__PURE__*/React.createElement("button", {
+      onClick: onOpenTask,
+      style: MORE
+    }, "m\u1EDF to\xE0n b\u1ED9 task \u2192"))));
+  }
+  function OpsRow({
+    s
+  }) {
+    const [open, setOpen] = React.useState(false);
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        borderBottom: '1px solid var(--line)'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        padding: '8px 12px'
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        width: 6,
+        height: 6,
+        borderRadius: 999,
+        background: s.sev === 'warn' ? 'var(--accent)' : 'var(--line)',
+        flex: 'none'
+      }
+    }), /*#__PURE__*/React.createElement("button", {
+      onClick: () => setOpen(v => !v),
+      style: {
+        flex: 1,
+        minWidth: 0,
+        textAlign: 'left',
+        background: 'transparent',
+        border: 'none',
+        cursor: 'pointer',
+        padding: 0,
+        fontSize: 12.5,
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis'
+      }
+    }, s.what), s.action ? /*#__PURE__*/React.createElement(Button, {
+      size: "sm",
+      variant: "primary"
+    }, "Duy\u1EC7t") : /*#__PURE__*/React.createElement("span", {
+      style: {
+        ...L,
+        fontSize: 'var(--fs-micro)'
+      }
+    }, s.status), /*#__PURE__*/React.createElement("button", {
+      onClick: () => setOpen(v => !v),
+      style: MORE
+    }, open ? '−' : 'chi tiết')), open && /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: '0 12px 10px 26px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 4,
+        fontSize: 12.5,
+        color: 'var(--muted)'
+      }
+    }, /*#__PURE__*/React.createElement("div", null, s.forecast), s.action && /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: 'var(--ink)'
+      }
+    }, "\u0110\u1EC1 xu\u1EA5t: ", s.action, " ", /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: 'var(--mono)',
+        fontSize: 11,
+        color: 'var(--muted)'
+      }
+    }, "(", s.runbook, ")")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...L,
+        fontSize: 'var(--fs-micro)'
+      }
+    }, s.id, " \xB7 ", s.status)));
+  }
   function MissionControl({
     data,
     gates,
     onDecision,
     onOpenIntent,
-    onOpenFeed
+    onOpenFeed,
+    onOpenTask,
+    onOpenIntents
   }) {
-    const filters = ['all', 'comms', 'review', 'decision'];
-    const [filter, setFilter] = React.useState('all');
-    const feed = data.feed.filter(x => filter === 'all' ? true : filter === 'comms' ? ['clarification', 'question', 'answer', 'handoff', 'note'].includes(x.type) : filter === 'review' ? ['review-request', 'finding'].includes(x.type) : x.type === 'decision');
+    const [ctrl, setCtrl] = React.useState({});
+    const [openRow, setOpenRow] = React.useState(null);
+    const [openGate, setOpenGate] = React.useState(null);
+    const [feedOpen, setFeedOpen] = React.useState(false);
+    const live = data.work.filter(w => w.status === 'in-progress');
+    const rest = data.work.filter(w => w.status !== 'in-progress');
+    const rows = live.concat(rest);
     return /*#__PURE__*/React.createElement("div", {
       style: {
         padding: 24,
         display: 'flex',
         flexDirection: 'column',
-        gap: 16,
+        gap: 14,
         minHeight: 0
       }
-    }, /*#__PURE__*/React.createElement(KpiStrip, {
-      items: [{
-        value: gates.filter(g => g.kind === 'gate').length,
-        label: 'Gates chờ tôi',
-        tone: 'gate'
-      }, {
-        value: gates.filter(g => g.kind === 'escalation').length,
-        label: 'Escalations',
-        tone: 'gate'
-      }, {
-        value: 2,
-        label: 'Bolts đang chạy',
-        tone: 'agent'
-      }, {
-        value: 3,
-        label: 'Units done tuần này',
-        tone: 'done'
-      }]
-    }), /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement(PhaseBar, {
+      phase: data.phase,
+      bolt: data.bolt,
+      onOpenIntents: onOpenIntents
+    }), gates.length > 0 && /*#__PURE__*/React.createElement("section", {
       style: {
-        display: 'grid',
-        gridTemplateColumns: 'minmax(0,1.55fr) minmax(320px,1fr)',
-        gap: 16,
-        alignItems: 'start'
+        border: '1px solid var(--accent)',
+        borderRadius: 'var(--radius-lg)',
+        background: 'var(--accent-bg)',
+        overflow: 'hidden'
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
-        flexDirection: 'column',
-        gap: 16
+        alignItems: 'center',
+        gap: 8,
+        padding: '8px 14px',
+        borderBottom: '1px solid var(--accent)'
       }
-    }, /*#__PURE__*/React.createElement(Panel, {
-      title: "Gate queue \u2014 ch\u1EDD quy\u1EBFt \u0111\u1ECBnh c\u1EE7a b\u1EA1n",
-      meta: gates.length + ' mục'
-    }, gates.length === 0 ? /*#__PURE__*/React.createElement("div", {
-      style: {
-        padding: '28px 8px',
-        textAlign: 'center',
-        color: 'var(--muted)'
-      }
-    }, /*#__PURE__*/React.createElement("style", null, '@keyframes ct-breathe{0%,100%{opacity:.45}50%{opacity:1}}'), /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement("span", {
       style: {
         fontFamily: 'var(--mono)',
-        fontSize: 22,
-        color: 'var(--ok)',
-        animation: 'ct-breathe 1600ms ease-in-out infinite'
+        fontSize: 12,
+        fontWeight: 'var(--fw-bold)',
+        color: 'var(--accent)'
       }
-    }, "\u25CF"), /*#__PURE__*/React.createElement("div", {
+    }, "\u25C7 ", gates.length, " m\u1EE5c ch\u1EDD b\u1EA1n ch\u1ED1t")), /*#__PURE__*/React.createElement("div", {
       style: {
-        marginTop: 8,
-        fontSize: 14.5
+        padding: '4px 8px 8px'
       }
-    }, "Kh\xF4ng c\xF3 g\xEC ch\u1EDD b\u1EA1n \u2014 agents \u0111ang l\xE0m vi\u1EC7c")) : gates.map(g => /*#__PURE__*/React.createElement(GateCard, _extends({
+    }, gates.map(g => /*#__PURE__*/React.createElement(GateCard, _extends({
       key: g.key
     }, g, {
-      defaultExpanded: g.key === 'g1',
+      defaultExpanded: false,
+      style: {
+        marginBottom: 4,
+        border: '1px solid var(--line)',
+        background: 'var(--surface)'
+      },
       onApprove: () => onDecision(g.key, 'approve'),
       onReject: r => onDecision(g.key, 'reject', r),
       onDiscuss: () => onDecision(g.key, 'discuss')
-    })))), /*#__PURE__*/React.createElement(Panel, {
-      title: "Pipeline board",
-      meta: "2 intents",
+    }))))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'grid',
+        gridTemplateColumns: 'minmax(0,1.6fr) minmax(280px,1fr)',
+        gap: 14,
+        alignItems: 'start'
+      }
+    }, /*#__PURE__*/React.createElement(Panel, {
+      title: "Agents \u0111ang ch\u1EA1y",
+      meta: live.length + ' / ' + rows.length + ' · ' + data.bolt.ritual,
       pad: false
-    }, data.intents.map(i => /*#__PURE__*/React.createElement(PipelineRow, {
-      key: i.id,
-      id: i.id,
-      name: i.name,
-      current: i.stage,
-      gate: i.gate,
-      holder: i.holder,
-      onClick: () => onOpenIntent(i.id)
-    })), /*#__PURE__*/React.createElement("div", {
+    }, rows.map(w => /*#__PURE__*/React.createElement(AgentRow, {
+      key: w.taskId,
+      w: w,
+      docs: data.docs,
+      state: ctrl[w.taskId] || 'running',
+      onCmd: v => setCtrl(c => ({
+        ...c,
+        [w.taskId]: v
+      })),
+      open: openRow === w.taskId,
+      onToggle: () => setOpenRow(k => k === w.taskId ? null : w.taskId),
+      onOpenTask: onOpenTask ? () => onOpenTask(w) : undefined
+    }))), /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
-        gap: 6,
-        padding: '10px 16px',
-        flexWrap: 'wrap'
+        flexDirection: 'column',
+        gap: 14
       }
-    }, data.reviews.slice(0, 3).map(r => /*#__PURE__*/React.createElement(VerdictBadge, {
-      key: r.id,
-      id: r.id,
-      reviewer: r.reviewer.replace('-reviewer', ''),
-      verdict: r.verdict
-    }))))), /*#__PURE__*/React.createElement(Panel, {
+    }, /*#__PURE__*/React.createElement(Panel, {
+      title: "Operations",
+      meta: data.ops.deployed.length + ' unit ở production',
+      pad: false
+    }, data.ops.signals.map(s => /*#__PURE__*/React.createElement(OpsRow, {
+      key: s.id,
+      s: s
+    }))), /*#__PURE__*/React.createElement(Panel, {
       title: "Live feed",
-      meta: "activity + comms",
-      pad: false,
-      style: {
-        position: 'sticky',
-        top: 0,
-        maxHeight: 'calc(100vh - 190px)'
-      }
-    }, /*#__PURE__*/React.createElement("div", {
+      meta: data.feed.length + ' mục',
+      pad: false
+    }, (feedOpen ? data.feed : data.feed.slice(0, 4)).map((x, i) => /*#__PURE__*/React.createElement("div", {
+      key: x.id,
       style: {
         display: 'flex',
-        gap: 6,
-        padding: '8px 12px',
+        alignItems: 'center',
+        gap: 8,
+        padding: '7px 12px',
         borderBottom: '1px solid var(--line)',
-        flexWrap: 'wrap'
-      }
-    }, filters.map(x => /*#__PURE__*/React.createElement("span", {
-      key: x,
-      onClick: () => setFilter(x),
-      style: {
         cursor: 'pointer'
-      }
-    }, /*#__PURE__*/React.createElement(Chip, {
-      tone: filter === x ? 'agent' : 'pending'
-    }, x)))), feed.map((x, i) => /*#__PURE__*/React.createElement(FeedItem, _extends({
-      key: x.id
-    }, x, {
-      isNew: i === 0,
+      },
       onClick: () => onOpenFeed(x)
-    }))))));
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: 'var(--mono)',
+        fontSize: 10.5,
+        color: i === 0 && !feedOpen ? 'var(--accent)' : 'var(--muted)',
+        flex: 'none'
+      }
+    }, x.id), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 12.5,
+        flex: 1,
+        minWidth: 0,
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis'
+      }
+    }, x.summary), /*#__PURE__*/React.createElement("span", {
+      style: {
+        ...L,
+        fontSize: 'var(--fs-micro)',
+        flex: 'none'
+      }
+    }, x.type))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: '8px 12px'
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: () => setFeedOpen(v => !v),
+      style: MORE
+    }, feedOpen ? 'thu gọn' : 'xem tất cả ' + data.feed.length + ' →'))))));
   }
   window.MissionControl = MissionControl;
 })();
@@ -3400,25 +4301,171 @@ try { (() => {
     label: 'Governance & Learning',
     mark: '△'
   }];
+
+  // Variant C — cây Intent → Unit → Bolt, nhánh đang chọn mở sẵn
+  const MICRO = {
+    fontFamily: 'var(--mono)',
+    fontSize: 9.5,
+    letterSpacing: '0.16em',
+    textTransform: 'uppercase',
+    color: 'var(--muted)'
+  };
+  const TONE = {
+    'in-bolt': 'var(--accent)',
+    blocked: 'var(--danger)',
+    done: 'var(--ok)',
+    'pending-gate': 'var(--muted)'
+  };
+  function unitsOf(data, id) {
+    return data.unitsByIntent[id] || (id === 'INT-001' ? data.units : []);
+  }
+  function Leaf({
+    depth,
+    caret,
+    dot,
+    id,
+    name,
+    on,
+    dim,
+    onClick,
+    onCaret
+  }) {
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 4,
+        padding: '0 6px 0 ' + (6 + depth * 13) + 'px',
+        height: 24,
+        borderRadius: 'var(--radius-sm)',
+        background: on ? 'var(--accent-bg)' : 'transparent',
+        boxShadow: on ? 'inset 2px 0 0 var(--accent)' : 'none'
+      }
+    }, caret ? /*#__PURE__*/React.createElement("button", {
+      onClick: onCaret,
+      style: {
+        width: 12,
+        flex: 'none',
+        background: 'transparent',
+        border: 'none',
+        cursor: 'pointer',
+        color: 'var(--muted)',
+        fontFamily: 'var(--mono)',
+        fontSize: 9,
+        padding: 0
+      }
+    }, caret) : /*#__PURE__*/React.createElement("span", {
+      style: {
+        width: 12,
+        flex: 'none'
+      }
+    }), dot && /*#__PURE__*/React.createElement("span", {
+      style: {
+        width: 6,
+        height: 6,
+        borderRadius: 999,
+        background: dot,
+        flex: 'none'
+      }
+    }), /*#__PURE__*/React.createElement("button", {
+      onClick: onClick,
+      style: {
+        flex: 1,
+        minWidth: 0,
+        display: 'flex',
+        alignItems: 'baseline',
+        gap: 6,
+        background: 'transparent',
+        border: 'none',
+        cursor: 'pointer',
+        padding: 0,
+        textAlign: 'left'
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: 'var(--mono)',
+        fontSize: 11,
+        flex: 'none',
+        color: on ? 'var(--accent)' : dim ? 'var(--muted)' : 'var(--ink)'
+      }
+    }, id), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 11.5,
+        color: 'var(--muted)',
+        opacity: on ? 1 : 0.85,
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis'
+      }
+    }, name)));
+  }
   function Sidebar({
     screen,
     setScreen,
     gateCount,
-    intentCount
+    data,
+    intentId,
+    setIntentId,
+    unitId,
+    setUnitId
   }) {
+    const intents = data.intents;
+    const [expanded, setExpanded] = React.useState([intentId]);
+    const isOpen = id => expanded.includes(id);
+    const toggle = id => setExpanded(e => e.includes(id) ? e.filter(x => x !== id) : e.concat(id));
+    const openIntent = id => {
+      setIntentId(id);
+      const u = unitsOf(data, id);
+      setUnitId(u[0] ? u[0].id : null);
+      setExpanded(e => e.includes(id) ? e : e.concat(id));
+      setScreen('intent');
+    };
+    const flat = (key, mark, label, badge) => {
+      const on = screen === key;
+      return /*#__PURE__*/React.createElement("button", {
+        key: key,
+        onClick: () => setScreen(key),
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          width: '100%',
+          textAlign: 'left',
+          padding: '7px 10px',
+          borderRadius: 'var(--radius-sm)',
+          cursor: 'pointer',
+          border: '1px solid ' + (on ? 'var(--line)' : 'transparent'),
+          background: on ? 'var(--surface-2)' : 'transparent',
+          color: on ? 'var(--ink)' : 'var(--muted)',
+          fontSize: 13.5
+        }
+      }, /*#__PURE__*/React.createElement("span", {
+        style: {
+          fontFamily: 'var(--mono)',
+          fontSize: 12,
+          width: 12,
+          color: on ? 'var(--accent)' : 'var(--muted)'
+        }
+      }, mark), /*#__PURE__*/React.createElement("span", {
+        style: {
+          flex: 1
+        }
+      }, label), badge);
+    };
     return /*#__PURE__*/React.createElement("nav", {
       style: {
-        width: 232,
+        width: 268,
         flex: 'none',
         borderRight: '1px solid var(--line)',
         background: 'var(--surface)',
         display: 'flex',
         flexDirection: 'column',
-        padding: '16px 0'
+        padding: '16px 0',
+        overflow: 'auto'
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
-        padding: '0 18px 16px',
+        padding: '0 18px 14px',
         borderBottom: '1px solid var(--line)'
       }
     }, /*#__PURE__*/React.createElement("div", {
@@ -3440,82 +4487,122 @@ try { (() => {
       }
     }, "Control Tower")), /*#__PURE__*/React.createElement("div", {
       style: {
-        fontFamily: 'var(--mono)',
+        ...MICRO,
         fontSize: 10.5,
-        letterSpacing: '0.14em',
-        textTransform: 'uppercase',
-        color: 'var(--muted)',
         marginTop: 4
       }
     }, "AI-DLC \xB7 17 agents")), /*#__PURE__*/React.createElement("div", {
       style: {
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '10px 8px',
-        gap: 2
+        padding: '10px 8px 8px'
       }
-    }, NAV.map(n => {
-      const on = screen === n.key;
-      return /*#__PURE__*/React.createElement("button", {
-        key: n.key,
-        onClick: () => setScreen(n.key),
-        style: {
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          textAlign: 'left',
-          padding: '8px 10px',
-          borderRadius: 'var(--radius-sm)',
-          cursor: 'pointer',
-          border: '1px solid ' + (on ? 'var(--line)' : 'transparent'),
-          background: on ? 'var(--surface-2)' : 'transparent',
-          color: on ? 'var(--ink)' : 'var(--muted)',
-          fontFamily: 'var(--sans)',
-          fontSize: 13.5,
-          paddingLeft: n.key === 'intent' ? 30 : 10
-        }
-      }, /*#__PURE__*/React.createElement("span", {
-        style: {
-          fontFamily: 'var(--mono)',
-          fontSize: 12,
-          color: on ? 'var(--accent)' : 'var(--muted)',
-          width: 12
-        }
-      }, n.mark), /*#__PURE__*/React.createElement("span", {
-        style: {
-          flex: 1
-        }
-      }, n.label), n.key === 'intents' && intentCount ? /*#__PURE__*/React.createElement("span", {
-        style: {
-          fontFamily: 'var(--mono)',
-          fontSize: 10.5,
-          color: 'var(--muted)'
-        }
-      }, intentCount) : null, n.key === 'mission' && gateCount > 0 && /*#__PURE__*/React.createElement("span", {
-        style: {
-          fontFamily: 'var(--mono)',
-          fontSize: 10.5,
-          color: 'var(--accent)',
-          border: '1px solid var(--accent)',
-          background: 'var(--accent-bg)',
-          borderRadius: 999,
-          padding: '0 6px'
-        }
-      }, gateCount));
-    })), /*#__PURE__*/React.createElement("div", {
+    }, flat('mission', '◇', 'Mission Control', gateCount > 0 ? /*#__PURE__*/React.createElement("span", {
       style: {
-        marginTop: 'auto',
-        padding: '12px 18px 0',
-        borderTop: '1px solid var(--line)'
+        fontFamily: 'var(--mono)',
+        fontSize: 10.5,
+        color: 'var(--accent)',
+        border: '1px solid var(--accent)',
+        background: 'var(--accent-bg)',
+        borderRadius: 999,
+        padding: '0 6px'
+      }
+    }, gateCount) : null)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: '8px 6px 10px',
+        borderTop: '1px solid var(--line)',
+        borderBottom: '1px solid var(--line)'
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
+        padding: '0 10px 8px'
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: MICRO
+    }, "Intent \u2192 Unit \u2192 Bolt"), /*#__PURE__*/React.createElement("button", {
+      onClick: () => setScreen('intents'),
+      style: {
+        marginLeft: 'auto',
+        background: 'transparent',
+        border: 'none',
+        cursor: 'pointer',
+        ...MICRO,
+        fontSize: 9,
+        color: screen === 'intents' ? 'var(--accent)' : 'var(--muted)'
+      }
+    }, "b\u1EA3ng ", intents.length)), intents.map(i => {
+      const units = unitsOf(data, i.id);
+      const open = isOpen(i.id);
+      const sel = i.id === intentId;
+      return /*#__PURE__*/React.createElement("div", {
+        key: i.id
+      }, /*#__PURE__*/React.createElement(Leaf, {
+        depth: 0,
+        caret: units.length ? open ? '▾' : '▸' : '·',
+        onCaret: () => toggle(i.id),
+        dot: i.gate ? 'var(--accent)' : 'var(--line)',
+        id: i.id,
+        name: i.name,
+        on: sel && screen === 'intent',
+        dim: !sel,
+        onClick: () => openIntent(i.id)
+      }), open && (units.length ? units.map(u => {
+        const uSel = sel && unitId === u.id;
+        return /*#__PURE__*/React.createElement("div", {
+          key: u.id
+        }, /*#__PURE__*/React.createElement(Leaf, {
+          depth: 1,
+          dot: TONE[u.status],
+          id: u.id,
+          name: u.name,
+          on: uSel && screen === 'bolt',
+          dim: !uSel,
+          onClick: () => {
+            setIntentId(i.id);
+            setUnitId(u.id);
+            setScreen('bolt');
+          }
+        }), /*#__PURE__*/React.createElement(Leaf, {
+          depth: 2,
+          id: u.bolt,
+          name: u.status + ' · ' + u.done + '%',
+          on: false,
+          dim: true,
+          onClick: () => {
+            setIntentId(i.id);
+            setUnitId(u.id);
+            setScreen('bolt');
+          }
+        }));
+      }) : /*#__PURE__*/React.createElement("div", {
+        style: {
+          padding: '2px 6px 2px 32px',
+          fontSize: 11,
+          color: 'var(--muted)',
+          opacity: 0.8
+        }
+      }, "ch\u01B0a ph\xE2n r\xE3 th\xE0nh Unit")));
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: '10px 8px'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...MICRO,
+        padding: '0 10px 6px'
+      }
+    }, "Xuy\xEAn su\u1ED1t"), flat('comms', '→', 'Comms & Reviews'), flat('gov', '△', 'Governance & Learning')), /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: 'auto',
+        padding: '12px 18px 0',
+        borderTop: '1px solid var(--line)',
         fontFamily: 'var(--mono)',
         fontSize: 10.5,
         color: 'var(--muted)',
         lineHeight: 1.8
       }
-    }, /*#__PURE__*/React.createElement("div", null, "supervisor \xB7 Human"), /*#__PURE__*/React.createElement("div", null, "spoke-project-control-tower"))));
+    }, /*#__PURE__*/React.createElement("div", null, "supervisor \xB7 Human"), /*#__PURE__*/React.createElement("div", null, "spoke-project-control-tower")));
   }
   function TopBar({
     title,
@@ -3678,6 +4765,74 @@ try { (() => {
 try { (() => {
 // Sample data — taken verbatim from docs/control-tower-design-prompt.md and docs/simulation-phase2-pct.html
 window.CT_DATA = {
+  // Ba pha của AI-DLC — Intent nằm ở đâu trên trục Inception → Construction → Operations
+  phase: {
+    now: 'construction',
+    lanes: [{
+      key: 'inception',
+      name: 'Inception',
+      ritual: 'Mob Elaboration',
+      intents: ['INT-002', 'INT-005'],
+      note: 'AI làm rõ Intent → User Story · NFR · rủi ro → đề xuất Unit'
+    }, {
+      key: 'construction',
+      name: 'Construction',
+      ritual: 'Mob Construction',
+      intents: ['INT-001', 'INT-003'],
+      note: 'Domain Design → Logical Design + ADR → Code + Unit Test'
+    }, {
+      key: 'operations',
+      name: 'Operations',
+      ritual: '—',
+      intents: ['INT-004', 'INT-006'],
+      note: 'Telemetry · bất thường · runbook chờ Developer phê duyệt'
+    }]
+  },
+  // Bolt đang chạy — vòng lặp tính bằng giờ, không phải tuần
+  bolt: {
+    id: 'Bolt 1',
+    unit: 'UOW-01 Release Planning',
+    intent: 'INT-001',
+    ritual: 'Mob Construction',
+    elapsed: '4h 12m',
+    budget: '1 ngày',
+    pct: 52,
+    agents: 3,
+    step: 'Bước 4 · Mô hình hóa miền, sinh mã và kiểm thử'
+  },
+  // Pha Operations — AI phân tích telemetry, đề xuất hành động runbook, chờ người phê duyệt
+  ops: {
+    deployed: [{
+      id: 'DU-014',
+      unit: 'UOW-01 Lifecycle rules',
+      intent: 'INT-006',
+      env: 'production',
+      since: '2 ngày'
+    }, {
+      id: 'DU-013',
+      unit: 'UOW-02 Data migration',
+      intent: 'INT-006',
+      env: 'production',
+      since: '2 ngày'
+    }],
+    signals: [{
+      id: 'OPS-021',
+      sev: 'warn',
+      what: 'p95 /api/reports/export 2.8s → 6.1s trong giờ cao điểm',
+      forecast: 'dự báo chạm ngưỡng SLA 8s sau ~3 giờ',
+      runbook: 'RB-07 · scale-worker',
+      action: 'Tăng job queue từ 2 lên 4 worker',
+      status: 'chờ bạn duyệt'
+    }, {
+      id: 'OPS-022',
+      sev: 'info',
+      what: 'Lỗi 409 tăng nhẹ sau khi bật ràng buộc unique release name',
+      forecast: 'trong ngưỡng — khớp AC-03, không phải sự cố',
+      runbook: null,
+      action: null,
+      status: 'theo dõi'
+    }]
+  },
   intents: [{
     id: 'INT-001',
     name: 'Triển khai Phase 2 PCT (Release + Milestone + Backlog)',
@@ -3923,6 +5078,8 @@ window.CT_DATA = {
       type: 'question',
       body: 'Migration cần rollback script riêng hay dùng downgrade() của alembic là đủ?'
     }],
+    assumption: 'Rollback dùng downgrade() của alembic, không viết script riêng — chưa có xác nhận của tech-lead-reviewer.',
+    context: ['UOW-01/spec.md#AC-03', 'UOW-01/design.md', 'DEC-0015'],
     waitingOn: 'backend-reviewer ký sau khi tests xanh'
   }, {
     taskId: 'TSK-03',
@@ -3958,6 +5115,8 @@ window.CT_DATA = {
       type: 'review-request',
       body: 'Xin review sớm phần state của filter trước khi nối API thật.'
     }],
+    assumption: '4 status hiển thị bằng i18n phía FE, key đặt theo release.status.* — suy ra từ MSG-0060, chưa ghi vào spec.',
+    context: ['UOW-01/contract.md v2', 'open-questions.md#Q52'],
     waitingOn: null
   }, {
     taskId: 'TSK-04',
@@ -3983,6 +5142,8 @@ window.CT_DATA = {
       type: 'note',
       body: 'TSK-04 mở khoá ngay khi RV của TSK-02 là approve.'
     }],
+    assumption: 'Form tạo và form sửa dùng chung một component, chỉ khác payload.',
+    context: ['UOW-01/contract.md v2', 'RV-012'],
     waitingOn: 'TSK-02 done + backend-reviewer duyệt'
   }, {
     taskId: 'TSK-01',
@@ -4009,22 +5170,24 @@ window.CT_DATA = {
       type: 'handoff',
       body: 'contract.md v2 FROZEN — TSK-03 chạy được với mock đúng shape.'
     }],
+    assumption: 'Đã chốt: 409 là mã lỗi cho trùng tên trong cùng project (AC-03).',
+    context: ['UOW-01/spec.md', 'MSG-0058 → MSG-0061'],
     waitingOn: null
   }],
   feed: [{
+    time: '14:25',
+    id: 'MSG-0060',
+    from: 'be-dev',
+    to: 'fe-dev',
+    type: 'answer',
+    summary: 'chốt: trả code, FE map i18n'
+  }, {
     time: '14:22',
     id: 'MSG-0058',
     from: 'fe-dev',
     to: 'be-dev',
     type: 'clarification',
     summary: 'status enum trả code hay label? i18n phía nào?'
-  }, {
-    time: '14:20',
-    id: 'MSG-0060',
-    from: 'be-dev',
-    to: 'fe-dev',
-    type: 'answer',
-    summary: 'chốt: trả code, FE map i18n'
   }, {
     time: '14:11',
     id: 'RV-011',
@@ -4061,6 +5224,157 @@ window.CT_DATA = {
     type: 'question',
     summary: 'AC của UOW-02: Gantt cần zoom tuần không?'
   }],
+  // Nội dung đầy đủ của từng trao đổi — hỏi gì, trả lời gì, chốt ra sao
+  threads: function () {
+    const t = {};
+    t['MSG-0058'] = t['MSG-0060'] = {
+      subject: 'status enum của Release: BE trả code hay label?',
+      scope: 'TSK-01 · contract v2 · liên quan AC-02',
+      turns: [{
+        id: 'MSG-0058',
+        time: '14:22',
+        from: 'fe-dev',
+        to: 'be-dev',
+        type: 'clarification',
+        body: 'Contract v2 ghi field status là enum 4 giá trị nhưng không nói API trả gì. FE cần biết: response trả code máy đọc (draft/active/frozen/released) hay trả label đã dịch sẵn? Nếu trả code thì i18n nằm phía FE và mình đặt key release.status.*; nếu trả label thì FE hiển thị thẳng nhưng không lọc được theo giá trị.'
+      }, {
+        id: 'MSG-0059',
+        time: '14:23',
+        from: 'be-dev',
+        to: 'fe-dev',
+        type: 'note',
+        body: 'Đang xem lại design.md. Enum lưu trong DB là code, nên trả label sẽ phải map thêm một lớp ở BE.'
+      }, {
+        id: 'MSG-0060',
+        time: '14:25',
+        from: 'be-dev',
+        to: 'fe-dev',
+        type: 'answer',
+        body: 'Chốt: API trả code, không trả label. Lý do: filter status theo query param cần đúng giá trị enum, và audit log cũng ghi code. FE map i18n với key release.status.draft / .active / .frozen / .released. Contract v2 không đổi shape nên không cần mở Gate.'
+      }, {
+        id: 'MSG-0061',
+        time: '14:27',
+        from: 'fe-dev',
+        to: 'be-dev',
+        type: 'answer',
+        body: 'OK, FE làm theo. Đã thêm 4 key i18n. Sẽ ghi lại vào spec.md phần NFR/UI để lần sau không phải hỏi lại.'
+      }],
+      outcome: 'Không đổi contract. Nhãn trạng thái do FE dịch; be-dev giữ nguyên response.',
+      refs: ['UOW-01/contract.md v2', 'UOW-01/spec.md#AC-02']
+    };
+    t['RV-011'] = {
+      subject: 'security-reviewer: threat model cho UOW-01',
+      scope: 'UOW-01 · review bắt buộc trước Gate E',
+      turns: [{
+        id: 'RV-011',
+        time: '14:11',
+        from: 'security-reviewer',
+        to: 'UOW-01',
+        type: 'review-request',
+        body: 'Đã soát 3 điểm: (1) POST /api/releases yêu cầu quyền project-member — đã có; (2) lỗi 409 không rò tên release của project khác vì unique index nằm trong phạm vi project_id; (3) audit log ghi actor cho mọi lần chuyển trạng thái. Kết quả: 0 MUST finding, 1 NICE — nên rate-limit endpoint tạo release.'
+      }],
+      outcome: 'Approve. Mục NICE ghi vào backlog kỹ thuật, không chặn Gate E.',
+      refs: ['UOW-01/design.md']
+    };
+    t['RV-012'] = {
+      subject: 'tech-lead-reviewer: sync call legacy API sẽ timeout với batch > 500',
+      scope: 'TSK-02 · request-changes lần 2 → đủ điều kiện escalate',
+      turns: [{
+        id: 'RV-012',
+        time: '13:58',
+        from: 'tech-lead-reviewer',
+        to: 'be-dev',
+        type: 'finding',
+        body: 'Service đang gọi legacy API đồng bộ trong request. Với batch trên 500 bản ghi, thời gian phản hồi vượt 30s và gateway sẽ cắt. Đây là lần thứ hai tôi request-changes cùng một điểm này. Đề xuất: đẩy sang job queue, endpoint trả 202 kèm job id.'
+      }, {
+        id: 'MSG-0074',
+        time: '14:02',
+        from: 'be-dev',
+        to: 'tech-lead-reviewer',
+        type: 'question',
+        body: 'Chuyển sang queue là thay đổi contract (201 → 202) nên phải mở Gate và sửa cả FE. Trong phạm vi Bolt này có kịp không, hay giữ sync và giới hạn batch 200 rồi làm queue ở Bolt sau?'
+      }],
+      outcome: 'Chưa chốt — đã escalate lên bạn: hai lần request-changes cùng một điểm.',
+      refs: ['UOW-01/contract.md v2', 'app-be/releases/service.py']
+    };
+    t['MSG-0055'] = {
+      subject: 'contract v2 FROZEN — TSK-03 chạy được với mock',
+      scope: 'bàn giao từ bolt-coordinator sang fe-dev',
+      turns: [{
+        id: 'MSG-0055',
+        time: '13:40',
+        from: 'bolt-coordinator',
+        to: 'fe-dev',
+        type: 'handoff',
+        body: 'contract.md v2 đã đóng băng sau khi be-dev và tech-lead ký. FE dựng SCR-REL-10 với mock đúng shape trong contract, không chờ BE xong. Nếu cần đổi shape thì phải mở Gate — đừng sửa mock lệch contract rồi báo sau.'
+      }],
+      outcome: 'TSK-03 bắt đầu với mock; contract là nguồn duy nhất.',
+      refs: ['UOW-01/contract.md v2']
+    };
+    t['DEC-0017'] = {
+      subject: 'Gate C đóng — Backlog Integration đi mock-first',
+      scope: 'INT-001 · quyết định của bạn, orchestrator ghi lại',
+      turns: [{
+        id: 'MSG-0052',
+        time: '13:05',
+        from: 'unit-planner',
+        to: 'orchestrator',
+        type: 'question',
+        body: 'UOW-04 phụ thuộc dữ liệu LakeHouse mà bên đó chưa mở API (RISK-01). Chờ hay làm mock-first?'
+      }, {
+        id: 'DEC-0017',
+        time: '13:12',
+        from: 'orchestrator',
+        to: 'INT-001',
+        type: 'decision',
+        body: 'Bạn chọn mock-first: UOW-04 dựng UI với dữ liệu mock theo shape thoả thuận, nối API thật khi LakeHouse mở. Đánh dấu nợ kỹ thuật DEBT-04 và không tính UOW-04 vào DoD của Bolt này.'
+      }],
+      outcome: 'UOW-04 làm mock-first, ghi DEBT-04, ngoài DoD của Bolt 1.',
+      refs: ['UOW-01/spec.md']
+    };
+    t['MSG-0049'] = {
+      subject: 'AC của UOW-02: Gantt có cần zoom theo tuần?',
+      scope: 'UOW-02 Milestone Timeline · câu hỏi mở Q54',
+      turns: [{
+        id: 'MSG-0049',
+        time: '12:50',
+        from: 'qa-reviewer',
+        to: 'unit-planner',
+        type: 'question',
+        body: 'Spec UOW-02 nói timeline hiển thị theo tháng. QA cần biết có mức zoom tuần không, vì test case cho drag milestone phụ thuộc độ chi tiết của trục thời gian.'
+      }],
+      outcome: 'Chưa có câu trả lời — đang nằm trong open-questions.md#Q54.',
+      refs: ['open-questions.md#Q54']
+    };
+    return t;
+  }(),
+  // Nội dung markdown của artefact — preview ngay trong Control Tower
+  docs: {
+    'UOW-01/spec.md': {
+      rev: 'v3',
+      updated: '14:20 hôm nay',
+      by: 'story-writer',
+      md: `# UOW-01 · Release Planning\n\n## Bối cảnh\nMàn SCR-REL-10 hiện dùng mock layer. Unit này nối API thật và bổ sung ràng buộc tên release.\n\n## User story\n- Là **PM**, tôi tạo release trong một project để nhóm gắn milestone vào đó.\n- Là **PM**, tôi thấy lỗi rõ ràng khi trùng tên thay vì tạo bản ghi thứ hai.\n\n## Acceptance criteria\n- **AC-01** Tạo release cần \`name\`, \`start_date\`, \`end_date\`; \`end_date\` không nhỏ hơn \`start_date\`.\n- **AC-02** Bốn trạng thái: \`draft\` · \`active\` · \`frozen\` · \`released\`; chuyển trạng thái một chiều.\n- **AC-03** Trùng \`name\` trong cùng project trả \`409\` với body \`{code: "release_name_taken"}\`.\n- **AC-04** Sửa release đang \`released\` bị chặn ở tầng service, không chỉ ở UI.\n\n## NFR\n- p95 của \`GET /releases\` dưới 400ms với 500 bản ghi.\n- Mọi thay đổi trạng thái ghi audit log kèm actor.\n\n## Ngoài phạm vi\n- Quality Gate (theo DEC-0015, Gate A).\n- Backlog Integration View — thuộc UOW-04.`
+    },
+    'UOW-01/design.md': {
+      rev: 'v2',
+      updated: '13:05 hôm nay',
+      by: 'domain-modeler',
+      md: `# UOW-01 · Logical design\n\n## Entity\n| field | type | note |\n| --- | --- | --- |\n| id | uuid | pk |\n| project_id | uuid | fk, unique cùng name |\n| name | varchar(120) | unique (project_id, name) |\n| status | enum | draft/active/frozen/released |\n| start_date | date | AC-01 |\n| end_date | date | AC-01 |\n\n## Ràng buộc\n- Unique index \`uq_release_project_name\` sinh ra lỗi **AC-03**; service bắt \`IntegrityError\` và map sang \`409\`.\n- Chuyển trạng thái đi qua \`ReleaseService.transition()\`, không set trực tiếp.\n\n## Migration\n- \`alembic revision 0021_release_unique_name\`; rollback dùng \`downgrade()\` sẵn có.\n- Cần backfill: 3 bản ghi trùng tên trên staging phải đổi tên trước khi tạo index.\n\n## ADR liên quan\n- DEC-0015 — Phase 2 không gồm Quality Gate.`
+    },
+    'UOW-01/contract.md': {
+      rev: 'v2 FROZEN',
+      updated: '11:40 hôm nay',
+      by: 'api-designer',
+      md: `# UOW-01 · API contract (FROZEN)\n\n## POST /api/releases\nBody: \`{project_id, name, start_date, end_date}\`\n- \`201\` → \`{id, name, status: "draft"}\`\n- \`409\` → \`{code: "release_name_taken", field: "name"}\`\n- \`422\` → lỗi validate từng field\n\n## GET /api/releases?project_id=\n- \`200\` → \`{items: [...], total}\`, mặc định sort \`start_date desc\`\n- Filter \`status\` nhận nhiều giá trị, phân cách bằng dấu phẩy.\n\n## PATCH /api/releases/{id}\n- Chặn khi \`status = released\` → \`409\` \`{code: "release_locked"}\`\n\n## Ghi chú cho FE\n- Nhãn 4 trạng thái dùng i18n key \`release.status.*\` (theo MSG-0060).\n- Contract này đã đóng băng: đổi shape phải mở Gate và cập nhật \`open-questions.md\`.`
+    },
+    'app-be/releases/service.py': {
+      rev: 'branch feat/uow-01',
+      updated: '15:02 hôm nay',
+      by: 'be-dev',
+      md: `# service.py — trích đoạn\n\n## Đang sửa\n- \`create_release()\` bắt \`IntegrityError\` → raise \`ReleaseNameTaken\` (AC-03).\n- \`transition()\` chặn mọi thay đổi khi \`status = released\` (AC-04).\n\n## Test đi kèm\n- \`test_create_duplicate_name_returns_409\`\n- \`test_patch_released_is_blocked\`\n- Còn thiếu: test cho backfill migration.`
+    }
+  },
   trace: [{
     kind: 'code',
     id: 'app-be/releases/service.py',
