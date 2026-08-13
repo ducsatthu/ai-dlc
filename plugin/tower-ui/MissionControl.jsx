@@ -184,7 +184,8 @@ function MissionControl({ data, gates, onOpenGate, onOpenIntent, onOpenFeed, onO
       rows: gates.map(g => ({ Mục: g.title || g.key, Intent: g.target || '—', Loại: g.kind }))
     },
     merge('sources.read'), merge('sources.planned'), merge('sources.conflicts'),
-    merge('units.problems'), merge('units.done'), merge('units.reviewed'), merge('units.artifacts')
+    merge('units.problems'), merge('units.releasable'), merge('units.done'),
+    merge('units.oneSession'), merge('units.reviewed'), merge('units.artifacts')
   ].filter(Boolean);
 
   return (

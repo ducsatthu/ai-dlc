@@ -4,8 +4,13 @@ intent: INT-NNN
 title: <tên capability>
 status: proposed        # proposed → in-bolt → done|approved (đồng nghĩa) · descoped nếu ra ngoài phạm vi
                         # obsolete = đã chuyển vào units/_trash/ kèm TOMBSTONE.md (protocol §4.14)
-estimate_hours: 0.0
+estimate_hours: 0.0     # vẫn cần cho đường găng — KHÔNG còn ngưỡng chặn (protocol §4.9 v5)
 bolts: 1
+# Hai điều kiện kích thước Unit (§4.9) — thay cho trần 5h cũ. Cả hai phải khai trước Gate D.
+releasable: yes         # xong Unit này là ra được sản phẩm (có thể sau cờ tính năng)
+release_note:           # cách đưa ra nếu cần cờ/route riêng
+released_with:          # BẮT BUỘC khi releasable: no — ra chung với UOW nào. Không khai được = pseudo-unit
+session_fit:            # "3 màn + 2 endpoint, đọc 4 nguồn (S12,S13), vùng code quen" — phải có CON SỐ
 depends_on: []
 sources: [S1, S2]
 stories: 0

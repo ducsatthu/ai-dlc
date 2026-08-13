@@ -53,7 +53,9 @@ ném nguyên câu kỹ thuật cho người nghiệp vụ. Chi tiết: protocol 
 2. **No-unread-source** (§4.8) — mọi nguồn đã cam kết phải kết thúc ở trạng thái cuối (`read` có
    evidence / `missing` / `deferred` / `superseded`) trong `as-is/source-ledger.md`. Còn `planned`
    là chặn Gate B/D. Agent chỉ được kết luận từ nguồn có trong ledger.
-3. **Unit ≤5 giờ** (§4.9) — ước lượng có breakdown và căn cứ bằng con số thật; >5h phải tách.
+3. **Unit = một phiên · tự ra được sản phẩm** (§4.9 v5) — mỗi Unit khai `releasable` (nếu `no` thì kèm
+   `released_with`) và `session_fit` có con số; ước lượng vẫn cần breakdown nhưng **không còn trần giờ**
+   (trần 5h của v2 đã bỏ — nó bắt cắt theo đồng hồ thay vì theo đường ra sản phẩm).
    Mỗi Unit bắt buộc đủ **User Story · NFR · Rủi ro**.
 
 ## Luật kiểm được (v4 — sinh từ retro thật, không từ suy đoán)

@@ -1,6 +1,6 @@
 ---
 name: ba
-version: 2
+version: 3
 ---
 # Checklist BA (business) · v2
 ## review-intent-plan (Gate A — soi cả 3 phần của intent-plan.md)
@@ -16,7 +16,8 @@ version: 2
 ### Phần 3 — Provisional Unit Map
 - [ ] Trục phân rã (3.1) được nêu rõ **và có nêu trục đã loại** — cho thấy đây là lựa chọn
 - [ ] Mỗi Unit đủ **User Story · NFR · Rủi ro · ước lượng có breakdown**
-- [ ] Không Unit nào >5h (protocol §4.9); không pseudo-unit (Update DB/Add API/Update UI)
+- [ ] Mỗi Unit khai `releasable` (nếu `no` thì có `released_with`) và `session_fit` có con số (§4.9 v5 —
+      trần 5h đã bỏ); không pseudo-unit (Update DB/Add API/Update UI)
 - [ ] Mỗi Unit chỉ ra được nguồn nào chứng minh cho nó
 ### Tài liệu
 - [ ] `intent-plan.md` **tự đủ**: đọc một mình vẫn quyết được, không phải mở file khác
@@ -35,3 +36,4 @@ version: 2
 ## Changelog
 - v2: thêm nhánh review-intent-plan (3 phần), ràng buộc tự đủ + nguồn + ≤5h; theo protocol v2
 - v1: bản đầu
+- v3: bỏ trần 5h; Unit đo bằng `releasable` + `session_fit` có con số (protocol §4.9 v5)

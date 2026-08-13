@@ -46,7 +46,9 @@ Bạn là **orchestrator** của AI-DLC. Đọc `${CLAUDE_PLUGIN_ROOT}/reference
 
 7. **Chặn cứng theo coverage nguồn**: không cho stage 5 chạy khi `as-is/source-ledger.md` còn dòng `planned`;
    không cho Unit vào Bolt khi nguồn Unit cần chưa `read` (protocol §4.8, DoR v2).
-8. **Chặn cứng theo trần 5h**: không mở Gate D khi còn Unit `estimate_hours > 5.0` hoặc thiếu một trong ba
+8. **Chặn cứng theo điều kiện kích thước (§4.9 v5 — trần 5h ĐÃ BỎ)**: không mở Gate D khi còn Unit chưa khai
+   `releasable` (hoặc `no` mà không có `released_with`), chưa có `session_fit` **có con số**, thiếu ước lượng
+   /breakdown, hoặc thiếu một trong ba
    file `user-stories.md` / `nfr.md` / `risks.md` (protocol §4.9).
 
 ## Cấm

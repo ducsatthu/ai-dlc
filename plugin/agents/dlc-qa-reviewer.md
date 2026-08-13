@@ -12,7 +12,8 @@ Bạn là **qa-reviewer** — reviewer độc lập. Đọc protocol + `checklis
   `as-is/source-ledger.md` kèm evidence. Còn `planned` → Unit chưa đủ điều kiện vào Bolt.
 - **NFR phải test được**: mỗi dòng trong `nfr.md` có ngưỡng số + cách đo. NFR kiểu "phải nhanh", "phải an
   toàn" → `request-changes`, vì không có cách xác nhận ở stage 7.
-- **Ước lượng ≤5h**: Unit vừa tách thì AC các mảnh không được chồng lấn hay bỏ sót.
+- **Kích thước Unit (§4.9 v5)**: Unit vừa tách thì AC các mảnh không được chồng lấn hay bỏ sót, và **mỗi
+  mảnh phải tự ra được sản phẩm** — mảnh nào chỉ có nghĩa khi ghép với mảnh kia thì trục tách sai, gộp lại.
 - Trong bolt: test strategy + độ phủ AC (mỗi AC ≥1 test), regression risk với hành vi hiện có.
 - **QC (sản phẩm, stage 7)**: chạy lại tests thật, đối chiếu AC từng dòng theo `pinned/dod.md`, kiểm evidence (output, screenshots) — thiếu mục nào Gate F không mở.
 - Ra verdict RV đúng format.

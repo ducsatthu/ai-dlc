@@ -208,7 +208,7 @@ for name in sorted(os.listdir(idir)) if os.path.isdir(idir) else []:
                 prov_est += float(re.sub(r"[^\d.]", "", row[1]) or 0)
             except ValueError:
                 pass
-    units, over5, incomplete, est = [], 0, 0, 0.0
+    units, unsized, incomplete, est = [], 0, 0, 0.0
     udir = os.path.join(base, "units")
     for un in sorted(os.listdir(udir)) if os.path.isdir(udir) else []:
         up = os.path.join(udir, un)
@@ -220,8 +220,13 @@ for name in sorted(os.listdir(idir)) if os.path.isdir(idir) else []:
         except ValueError:
             e = 0.0
         est += e
-        if e > 5.0:
-            over5 += 1
+        # §4.9 v5: không còn trần cứng. Đếm unit CHƯA khai đường ra / sức chứa một phiên.
+        rel = (us.get("releasable") or "").strip().strip('"\'').lower()
+        fit = (us.get("session_fit") or "").strip().strip('"\'')
+        if rel not in ("yes", "true") and not (rel in ("no", "false") and (us.get("released_with") or "").strip()):
+            unsized += 1
+        elif not fit or not re.search(r"\d", fit):
+            unsized += 1
         if not all(os.path.getsize(os.path.join(up, f)) > 120
                    for f in ("user-stories.md", "nfr.md", "risks.md")
                    if os.path.isfile(os.path.join(up, f))) or \
@@ -240,7 +245,7 @@ for name in sorted(os.listdir(idir)) if os.path.isdir(idir) else []:
         "gate_doc": (st.get("gate_doc") or "").strip(),
         "passed": st.get("gates_passed", "[]"),
         "src": (src_read, src_total, src_planned),
-        "units": len(units), "est": est, "over5": over5, "incomplete": incomplete,
+        "units": len(units), "est": est, "unsized": unsized, "incomplete": incomplete,
         "prov": prov, "prov_est": prov_est,
         "plan_v": plan.get("version", st.get("plan_version", "")),
     })
@@ -375,7 +380,8 @@ for it in intents:
         if it["prov"] else "chưa phân rã unit")
     L.append("     nguồn %d/%d đã đọc%s · %s%s%s" % (
         r, t, (" · %d còn planned" % pl) if pl else "", unit_txt,
-        (" · %d unit >5h" % it["over5"]) if it["over5"] else "",
+        (" · %d unit chưa khai đường ra/sức chứa" % it["unsized"])
+        if it["unsized"] and "D" not in re.findall(r"[A-G]", it["passed"]) else "",
         (" · %d unit thiếu US/NFR/risk" % it["incomplete"]) if it["incomplete"] else ""))
 L.append("")
 L.append("VỊ TRÍ (từ handoffs/ — chi tiết: context-memory/session/board.md)")
@@ -399,8 +405,10 @@ warn = []
 for it in intents:
     if it["src"][2] and (it["gate"] in ("B", "D") or it["stage"] >= 2):
         warn.append("%s: %d nguồn còn `planned` — chặn Gate B/D (protocol §4.8)" % (it["id"], it["src"][2]))
-    if it["over5"]:
-        warn.append("%s: %d unit ước lượng >5h — phải tách trước Gate D (§4.9)" % (it["id"], it["over5"]))
+    if it["unsized"] and "D" not in re.findall(r"[A-G]", it["passed"]):
+        # Intent đã qua Gate D được lập dưới luật cũ — không đòi khai lại (dựng bù hồ sơ), §4.9 v5.
+        warn.append("%s: %d unit chưa khai `releasable`/`session_fit` — chặn Gate D (§4.9 v5; trần 5h đã bỏ)"
+                    % (it["id"], it["unsized"]))
     if it["incomplete"]:
         warn.append("%s: %d unit thiếu US/NFR/risk — không đạt DoR" % (it["id"], it["incomplete"]))
     if it["gate"] and not it["gate_doc"]:
