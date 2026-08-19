@@ -1,9 +1,9 @@
 ---
 name: qa
-version: 4
+version: 5
 source: LL-002 (Gate G · DEC-0027) — retro INT-001 dự án PCT
 ---
-# Checklist QA/QC · v3
+# Checklist QA/QC · v5 — từ v6 dùng làm pre-flight của unit-planner (DoR) và bolt-coordinator; qa-reviewer chỉ spawn theo trigger NFR có ngưỡng đo hoặc khi người yêu cầu (§4.17)
 ## DoR check (trước Bolt)
 - [ ] AC đo được; dependency rõ; open questions liên quan đã đóng; dữ liệu test có
 - [ ] Đủ ba file: `user-stories.md` · `nfr.md` · `risks.md` — và không file nào chỉ có tiêu đề
@@ -41,3 +41,4 @@ source: LL-002 (Gate G · DEC-0027) — retro INT-001 dự án PCT
 - v2: DoR soi coverage nguồn + ba file US/NFR/risk + ≤5h; NFR phải đo được; theo protocol v2
 - v1: bản đầu
 - v4: bỏ trần 5h; Unit đo bằng `releasable` + `session_fit` có con số (protocol §4.9 v5)
+- v5: chuyển thành pre-flight của unit-planner/bolt-coordinator; qa-reviewer theo trigger NFR hoặc khi người yêu cầu (§4.17, 6.0.0)

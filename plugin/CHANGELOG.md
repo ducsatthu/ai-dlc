@@ -1,5 +1,75 @@
 # Changelog — ai-dlc plugin
 
+## 6.0.0 (2026-08-19) — Gỡ Review Board mặc định: review theo tầng rủi ro, self-verify có bằng chứng, peer trong bolt
+
+**Nguồn: quyết định của chủ gói, KHÔNG phải LL qua Gate G** — cùng vị thế với 5.0.0, và cùng kỷ luật:
+ghi rõ để không tự lừa mình, **nợ một LL** (retro đầu tiên có dữ liệu tầng phải trả). Ba căn cứ kiểm được:
+
+1. **White paper (SSOT) không có Review Board agent.** Grep toàn văn: mọi chỗ "rà soát" đều là **con
+   người** (mob rà soát artefact ở Inception; "Developer rà soát mã và kịch bản kiểm thử do AI tạo" ở
+   Construction). Bảy reviewer agent là phát minh của gói — như trần 5h đã gỡ ở 5.0.0.
+2. **Thực địa: review bắt buộc mọi nơi không chạy được.** LL-002: 13 review-request, **0 verdict**, 17
+   unit vẫn đóng. §4.12 (4.0.0) làm nó *kiểm được* nhưng không làm nó *chạy được*: INT-003 đang mang
+   RV-019/RV-020 `unfulfilled` ngay lúc luật này viết. Với 30 unit, kết cục là hàng đợi nghẽn hoặc một
+   đống DEC waiver hình thức.
+3. **Chi phí đo được**: mỗi Bolt tới ~6 lượt spawn reviewer (DoR + tech-lead & security design + BE/FE/
+   security/qa code), hai trong số đó chạy opus; mỗi lượt là một phiên lạnh nạp lại bối cảnh — đắt và
+   thường nông hơn peer đã đọc sẵn design/contract.
+
+### Đổi luật điểm dừng + format (major)
+- **protocol §4.17 mới**: mỗi Unit khai `review: none|peer|specialist(<vai>)` theo **bảng trigger kiểm
+  được** (auth/PII → security · migration/public API/ADR trái pattern → tech-lead · NFR ngưỡng đo → qa ·
+  contract FE↔BE / vùng lạ / unit đầu chạm bounded context → peer · còn lại → none). Người duyệt **cả
+  bảng tầng một lần tại Gate D** — `review: none` được duyệt ở đó chính là waiver có địa chỉ, hết DEC lẻ.
+  Nâng tầng giữa chừng: tự do + MSG note; hạ tầng: phải DEC. Doctor đối chiếu trigger với dấu vết thật.
+- **§4.12 mở rộng**: đường bằng chứng thứ ba `self_verify:` (chỉ tier `none`) — `evidence/self-verify.md`
+  (template mới) từng mục checklist kèm **con trỏ bằng chứng**, §4.15 bắt buộc (ca đối chứng + mutation
+  test) vì không có mắt thứ hai. Dấu ✓ suông = doctor FIX.
+- **Checklist shift-left (§4.17.4)**: BE/FE checklist thành pre-flight trong `read_first` của HOF dev —
+  đọc TRƯỚC khi code, điền SAU khi code; reviewer (khi có) *verify* chứ không *discover*.
+- **Peer review**: reviewer của tier `peer` là dev còn lại trong cùng bolt — đã đọc design/contract cho
+  task của mình nên HOF review chỉ cần diff + checklist. Format RV giữ nguyên; 2× request-changes vẫn
+  escalate lên người.
+- **Gates A–G của NGƯỜI không đổi** — Gate E(a)/E(b) dừng cho mọi tầng. Gỡ reviewer agent không phải gỡ
+  giám sát; giám sát nằm ở người, đúng white paper.
+
+### Agents & flow
+- **Gỡ** `dlc-backend-reviewer`, `dlc-frontend-reviewer` (16 agents còn lại). ba/pm-po/qa/security/
+  tech-lead-reviewer thành **on-demand** (trigger specialist, escalation, hoặc người yêu cầu tại gate).
+- Inception hết spawn review mặc định: intent-analyst/context-validator/unit-planner **tự pre-flight**
+  theo đúng checklist cũ, điền từng mục kèm con trỏ vào gate_doc (mục Pre-flight mới trong unit-plan).
+- bolt-coordinator tự DoR-check (checklist máy đối chiếu được, không spawn qa); acceptance-recorder tự
+  chạy lại test + ca đối chứng, security-reviewer chỉ khi có unit `specialist(security)` hoặc MUST mở.
+
+### Nghiệm kết quả — §9.6 mới (mắt thứ hai không tốn phiên mới)
+Agent đóng HOF `done` mới là **lời khai xong**. Kết quả chỉ được dùng tiếp (task done, đóng Unit, mở gate,
+spawn lượt phụ thuộc) sau khi **người giao** (mainlead: coordinator/orchestrator — đang sống, có sẵn bối
+cảnh) nghiệm ba bước: đối chiếu *Đã làm* với DoD của lượt · mở ít nhất MỘT bằng chứng thật (với tier
+`none`: mở 1–2 con trỏ trong `self-verify.md` kiểm chúng có thật) · ghi `result_check: pass|returned` lên
+frontmatter HOF. Trường mới trong template HOF (v2.2); KPI `handoffHealth.checked/closed`; doctor FIX HOF
+`done` thiếu nghiệm (legacy chỉ ghi chú), WARN HOF tự giao tự nghiệm. §9.6 không thay §4.17 — nó bịt đúng
+cái khe "dev tự đóng, không ai nhìn lại" mà tier `none` mở ra.
+
+### Giới hạn nói thật
+Dev và peer chạy cùng model, cùng điểm mù — cái mất thật là tính độc lập ở tier `none`/`peer`. Lưới đỡ:
+trigger specialist + mutation test bắt buộc + **nghiệm của người giao (§9.6)** + KPI lỗi lọt theo tầng để
+retro nâng trigger bằng số, không bằng cảm giác. `units.reviewed` mở rộng đếm cả ba đường bằng chứng, kèm
+cột tầng.
+
+### Không dựng bù hồ sơ
+Unit lập trước v6 không bị bắt khai `review:` (luật §4.12 cũ vẫn áp); **nợ review cũ không được xoá** —
+RV-019/RV-020 của PCT vẫn `unfulfilled` cho tới khi có RV thật hoặc DEC miễn công khai.
+
+### Kèm theo
+`MIGRATION.md` mục 5.x→6.0.0 · protocol §1.0c (điểm dừng theo tầng) + §4.12 + §4.17 + **§9.6** + §6
+(on-demand) · template `handoff.md` v2.2 (`result_check:` + mục Nghiệm kết quả) ·
+template `self-verify.md` mới, `unit-spec.md` (+`review:`/`self_verify:`), `unit-plan.md` (cột Review +
+mục Pre-flight), `dod.md` v4, `tasks.md` (approver theo tầng) · checklists: backend v3 · frontend v3 ·
+tech-lead v2 · security v2 · qa v5 · pm-po v4 · ba v4 · skills `dlc-bolt`/`dlc-units`/`dlc-accept`/
+`dlc-intent`/`dlc-validate`/`dlc-revise`/`dlc-doctor` · `tower_generate` (`units.reviewed` ba đường +
+cột tầng) · dọn nốt câu "≤5h" sót lại của 5.0.0 trong template `unit-spec`/`unit-plan` và skill
+`dlc-units`/`dlc-intent`.
+
 ## 5.0.0 (2026-08-13) — Bỏ trần 5h/Unit: cắt theo đường ra sản phẩm, không theo đồng hồ
 
 **Nguồn: quyết định của chủ gói, KHÔNG phải LL qua Gate G.** Ghi rõ để không tự lừa mình — đây là lần thứ

@@ -1,4 +1,4 @@
-# AI-DLC Protocol — giao thức chung (v4)
+# AI-DLC Protocol — giao thức chung (v6)
 
 > MỌI agent và skill của plugin PHẢI tuân thủ file này. Tài liệu phương pháp gốc: white paper AI-DLC
 > (`docs/whitepaper-ai-dlc-vi.md` trong repo plugin). Mâu thuẫn → white paper thắng.
@@ -46,11 +46,14 @@ Bolt không chạy một mạch từ design tới xong. Giữa các chặng có 
 
 | # | Điểm dừng | Sau chặng | Ai giữ | Đã dừng thật = có gì trên đĩa |
 |---|---|---|---|---|
-| 1 | **Review thiết kế** | Logical Design + ADR | agent (tech-lead + security) | `RV-NNN` `target` trỏ unit/bolt, verdict `approve*` |
+| 1 | **Soát thiết kế** | Logical Design + ADR | theo **tầng review** của Unit (§4.17): `none` = dev tự đối chiếu checklist, dừng thật ở Gate E(a) · `peer`/`specialist` = agent đúng vai | tier `none`: mục design trong `evidence/self-verify.md` · tier khác: `RV-NNN` verdict `approve*` |
 | 2 | **Freeze contract** | contract.md | agent ↔ agent (BE ↔ FE) | `contract.md` có `FROZEN vN`; sau đó đổi = DEC |
 | 3 | **Gate E(a) checkpoint design** | trước khi code | **người** | `gate_open: E` → `gates_passed` có `E` |
-| 4 | **Review code** | Code + Unit Test | agent (BE/FE/security/qa) | `RV-NNN` cho task/unit, verdict `approve*` |
+| 4 | **Soát code** | Code + Unit Test | theo **tầng review** của Unit (§4.17): `none` = self-verify có bằng chứng · `peer` = dev còn lại trong bolt · `specialist` = đúng MỘT vai theo trigger | tier `none`: `evidence/self-verify.md` đủ mục, có con trỏ · tier khác: `RV-NNN` verdict `approve*` |
 | 5 | **Gate E(b) demo** | sau fix | **người** | `gate_open: E` lần hai |
+
+> Điểm dừng 1 và 4 **có điều kiện theo tầng** từ v6 (§4.17) — nhưng điểm dừng 3 và 5 (của NGƯỜI) thì
+> **không bao giờ** bị tầng nào bỏ: unit tier `none` vẫn dừng ở Gate E(a) và E(b) như mọi unit khác.
 | + | **Escalation** | bất kỳ lúc nào | **người** (qua tech-lead) | `escalations/ESC-NNN.md` `status: open`, hoặc MSG `type: escalation` |
 | + | **Câu hỏi CHẶN Unit** | bất kỳ lúc nào | **người** | câu `CHẶN UOW-NN` còn mở trong `open-questions-tech.md` |
 
@@ -332,9 +335,13 @@ DoD từ v1 đã ghi *"reviewer BE/FE approve"*. Một dự án thật vẫn đ�
 review-request gửi đi và **0 verdict nhận về** — không ai nói dối, chỉ là câu chữ đó không có gì để đối chiếu.
 Luật không thiếu; luật **không kiểm được**. Vì vậy:
 
-- `spec.md` của Unit phải mang **một trong hai**, nếu không thì **không được `done`/`approved`**:
-  - `reviewed_by: <agent>` + `rv: RV-NNN` — file `reviews/RV-NNN.md` phải **tồn tại thật** và `re:` khớp Unit; hoặc
-  - `review_waived_by: DEC-NNNN` — một quyết định nêu rõ **vì sao cố ý bỏ review lượt này**.
+- `spec.md` của Unit phải mang **một trong ba**, nếu không thì **không được `done`/`approved`**:
+  - `reviewed_by: <agent>` + `rv: RV-NNN` — file `reviews/RV-NNN.md` phải **tồn tại thật** và `re:` khớp Unit
+    (bắt buộc với tier `peer`/`specialist` — §4.17); hoặc
+  - `self_verify: <path>` — **chỉ hợp lệ khi Unit khai `review: none` đã được duyệt ở Gate D** (§4.17):
+    file `evidence/self-verify.md` phải tồn tại thật, đủ mục checklist, mỗi mục có **con trỏ bằng chứng**; hoặc
+  - `review_waived_by: DEC-NNNN` — một quyết định nêu rõ **vì sao cố ý bỏ review lượt này**
+    (đường cũ trước v6, vẫn hợp lệ cho ca ngoại lệ ngoài bảng tầng).
 - **Gửi review-request rồi đóng HOF trong cùng lượt là vi phạm.** HOF chỉ được `done` khi verdict đã về, hoặc
   khi đã ghi `review_waived_by`. "Đã gửi, chờ verdict" là trạng thái *đang chờ*, không phải *xong*.
 - `approved` do chính agent làm unit tự đặt **không phải bằng chứng nghiệm thu độc lập**. Hồ sơ Gate F chỉ
@@ -383,6 +390,58 @@ Xoá một giá trị khỏi union (`persona`, `status`, `role`…) làm mọi �
 viễn sai** mà **cả compiler lẫn test đều im**: kiểu vẫn hợp lệ, còn test đặt giá trị đó thì rơi về mặc định.
 Bắt buộc grep toàn repo mọi so sánh bằng với giá trị bị xoá, và ghi kết quả vào evidence của Unit.
 
+### 4.17 Review theo tầng rủi ro — reviewer là ngoại lệ có địa chỉ, không phải mặc định (v6)
+
+Review Board agent bắt buộc mọi nơi là **phát minh của gói**, không có trong white paper — SSOT chỉ nói
+**con người** rà soát artefact do AI tạo (mob rà soát ở Inception, "Developer rà soát mã và kịch bản kiểm
+thử" ở Construction). Và nó đã trượt trên thực địa theo đúng cách luật không kiểm được vẫn trượt: LL-002
+ghi 13 review-request gửi đi, **0 verdict** nhận về, 17 unit vẫn đóng. §4.12 vá phần *kiểm được*; mục này
+vá phần *chi phí*: mỗi lượt reviewer là một phiên lạnh phải nạp lại bối cảnh, và bắt buộc nó ở mọi nơi
+chỉ sinh ra hàng đợi nghẽn hoặc một đống DEC waiver hình thức.
+
+Thay bằng: **mỗi Unit khai một tầng review trong `spec.md` (`review:`), bảng tầng nằm trong `unit-plan.md`,
+và NGƯỜI duyệt cả bảng một lần tại Gate D.** `review: none` được duyệt ở Gate D **chính là** waiver có địa
+chỉ — không cần DEC riêng cho từng unit nữa.
+
+| Tầng | Trigger (kiểm được — dính một cái là phải lên tầng đó) | Ai soát | Bằng chứng đóng Unit (§4.12) |
+|---|---|---|---|
+| `none` | mặc định — không dính trigger nào bên dưới | chính dev, theo checklist | `self_verify:` trỏ `evidence/self-verify.md` |
+| `peer` | bolt có cả FE lẫn BE (có contract) · `session_fit` khai vùng code **lạ** · Unit đầu tiên của intent chạm một bounded context | **dev còn lại trong cùng bolt** | `rv: RV-NNN`, reviewer là dev kia |
+| `specialist` | chạm auth/authz/session/token/crypto/PII/secret ⇒ **security** · migration phá hủy / đổi public API / ADR trái pattern hiện có ⇒ **tech-lead** · NFR có ngưỡng đo trong `nfr.md` ⇒ **qa** | đúng **MỘT** vai theo trigger (nhiều trigger khác loại ⇒ nhiều vai, vẫn không phải cả board) | `rv: RV-NNN` của specialist |
+
+Luật:
+
+1. **Khai trước, duyệt một lần.** `review:` là trường bắt buộc của `spec.md` từ v6; thiếu ⇒ chặn Gate D
+   (như thiếu `releasable`). Người duyệt Gate D thấy cả cột Review trong unit-plan — muốn nâng tầng unit
+   nào thì `request-changes` đúng dòng đó, một dòng là đủ.
+2. **Trigger là để đối chiếu, không phải để cảm nhận.** `/dlc-doctor` và tower grep dấu vết thật
+   (diff/bolt chạm pattern security, có file migration, bolt có cả FE+BE…) và so với tầng đã khai — chạm
+   trigger mà khai `none` là **FIX**, không phải chuyện khẩu vị.
+3. **Đổi tầng giữa chừng có chiều.** Đang code mà phát hiện trigger (đụng auth ngoài dự kiến…) ⇒ **nâng
+   tầng ngay**, ghi MSG note, không cần mở lại Gate D. Chiều ngược lại — hạ tầng đã duyệt — thì phải DEC.
+4. **Checklist đi trước code (shift-left).** Checklist BE/FE không còn là công cụ riêng của reviewer: nó
+   nằm trong `read_first` của HOF dev — dev đọc **trước khi code** (pre-flight) và điền **sau khi code**.
+   Reviewer (khi có) *verify* chứ không *discover*: HOF review chỉ cần diff + checklist, vì peer đã đọc
+   design/contract cho task của chính mình — đó là lý do peer rẻ hơn một reviewer lạnh.
+5. **Self-verify không phải dấu ✓.** `evidence/self-verify.md` (template của gói): từng mục checklist kèm
+   **con trỏ bằng chứng** (file test + output, kết quả grep, dòng ledger). Mục "n/a" phải có lý do. Và vì
+   tier `none` không có reviewer, hai lưới thay thế đều bắt buộc: **§4.15** (ca đối chứng + mutation test —
+   máy kiểm hộ những gì máy kiểm được) và **§9.6** (người giao nghiệm kết quả: mở 1–2 con trỏ trong
+   self-verify kiểm thật trước khi cho unit đóng — mắt thứ hai không tốn phiên mới).
+6. **Điểm dừng của NGƯỜI không đổi.** Gate E(a)/E(b) vẫn dừng cho MỌI unit, tier nào cũng vậy (§1.0c).
+   Bỏ reviewer agent không phải là bỏ giám sát — giám sát nằm ở gates A–G, đúng như white paper.
+7. **Peer review giữ nguyên khung RV**: format `RV-NNN` không đổi, 2× `request-changes` cùng một điểm vẫn
+   thành escalation của người (§4.6). Người review ≠ người viết phần code đó.
+8. **Giới hạn nói thật**: dev và peer chạy cùng model, cùng điểm mù. Lưới đỡ là trigger specialist +
+   mutation test + KPI lỗi lọt (điểm 9) — không phải niềm tin.
+9. **KPI đối chiếu** (luật không kiểm được là luật sẽ trượt): `units.reviewed` mở rộng đếm cả ba đường
+   bằng chứng (RV thật · self-verify thật · DEC miễn), kèm cột tầng; retro đối chiếu **lỗi lọt theo tầng**
+   (escalation/LL phát sinh sau khi unit đóng, quy về tầng của unit đó) — tier `none` sinh lỗi lọt là dữ
+   liệu để nâng trigger ở intent kế, có số làm căn cứ thay vì cãi nhau bằng cảm giác.
+
+> Nguồn gốc mục này: quyết định chủ gói (6.0.0), cùng vị thế với việc bỏ trần 5h ở 5.0.0 — ba căn cứ kiểm
+> được ghi trong CHANGELOG; **nợ một LL**, retro có dữ liệu tầng đầu tiên phải trả.
+
 ## 5. Định dạng bản ghi
 
 `comms/MSG-NNNN.md`:
@@ -395,7 +454,7 @@ status: open|answered|closed
 <nội dung>
 ```
 
-`handoffs/HOF-NNNN.md` (v2.1 — xem §9):
+`handoffs/HOF-NNNN.md` (v2.2 — xem §9):
 ```
 ---
 id: HOF-0007        from: <agent|HUMAN>   to: <agent>
@@ -404,6 +463,7 @@ kind: assign|review|return|escalate|takeover
 status: open|accepted|done|returned|superseded
 created: <ISO>      accepted: <ISO|->     closed: <ISO|->
 heartbeat: <ISO|->  progress: <1 câu đang làm gì|->      # §9.4 — cập nhật ở mỗi mốc
+result_check: -     # §9.6 — NGƯỜI GIAO điền khi nghiệm: "pass · <ISO> · <đã kiểm gì>" | "returned · ..."
 read_first: ["<path#mục> — vì sao", ...]     # tối đa 8; trỏ, không chép
 blocked_by: [HOF-NNNN|TSK-NN|-]
 ---
@@ -482,11 +542,15 @@ Inbox quyết định từ tower (`inbox/gate-INT-NNN-X-<ts>.json`):
 
 | Tier | Model | Agents | Lý do |
 |---|---|---|---|
-| Sâu | opus | orchestrator, intent-analyst, **source-planner**, context-archaeologist, unit-planner, ba-reviewer, tech-lead-reviewer, security-reviewer | phân rã, kiến trúc, rủi ro — sai ở đây lan xuống toàn hạ nguồn |
-| Thực thi | sonnet | context-validator, bolt-coordinator, be-dev, fe-dev, pm-po-reviewer, backend-reviewer, frontend-reviewer, qa-reviewer, retro-keeper | code, review theo checklist, điều phối |
+| Sâu | opus | orchestrator, intent-analyst, **source-planner**, context-archaeologist, unit-planner, ba-reviewer†, tech-lead-reviewer†, security-reviewer† | phân rã, kiến trúc, rủi ro — sai ở đây lan xuống toàn hạ nguồn |
+| Thực thi | sonnet | context-validator, bolt-coordinator, be-dev, fe-dev, pm-po-reviewer†, qa-reviewer†, retro-keeper | code, review theo checklist, điều phối |
 | Cơ học | haiku | acceptance-recorder | gom evidence, trace link, persist — theo khuôn |
 
-Reviewer chỉ được gọi cho phần thuộc góc nhìn của mình; bolt thuần BE không gọi frontend-reviewer.
+† = **on-demand từ v6** (§4.17): reviewer chỉ được spawn khi trigger specialist bắn, khi người yêu cầu tại
+gate, hoặc khi escalation cần (tech-lead). Không còn spawn mặc định theo flow. `backend-reviewer` và
+`frontend-reviewer` đã **gỡ khỏi gói** ở 6.0.0 — checklist BE/FE chuyển thành pre-flight + self-verify của
+dev, review code (khi tầng cần) do dev còn lại trong bolt (peer) hoặc specialist đảm nhận.
+Reviewer chỉ được gọi cho phần thuộc góc nhìn của mình, và chỉ khi tầng review của Unit cần vai đó.
 
 ## 7. ID & đánh số
 
@@ -526,7 +590,7 @@ phiên cùng làm. Vì vậy:
 | `open` | người giao | đã viết xong gói việc, chưa ai nhận |
 | `accepted` | agent nhận | đang làm — đây là "vị trí đang có người" trên board |
 | ↑ kèm `heartbeat` + `progress` | agent nhận | dấu hiệu còn sống: cập nhật ở mỗi mốc, xem §9.4 |
-| `done` | agent nhận | xong, đã điền *Đã làm* + *Còn treo* |
+| `done` | agent nhận | lời khai xong (*Đã làm* + *Còn treo* đã điền) — kết quả chỉ được DÙNG sau khi người giao nghiệm, §9.6 |
 | `returned` | agent nhận | trả lại vì thiếu điều kiện (nêu rõ thiếu gì) — không phải thất bại, là tín hiệu |
 | `superseded` | người giao | bị thay bởi HOF khác (trỏ tới HOF mới) |
 
@@ -668,6 +732,30 @@ bằng đúng agent definition của gói (`ai-dlc:dlc-*`) để teammate thừa
 > Trạng thái của mục này: **hướng dẫn, chưa phải luật chặn gate.** Nó sinh ra từ quan sát thực tế
 > (PCT · INT-003 · 13/08) chứ chưa qua một LL được Gate G duyệt — nên `/dlc-doctor` chỉ **WARN**, không FIX.
 > Qua Gate G ở retro kế thì nâng thành luật.
+
+### 9.6 Nghiệm kết quả — người giao đánh giá TRƯỚC khi kết quả được dùng (v6)
+
+Agent nhận đóng HOF `done` mới chỉ là **lời khai xong**. Từ v6, kết quả của một HOF chỉ được dùng tiếp —
+đánh dấu task `done`, đóng Unit, mở gate, hay spawn lượt sau phụ thuộc nó — sau khi **người giao**
+(mainlead: coordinator/orchestrator/phiên chính — đang sống, có sẵn bối cảnh, nghiệm rẻ hơn mọi reviewer
+lạnh) đã nghiệm ba bước:
+
+1. **Đối chiếu** mục *Đã làm* với *DoD của lượt* trong chính HOF — từng điều kiện, không đọc lướt.
+2. **Mở ít nhất một bằng chứng thật** (chạy một test, mở một file output, xem diff) — nghiệm bằng dấu vết,
+   không nghiệm bằng lời khai. Với Unit tier `none` (§4.17): mở **1–2 con trỏ trong `self-verify.md`** và
+   kiểm chúng có thật — nghiệm việc của lead chính là mắt thứ hai của tier này.
+3. **Ghi xuống đĩa**: `result_check: pass · <ISO> · <1 câu đã kiểm gì>` vào frontmatter HOF. Không đạt →
+   `result_check: returned · <thiếu gì>` + đặt `status: returned` (agent nhận sửa tiếp từ chính file đó).
+
+Ràng buộc:
+- **HOF `done` mà `result_check` trống = kết quả chưa được nghiệm** — doctor FIX (áp cho HOF tạo từ v6;
+  HOF cũ chỉ ghi chú), và Unit không được đóng dựa trên nó.
+- **Không tự nghiệm việc của chính mình**: HOF có `from` = `to` (tự giao) thì `result_check` không có giá
+  trị mắt thứ hai — phải nói rõ là tự khai ở hồ sơ Gate F.
+- Nghiệm là đánh giá **kết quả của lượt**, không phải review lại code — có trigger §4.17 thì tầng review
+  vẫn chạy như thường; §9.6 không thay §4.17, nó bịt đúng cái khe "dev tự đóng, không ai nhìn lại".
+- KPI đối chiếu: `handoffHealth.checked / handoffHealth.closed` trên tower — luật có trường để điền và
+  con số để soi, như mọi luật khác của gói.
 
 ## 10. Ngân sách context (đọc ít, tra đúng chỗ)
 

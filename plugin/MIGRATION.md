@@ -1,5 +1,35 @@
 # MIGRATION — ai-dlc
 
+## 5.x → 6.0.0 — Review Board mặc định đã gỡ: review theo tầng rủi ro (§4.17)
+
+**Đổi luật điểm dừng trong Bolt + format `spec.md`** (major). Reviewer không còn là mặc định mọi nơi:
+mỗi Unit khai `review: none|peer|specialist(<vai>)` theo bảng trigger kiểm được, người duyệt **cả bảng
+tầng một lần tại Gate D**. Gates A–G của người **không đổi** — Gate E(a)/E(b) vẫn dừng cho mọi Unit.
+
+| | Đổi gì | Chặn khi |
+|---|---|---|
+| `spec.md` | trường mới `review:` (bắt buộc từ v6) + `self_verify:` | thiếu `review:` → chặn Gate D |
+| Đóng Unit (§4.12) | **ba** đường bằng chứng thay vì hai: RV thật (peer/specialist) · `self_verify:` trỏ `evidence/self-verify.md` thật, đủ mục, có con trỏ (CHỈ tier `none`) · DEC miễn (ngoại lệ) | thiếu cả ba → không được `done` |
+| Bolt | soát design/code theo tầng; checklist BE/FE thành **pre-flight** trong `read_first` của HOF dev | trigger bắn mà tầng khai thấp → doctor FIX |
+| Agents | `backend-reviewer` + `frontend-reviewer` **gỡ khỏi gói**; ba/pm-po/qa/security/tech-lead thành **on-demand** (trigger hoặc người yêu cầu); DoR check do bolt-coordinator tự đối chiếu | |
+| Tier `none` | §4.15 bắt buộc (ca đối chứng + mutation test) — không có mắt thứ hai thì máy phải kiểm hộ | self-verify ✓ suông → doctor FIX |
+| HOF (§9.6 mới) | người giao **nghiệm kết quả** trước khi dùng: đối chiếu DoD lượt + mở ≥1 bằng chứng thật + ghi `result_check:` (trường mới, template v2.2) | HOF `done` thiếu `result_check` (từ v6) → doctor FIX; unit đóng trên HOF chưa nghiệm → FIX |
+
+**Không phải làm gì với intent đã qua Gate D** (như 5.0.0): unit lập trước v6 không bị bắt khai `review:`,
+luật §4.12 cũ (RV hoặc DEC miễn) vẫn áp cho chúng — **nợ review cũ KHÔNG được xoá bằng migration này**
+(RV đã hứa mà chưa có vẫn là `unfulfilled`, ví dụ ca RV-019/RV-020 của PCT). Áp tầng từ intent kế.
+
+**Việc phải làm**: (1) intent đang ở stage ≤5 → khai `review:` cho mọi Unit kèm căn cứ trigger trước khi
+trình Gate D; (2) `tasks.md` có `approver:` trỏ `backend-reviewer`/`frontend-reviewer` → đổi thành dev còn
+lại trong bolt (peer) hoặc specialist theo trigger; (3) dự án muốn giữ Review Board cũ → override qua
+`.ai-dlc/overrides/agents/` (bản 5.x của hai agent đã gỡ nằm trong lịch sử git của gói).
+
+**KPI đối chiếu**: `units.reviewed` (mở rộng, đếm cả ba đường + cột tầng) · retro đo **lỗi lọt theo tầng**
+(escalation/LL sau khi unit đóng, quy về tầng) — tier `none` sinh lỗi lọt là căn cứ nâng trigger.
+
+**Rollback**: hạ về 5.x thì `review:`/`self_verify:` bị bỏ qua và unit đóng bằng self-verify sẽ hiện
+"TỰ KHAI" trên tower — không có bước phá hủy, nhưng phải bù RV/DEC miễn cho các unit đó.
+
 ## 4.x → 5.0.0 — trần 5h/Unit đã bỏ
 
 **Đổi luật gate**: Gate D không còn chặn theo `estimate_hours`. Thay bằng hai điều kiện khai trong

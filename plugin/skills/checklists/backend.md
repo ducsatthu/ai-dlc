@@ -1,9 +1,14 @@
 ---
 name: backend
-version: 2
+version: 3
 source: LL-002 (Gate G · DEC-0027) — retro INT-001 dự án PCT
 ---
-# Checklist Backend review · v2
+# Checklist Backend · v3 — pre-flight của dev · self-verify · peer/specialist review
+
+> **Cách dùng từ v6 (protocol §4.17)**: dev đọc checklist này TRƯỚC khi code (nằm trong `read_first`
+> của HOF) và điền SAU khi code. Unit tier `none` → điền vào `evidence/self-verify.md`, mỗi mục kèm
+> **con trỏ bằng chứng** (test output, kết quả grep, dòng ledger), §4.15 bắt buộc. Tier `peer`/`specialist`
+> → reviewer dùng đúng checklist này để verify, không discover.
 - [ ] Khớp contract FROZEN (field, error codes, phân trang, timezone) — lệch = request-changes
 - [ ] Khớp Logical Design/ADR; đúng pattern layer của dự án
 - [ ] DB: migration + rollback + index cần thiết; không N+1; transaction boundary đúng
@@ -16,5 +21,6 @@ source: LL-002 (Gate G · DEC-0027) — retro INT-001 dự án PCT
       dòng nguồn trong `source-ledger` — luật nằm trong code mà không bao giờ chạy là lỗi im lặng.
 - [ ] Phát hiện ngoài phạm vi unit ⇒ mở `escalations/ESC-NNN.md`, không chỉ ghi vào HOF (protocol §4.13)
 ## Changelog
+- v3: đổi cách dùng — pre-flight + self-verify của dev theo §4.17 (6.0.0, quyết định chủ gói, nợ LL); nội dung mục giữ nguyên
 - v2: grep khi đụng enum, luật nghiệp vụ trỏ được về nguồn, escalation cho phát hiện ngoài phạm vi (LL-002 P-3/P-4)
 - v1: bản đầu

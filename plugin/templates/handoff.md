@@ -10,6 +10,7 @@ accepted: -
 closed: -
 heartbeat: -
 progress: -
+result_check: -      # NGƯỜI GIAO điền khi nghiệm (§9.6): "pass · <ISO> · <đã kiểm gì>" | "returned · <thiếu gì>"
 teammate: -          # tên teammate nếu lượt này chạy bằng phiên riêng (agent team) — §9.5
 read_first: []
 blocked_by: []
@@ -60,3 +61,11 @@ blocked_by: []
 
 ## Việc phát sinh ngoài phạm vi (không tự làm)
 -
+
+---
+<!-- Mục dưới cùng do NGƯỜI GIAO điền khi nghiệm kết quả (§9.6) — trước đó kết quả chưa được dùng. -->
+
+## Nghiệm kết quả (người giao — §9.6)
+- Đối chiếu *Đã làm* với DoD của lượt: <đủ/thiếu mục nào>
+- Bằng chứng đã mở kiểm thật: <chạy test nào / mở file nào — kết quả>
+- Kết luận: `result_check: pass|returned` (đã ghi lên frontmatter)

@@ -16,8 +16,11 @@ total_estimate_hours: 0
 # INT-NNN · Unit Plan (tài liệu Gate D)
 
 > Bản chốt của phân rã Unit — refine từ Provisional Unit Map (`intent-plan.md` phần 3) **sau khi đã đọc
-> AS-IS**. Duyệt tài liệu này = mở khóa Construction cho các Unit trong bảng.
-> Luật cứng: **mỗi Unit ≤5 giờ elapsed**, và mỗi Unit phải đủ **User Story · NFR · Rủi ro**.
+> AS-IS**. Duyệt tài liệu này = mở khóa Construction cho các Unit trong bảng, **và duyệt cả bảng tầng
+> review** — cột Review chính là "unit nào sẽ chạy không reviewer" (§4.17); muốn nâng tầng unit nào thì
+> request-changes đúng dòng đó.
+> Luật cứng: mỗi Unit đủ **User Story · NFR · Rủi ro**, khai `releasable` + `session_fit` có con số (§4.9 v5)
+> và `review:` tầng kèm căn cứ trigger (§4.17). Không còn trần giờ.
 
 ## 1. Đã đổi gì so với provisional (đọc trước tiên)
 
@@ -43,10 +46,11 @@ Còn nguồn `planned` chưa xử lý → **không được trình Gate D** (pro
 
 ## 3. Bảng Unit
 
-| Unit | Capability | Est (h) | Bolt | Song song/tuần tự | Phụ thuộc | US | NFR | Risk | DoR |
-|---|---|---|---|---|---|---|---|---|---|
-| UOW-01 | | 4.0 | 1 | // với UOW-02 | — | 2 | 3 | 1 | ✅ |
-| | **Tổng** | **0.0** | | | | | | | |
+| Unit | Capability | Est (h) | Bolt | Song song/tuần tự | Phụ thuộc | US | NFR | Risk | Review (§4.17 — vì sao) | DoR |
+|---|---|---|---|---|---|---|---|---|---|---|
+| UOW-01 | | 4.0 | 1 | // với UOW-02 | — | 2 | 3 | 1 | `specialist(security)` — chạm role-matrix | ✅ |
+| UOW-02 | | 3.0 | 1 | | — | 1 | 2 | 1 | `none` — vùng quen, không trigger | ✅ |
+| | **Tổng** | **0.0** | | | | | | | | |
 
 ## 4. Chi tiết từng Unit
 
@@ -80,10 +84,12 @@ Còn nguồn `planned` chưa xử lý → **không được trình Gate D** (pro
 | ID | Rủi ro | Mức | Trigger | Giảm thiểu | Chủ |
 |---|---|---|---|---|---|
 
-**Ước lượng (≤5h)**
+**Ước lượng (breakdown bắt buộc — §4.9 v5, không còn trần giờ)**
 | Hạng mục | Giờ | Căn cứ (con số thật từ AS-IS) |
 |---|---|---|
 | **Tổng** | | |
+
+**Tầng review** (§4.17): `<none|peer|specialist(vai)>` — căn cứ: *đã đối chiếu trigger nào, dính/không dính cái gì*.
 
 **Nguồn đã đọc để viết Unit này**: S1 (read), S2 (read), S6 (read)
 
@@ -98,6 +104,15 @@ UOW-01 ──┬─► UOW-03 ─► UOW-05
 UOW-02 ──┘
 ```
 Đường găng: … · Unit chạy song song được: … · Nút thắt tài nguyên: …
+
+## 5b. Pre-flight (tự đối chiếu checklist — §4.17.4, thay cho review board mặc định)
+
+| Checklist | Mục | Đạt? | Con trỏ bằng chứng |
+|---|---|---|---|
+| pm-po v4 | … | | |
+| qa v5 (DoR) | … | | |
+
+Mục nào không đạt thì sửa trước khi trình gate — pre-flight có mục fail mà vẫn mở gate là vi phạm.
 
 ## 6. Điều kiện DoR/DoD áp dụng
 - DoR version: `v<N>` — Unit nào chưa đạt và thiếu gì.

@@ -1,8 +1,8 @@
 ---
 name: tech-lead
-version: 1
+version: 2
 ---
-# Checklist Tech Lead · v1
+# Checklist Tech Lead · v2 — specialist theo trigger (§4.17: migration phá hủy · đổi public API · ADR trái pattern) + escalation
 ## review-approach / design
 - [ ] Domain Design độc lập hạ tầng; Logical Design áp đúng NFR đã khai
 - [ ] Mỗi quyết định kiến trúc có ADR (bối cảnh, phương án, hệ quả)
@@ -14,3 +14,4 @@ version: 1
 - [ ] IaC/config thay đổi được review như code
 ## Changelog
 - v1: bản đầu
+- v2: chuyển thành specialist theo trigger §4.17 — không còn review mặc định mọi design (6.0.0)

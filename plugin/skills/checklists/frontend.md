@@ -1,9 +1,14 @@
 ---
 name: frontend
-version: 2
+version: 3
 source: LL-001 (Gate G · DEC-0027) — retro INT-001 dự án PCT
 ---
-# Checklist Frontend review · v2
+# Checklist Frontend · v3 — pre-flight của dev · self-verify · peer/specialist review
+
+> **Cách dùng từ v6 (protocol §4.17)**: dev đọc checklist này TRƯỚC khi code (nằm trong `read_first`
+> của HOF) và điền SAU khi code. Unit tier `none` → điền vào `evidence/self-verify.md`, mỗi mục kèm
+> **con trỏ bằng chứng**, §4.15 bắt buộc. Tier `peer`/`specialist` → reviewer dùng đúng checklist này
+> để verify, không discover.
 - [ ] Chỉ dùng field có trong contract FROZEN — không bịa field
 - [ ] Đúng pattern dự án: server/client component, state, data fetching, cấu trúc thư mục
 - [ ] i18n đủ locale theo quy ước dự án; không hardcode chuỗi
@@ -19,3 +24,4 @@ source: LL-001 (Gate G · DEC-0027) — retro INT-001 dự án PCT
 ## Changelog
 - v2: 4 mục từ retro INT-001 — nút chết, bấm thử, đường nối giữa hai unit, grep khi đụng enum (LL-001 P-1/P-2/P-3, LL-002 P-4)
 - v1: bản đầu
+- v3: đổi cách dùng — pre-flight + self-verify của dev theo §4.17 (6.0.0, quyết định chủ gói, nợ LL); nội dung mục giữ nguyên
