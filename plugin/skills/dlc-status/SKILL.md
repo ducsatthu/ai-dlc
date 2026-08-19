@@ -11,7 +11,7 @@ Báo cáo gồm:
 - Mỗi intent 1 dòng: INT · tên · stage/8 · gate_open (+ **gate_doc** đang chờ đọc, chờ ai quyết gì)
 - **Vị trí đang làm việc**: HOF nào `accepted`/`open`/`returned`, ai giữ, thuộc phạm vi nào, từ bao giờ
 - Coverage nguồn: đã đọc bao nhiêu / tổng — còn `planned` thì nêu rõ (đang chặn gate nào)
-- Units: số Unit · tổng est (h) · Unit nào >5h hoặc thiếu US/NFR/risk
+- Units: số Unit · tổng est (h) · Unit nào thiếu `releasable`/`session_fit`/`review:` hoặc thiếu US/NFR/risk
 - Inbox chưa drain (nếu có) — nhắc quyết định đã đến từ tower
 - Cảnh báo: HOF `accepted` treo lâu (phiên trước có thể chết giữa chừng), gate thiếu gate_doc
 

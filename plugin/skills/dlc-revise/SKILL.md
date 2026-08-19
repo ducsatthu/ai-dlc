@@ -24,7 +24,8 @@ mở, chỉ là tài liệu đi một vòng sửa.
 4. **Sửa có kỷ luật**: chỉ đụng phần được nêu; bump `version:` trong frontmatter gate_doc; thêm dòng cuối
    mục Changelog (`vN: sửa gì · theo REV-NN`). Không viết lại cả tài liệu — người duyệt cần thấy được cái gì đổi.
    Yêu cầu chạm scope/outcome → mở lại gate trước đó thay vì vá tại chỗ (protocol §4.4).
-5. **Reviewer soi lại** đúng phần đã sửa (ba-reviewer cho gate A–D), cập nhật RV.
+5. **Soát lại** đúng phần đã sửa: agent chủ artifact tự đối chiếu checklist của vai mình; reviewer chỉ soi
+   lại khi chính reviewer đó đã ra RV cho artifact này (specialist/peer — cập nhật RV), hoặc khi người yêu cầu.
 6. Đánh dấu `REV-NN` `status: addressed`, giữ nguyên `gate_open`, cập nhật `plan_version` trong `status.md`,
    chạy `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tower_generate.py` để tower hiển thị bản mới + changelog.
 7. Trình lại gate cho người duyệt (nêu rõ **đã sửa gì so với bản trước**), rồi **KẾT THÚC LƯỢT**.

@@ -34,8 +34,9 @@ mình vẫn quyết được. Đây là tài liệu Gate A; tower render toàn v
    ghi vào mục 1.7 thành câu hỏi Gate A, KHÔNG tự chọn một bên.
 5. Điền mục "Quyết định cần ở Gate A" + khuyến nghị. Cập nhật frontmatter (`sources_planned`,
    `units_proposed`, `total_estimate_hours`).
-6. Yêu cầu ba-reviewer soạn decision brief A, rồi báo orchestrator mở Gate A với
-   `gate_doc: intent-plan.md`.
+6. **Tự pre-flight** theo `checklists/ba.md` + `checklists/source-plan.md` (v6 — §4.17.4): điền từng mục
+   kèm con trỏ vào mục cuối của intent-plan. ba-reviewer chỉ spawn khi người yêu cầu. Rồi báo orchestrator
+   mở Gate A với `gate_doc: intent-plan.md` (tài liệu phải tự đủ).
 
 ## Vòng điều chỉnh
 

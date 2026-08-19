@@ -1,6 +1,6 @@
 {
   "name": "ai-dlc",
-  "version": "5.0.0",
+  "version": "6.0.0",
   "description": "[EXPERIMENTAL] AI-Driven Development Lifecycle — agent team + gates + Control Tower. Theo white paper AWS AI-DLC. Phân cấp: Intent → Unit → Bolt → Task. Stage 1 sinh Intent Plan (nguồn sẽ đọc + phân rã Unit tự release được, gọn một phiên); mọi gate duyệt bằng tài liệu markdown đọc toàn văn trên Control Tower.",
   "author": {
     "name": "AI-DLC Contributors"

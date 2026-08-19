@@ -702,10 +702,15 @@ def parse_units(base, intent_id, stage):
             "estimate": est, "stories": stories, "nfrs": nfrs, "risks": [],
             "riskCount": risks, "sources": srcs, "problems": problems, "provisional": False,
             "descoped": descoped, "addedAfterPlan": added_after_plan, "rawStatus": raw_status,
-            # protocol §4.12: `done` mà không có RV/waiver = TỰ KHAI, không phải được người thứ hai soát.
+            # protocol §4.12 + §4.17: `done` phải có bằng chứng soát ĐÚNG theo tầng review đã duyệt —
+            # RV thật (peer/specialist) · self-verify thật (tier none) · DEC miễn (ngoại lệ).
             "reviewedBy": (us.get("reviewed_by") or "").strip(),
             "rv": (us.get("rv") or "").strip(),
             "reviewWaivedBy": (us.get("review_waived_by") or "").strip(),
+            "review": (us.get("review") or "").strip().strip('"\''),
+            "selfVerify": (us.get("self_verify") or "").strip(),
+            "selfVerifyExists": bool((us.get("self_verify") or "").strip())
+                and os.path.isfile(os.path.join(upath, (us.get("self_verify") or "").strip())),
             # §4.9 v5: kích thước Unit đo bằng đường ra sản phẩm + sức chứa một phiên, không bằng giờ
             "releasable": (us.get("releasable") or "").strip().strip('"\''),
             "releasedWith": (us.get("released_with") or "").strip(),
@@ -903,27 +908,39 @@ def build_metrics(intent_id, base, units, srcs, qs, gates_open, passed=()):
         rv_ids = {f.replace(".md", "") for f in os.listdir(rdir_all) if f.startswith("RV-")}
     closed = [u for u in live if u["status"] == "done"]
     if closed:
+        OK_STATES = ("RV có thật", "miễn review có DEC", "self-verify có thật (tier none)")
+
         def rv_state(u):
             if u.get("rv"):
                 return "RV có thật" if u["rv"].strip() in rv_ids else "rv trỏ RV KHÔNG tồn tại"
+            if u.get("selfVerify"):
+                tier = (u.get("review") or "none").lower()
+                if not tier.startswith("none"):
+                    return "self-verify nhưng tier khai `%s` — cần RV" % (u.get("review") or "?")
+                return ("self-verify có thật (tier none)" if u.get("selfVerifyExists")
+                        else "self_verify trỏ file KHÔNG tồn tại")
             if u.get("reviewWaivedBy"):
                 return "miễn review có DEC"
-            return "TỰ KHAI — không RV, không DEC miễn"
+            return "TỰ KHAI — không RV, không self-verify, không DEC miễn"
         rows = [{"Unit": u["id"], "Trạng thái": u.get("rawStatus") or u["status"],
+                 "review (tầng)": u.get("review") or "— (chưa khai, kế hoạch trước v6)",
                  "reviewed_by": u.get("reviewedBy") or "—", "rv": u.get("rv") or "—",
+                 "self_verify": u.get("selfVerify") or "—",
                  "review_waived_by": u.get("reviewWaivedBy") or "—", "Kết luận": rv_state(u)}
                 for u in closed]
-        ok = [r for r in rows if r["Kết luận"] in ("RV có thật", "miễn review có DEC")]
-        add("units.reviewed", "%d/%d" % (len(ok), len(closed)), "unit đã xong CÓ người thứ hai ký",
-            "Với mỗi unit đã đóng, đọc `reviewed_by:` + `rv:` (file `reviews/RV-NNN.md` phải tồn tại thật) "
-            "hoặc `review_waived_by:` (một DEC nói vì sao cố ý bỏ review) trong `spec.md`. Thiếu cả hai thì "
-            "`approved` chỉ là TỰ KHAI của chính agent làm unit — không phải bằng chứng nghiệm thu độc lập "
-            "(protocol §4.12).",
-            [{"file": rel + "/units/UOW-NN/spec.md", "section": "frontmatter `rv` · `review_waived_by`",
+        ok = [r for r in rows if r["Kết luận"] in OK_STATES]
+        add("units.reviewed", "%d/%d" % (len(ok), len(closed)),
+            "unit đã xong CÓ bằng chứng soát đúng tầng",
+            "Với mỗi unit đã đóng, đọc bằng chứng ĐÚNG theo tầng `review:` đã duyệt ở Gate D (§4.17): "
+            "`rv:` (file `reviews/RV-NNN.md` phải tồn tại thật — tier peer/specialist) · `self_verify:` "
+            "(file evidence phải tồn tại thật — CHỈ tier none) · `review_waived_by:` (DEC ngoại lệ). "
+            "Thiếu cả ba thì `approved` chỉ là TỰ KHAI của chính agent làm unit (protocol §4.12).",
+            [{"file": rel + "/units/UOW-NN/spec.md",
+              "section": "frontmatter `review` · `rv` · `self_verify` · `review_waived_by`",
               "rows": len(closed)},
              {"file": "context-memory/reviews/", "section": "RV-NNN.md có thật", "rows": len(rv_ids)}],
             rows,
-            (["%d/%d unit đóng mà không có RV nào ký — con số “unit đã xong” ở trên là TỰ KHAI."
+            (["%d/%d unit đóng mà không có bằng chứng soát nào — con số “unit đã xong” ở trên là TỰ KHAI."
               % (len(closed) - len(ok), len(closed))] if len(ok) < len(closed) else []),
             "done" if len(ok) == len(closed) else "gate")
 
@@ -1490,6 +1507,8 @@ if os.path.isdir(hdir):
             "created": d.get("created", ""), "accepted": d.get("accepted", "-"),
             "closed": d.get("closed", "-"),
             "heartbeat": hb, "progress": (d.get("progress") or "-").strip(),
+            # §9.6: người giao nghiệm kết quả — "pass · <ISO> · <đã kiểm gì>" | "returned · ..." | "-"
+            "resultCheck": (d.get("result_check") or "").strip().lstrip("-").strip(),
             "silentMin": silent, "stale": bool(silent is not None and silent > 15 and not hb_kind),
             # lời khai vs dấu vết (protocol §9.4) — hbKind rỗng nghĩa là nhịp khai khớp với file
             "hbKind": hb_kind, "hbWhy": hb_why,
@@ -1522,6 +1541,14 @@ handoff_health = {
     "teammates": [{"id": r["id"], "agent": r["agent"], "teammate": r["teammate"]}
                   for r in _acc if r["teammate"]],
 }
+# §9.6: HOF `done` mà người giao chưa nghiệm (`result_check` trống) = kết quả đang được dùng bằng lời khai.
+# Đếm trên danh sách handoffs hiển thị (40 gần nhất) — HOF cũ trước v6 không có trường này, chỉ liệt kê
+# chứ không lên án: doctor phân biệt legacy khi soi.
+_done_all = [r for r in handoffs if r["status"] == "done"]
+handoff_health["closed"] = len(_done_all)
+handoff_health["checked"] = len([r for r in _done_all if r["resultCheck"].lower().startswith("pass")])
+handoff_health["doneUnchecked"] = [{"id": r["id"], "agent": r["agent"], "re": r["re"]}
+                                   for r in _done_all if not r["resultCheck"]][:20]
 def scan_team():
     """Agent team của CHÍNH dự án này — chỉ đọc `~/.claude/teams/*/config.json` có `cwd` của lead trùng ROOT.
 

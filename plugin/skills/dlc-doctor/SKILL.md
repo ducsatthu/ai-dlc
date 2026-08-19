@@ -1,6 +1,6 @@
 ---
 name: dlc-doctor
-description: Audit sức khỏe AI-DLC của project — coverage nguồn (dòng planned còn treo), Unit thiếu điều kiện kích thước (releasable/session_fit) hoặc thiếu US/NFR/risk, nhịp HOF khai giả, teammate zombie, tin chết, gate thiếu gate_doc, override mồ côi, lệch version checklist, inbox tồn đọng.
+description: Audit sức khỏe AI-DLC của project — coverage nguồn (dòng planned còn treo), Unit thiếu điều kiện kích thước (releasable/session_fit) hoặc thiếu US/NFR/risk, tầng review khai lệch trigger (§4.17) hoặc self-verify thiếu con trỏ, nhịp HOF khai giả, teammate zombie, tin chết, gate thiếu gate_doc, override mồ côi, lệch version checklist, inbox tồn đọng.
 ---
 
 Chỉ đọc + báo cáo (sửa gì phải được user đồng ý từng mục):
@@ -23,7 +23,8 @@ Chỉ đọc + báo cáo (sửa gì phải được user đồng ý từng mục
    - Metric nào có `warnings` → in ra kèm cách sửa (thường là ô `Trạng thái` viết lạ, hoặc unit không khai
      `status`). Đây là chỗ dashboard đang **nói con số mà chính nó không chắc**.
    - `units.reviewed` < tổng unit đã đóng → **FIX**: số "unit đã xong" đang là **tự khai**; đừng dùng nó
-     làm bằng chứng nghiệm thu ở Gate F mà không nói rõ điều đó.
+     làm bằng chứng nghiệm thu ở Gate F mà không nói rõ điều đó. (Từ v6 metric này đếm cả ba đường bằng
+     chứng theo tầng §4.17: RV thật · self-verify thật · DEC miễn.)
    - `units.artifacts` < tổng unit đã đóng → **WARN** kèm danh sách unit thiếu bolt/tasks/evidence.
    - `sources.unknown` > 0 → **FIX**: sửa ô trạng thái trong sổ cái về từ khoá đọc được
      (`✅ đã đọc` · `read` · `⬜ chưa` · `missing` · `deferred` · `superseded`).
@@ -34,9 +35,21 @@ Chỉ đọc + báo cáo (sửa gì phải được user đồng ý từng mục
 1d. **Artifact có TỒN TẠI không (protocol §4.12–§4.14 · LL-002 · LL-003)** — luật không kiểm được là luật
    sẽ trượt: một dự án thật đóng 17 unit với 0 review và 14/18 unit không có thư mục bolt nào, không ai nói
    dối, chỉ là không có lệnh nào đối chiếu. Kiểm **sự tồn tại**, không chỉ nội dung:
-   - Unit `done`/`approved` mà **không có `rv:` trỏ một `reviews/RV-NNN.md` có thật**, và cũng không có
-     `review_waived_by: DEC-NNNN` → **FIX**. `rv:` trỏ RV không tồn tại, hoặc `re:` của RV không khớp unit
-     → **FIX** (tệ hơn thiếu: nó *trông như* đã review).
+   - Unit `done`/`approved` mà **không có bằng chứng soát nào đúng tầng** (§4.12 · §4.17): không `rv:` trỏ
+     một `reviews/RV-NNN.md` có thật, không `self_verify:` trỏ file có thật (chỉ hợp lệ khi `review: none`),
+     không `review_waived_by: DEC-NNNN` → **FIX**. `rv:`/`self_verify:` trỏ file không tồn tại, hoặc `re:`
+     của RV không khớp unit → **FIX** (tệ hơn thiếu: nó *trông như* đã soát).
+   - **Tầng review vs dấu vết thật (§4.17.2)** — trigger là để đối chiếu, không phải để cảm nhận:
+     - Unit khai `review: none|peer` mà bolt/diff/evidence chạm pattern security (grep
+       `auth|authz|session|token|crypto|password|secret|PII`) hoặc có file migration / đổi public API
+       → **FIX**: trigger specialist bắn mà tầng khai thấp — không phải chuyện khẩu vị.
+     - Unit khai `none` mà bolt có cả task BE lẫn FE (có `contract.md`) → **WARN**: trigger peer.
+     - Unit có `self_verify:` mà tầng khai `peer`/`specialist` → **FIX**: self-verify chỉ thay được RV ở
+       tier `none`.
+     - `evidence/self-verify.md` có mục đánh dấu đạt mà **không có con trỏ bằng chứng**, hoặc "n/a" không
+       lý do, hoặc thiếu mục §4.15 (ca đối chứng + mutation test) → **FIX**: dấu ✓ suông không phải bằng chứng.
+     - Intent lập từ v6 (unit-plan có cột Review) mà unit thiếu `review:` → **FIX** (chặn Gate D). Intent
+       trước v6 thì chỉ ghi chú "kế hoạch cũ — luật §4.12 cũ vẫn áp", **không** bắt khai lại.
    - Unit `done` mà **không có `bolts/BOLT-NN/`** → **WARN**. Bolt có mà thiếu bất kỳ chặng nào trong sáu
      (`domain-design.md` · `logical-design.md` · `adr/` · `contract.md` · `tasks.md` · `evidence/`)
      → **WARN** kèm tên chặng thiếu — bolt là bốn chặng, không phải một thư mục rỗng (protocol §1.0).
@@ -58,6 +71,11 @@ Chỉ đọc + báo cáo (sửa gì phải được user đồng ý từng mục
      `future` (nhịp ở tương lai), `drift` (file HOF được ghi muộn hơn nhịp khai > 30 phút). Cả ba đều nghĩa là
      **agent còn sống nhưng bảng đang nói sai** — nguy hơn không có số, vì người giám sát đi hỏi nhầm chuyện.
    - Mục trong `noHeartbeat` (đang `accepted` mà `heartbeat: -`) → **FIX**.
+   - **Nghiệm kết quả (§9.6)** — soi `handoffHealth.doneUnchecked`: HOF `done` mà `result_check` trống →
+     **FIX** với HOF tạo từ v6 (template có trường; kết quả đang được dùng bằng lời khai, chưa ai nghiệm);
+     HOF trước v6 chỉ ghi chú "legacy". HOF có `from` = `to` (tự giao tự nghiệm) → **WARN**: `result_check`
+     không có giá trị mắt thứ hai, hồ sơ Gate F phải nói rõ tự khai. Unit `done` mà HOF cuối của nó chưa
+     `result_check: pass` → **FIX** (đóng unit trên kết quả chưa nghiệm).
    - `trusted / accepted` < 100% → in tỉ lệ ở bảng tổng. Đây là KPI của §9.4; không có nó thì luật "báo còn
      sống" chỉ là lời khuyên.
 1f. **Teammate (protocol §9.5)** — chỉ **WARN**, chưa phải luật chặn gate (chưa qua Gate G):

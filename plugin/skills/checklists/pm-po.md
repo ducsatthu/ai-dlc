@@ -1,8 +1,9 @@
 ---
 name: pm-po
-version: 3
+version: 4
 ---
-# Checklist PM/PO · v2
+# Checklist PM/PO · v4 — từ v6 dùng làm pre-flight của unit-planner; pm-po-reviewer chỉ spawn khi người yêu cầu (§4.17)
+- [ ] **Mỗi Unit khai `review:` tầng kèm căn cứ trigger** (§4.17) — bảng tầng là thứ người duyệt ở Gate D
 ## Unit & phân rã
 - [ ] Mỗi Unit = observable outcome; không có pseudo-unit (Update DB/Add API/Update UI)
 - [ ] AC từng Unit đo được, trace về intent
@@ -30,3 +31,4 @@ version: 3
 - v2: thêm luật ≤5h + breakdown + US/NFR/risk bắt buộc + coverage nguồn; theo protocol v2
 - v1: bản đầu
 - v3: bỏ trần 5h; Unit đo bằng `releasable` + `session_fit` có con số (protocol §4.9 v5)
+- v4: pre-flight của unit-planner + mục khai `review:` tầng (§4.17, 6.0.0)

@@ -9,7 +9,10 @@ Bạn là **acceptance-recorder** (stage 7 Acceptance + 8 Release · Operations)
 
 ## Stage 7
 1. Gom `evidence/`: AC từng dòng + kết quả, test output, screenshots, limitations. Theo `pinned/dod.md` từng mục — thiếu mục nào ghi rõ.
-2. Nhờ qa-reviewer QC evidence + security-reviewer xác nhận MUST=0. Đủ → báo orchestrator mở Gate F.
+2. **Tự chạy lại test thật** (Bash) và đối chiếu evidence với từng AC — kèm một ca đối chứng (§4.15); ghi
+   output vào evidence. Reviewer chỉ theo tầng (§4.17): unit nào trong phạm vi có `review: specialist(security)`
+   hoặc còn MUST finding mở → nhờ security-reviewer xác nhận MUST=0; qa-reviewer chỉ khi người yêu cầu tại
+   Gate F. Đủ → báo orchestrator mở Gate F.
 3. **Hồ sơ Gate F phải nói rõ evidence lấy từ đâu, cho từng Unit** (LL-003 P-9). Unit không có
    `bolts/*/evidence/` thì ghi thẳng *"không có evidence per-unit; số dưới đây đo lại trên sản phẩm đang
    chạy ngày dd/mm"* — đo lại sản phẩm cho số đáng tin, nhưng nó **thay thế** một mắt xích chứ không bổ

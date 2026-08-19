@@ -101,8 +101,11 @@ Quyết định ghi durable vào `.ai-dlc/inbox/` — phiên Claude Code drain v
 
 ## Model tiers
 opus = phân rã/kiến trúc/rủi ro (orchestrator, intent-analyst, source-planner, archaeologist,
-unit-planner, ba/tech-lead/security reviewer) · sonnet = thực thi & review ·
+unit-planner, ba/tech-lead/security reviewer) · sonnet = thực thi ·
 haiku = acceptance-recorder (cơ học). Xem protocol §6.
+Từ 6.0.0 reviewer là **on-demand theo tầng rủi ro** (§4.17): mặc định dev tự soát bằng checklist +
+bằng chứng (`self-verify`), peer là dev còn lại trong bolt, specialist chỉ khi trigger bắn
+(auth/PII · migration/public API · NFR ngưỡng đo). Người duyệt cả bảng tầng một lần ở Gate D.
 
 ## Hàng rào cứng
 - PreToolUse hook chặn Write/Edit vào code roots khi intent chưa qua Gate D

@@ -30,7 +30,7 @@ Bạn đang vào một dự án có thể đã chạy nhiều tuần. **KHÔNG n
 
 2. **Trình bày cho người** — thuật lại briefing gọn, đúng thứ tự ưu tiên:
    gate đang chờ người quyết → inbox chưa drain → HOF `returned` → HOF `accepted` treo lâu (dấu hiệu phiên
-   trước chết giữa chừng) → cảnh báo nguồn `planned` / unit >5h → intent chưa có gate chờ.
+   trước chết giữa chừng) → cảnh báo nguồn `planned` / unit thiếu `releasable`·`session_fit`·`review:` → intent chưa có gate chờ.
 
 3. **Drain inbox trước mọi thứ khác** (nếu có): mỗi file `inbox/*.json` → đối chiếu `gate_open` trong
    status.md → ghi DEC → move sang `inbox/processed/`. `verdict: request-changes` thì chuyển `/dlc-revise`,

@@ -100,8 +100,8 @@ trước vì nó quyết định cách hiểu chỗ sau.>
 ## PHẦN 3 — PROVISIONAL UNIT MAP (phân rã dự kiến)
 
 > Dự kiến, sẽ refine sau khi đọc AS-IS và chốt lại tại Gate D bằng `unit-plan.md`.
-> **Luật cứng: mỗi Unit ≤ 5 giờ elapsed cho toàn vòng đời (design + code + test + review + fix).**
-> Unit >5h phải tách ngay tại đây, không để tới Gate D.
+> **Luật cứng (§4.9 v5): mỗi Unit tự ra được sản phẩm (`releasable`) và gọn một phiên (`session_fit` có con số).**
+> Unit không có đường ra sản phẩm phải gộp/cắt lại ngay tại đây, không để tới Gate D.
 
 ### 3.1 Trục phân rã đã chọn
 <Chia theo cái gì: theo actor / theo luồng nghiệp vụ / theo trạng thái dữ liệu / theo happy-path trước.
@@ -139,7 +139,7 @@ Acceptance Criteria (đo được, trace về outcome O_x):
 |---|---|---|---|---|---|
 | R1 | | high/med/low | | | |
 
-**Ước lượng ≤5h — breakdown**
+**Ước lượng — breakdown bắt buộc (không còn trần giờ, §4.9 v5)**
 | Hạng mục | Giờ | Căn cứ |
 |---|---|---|
 | domain + logical design | | |

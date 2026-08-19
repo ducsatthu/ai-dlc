@@ -1,8 +1,8 @@
 ---
 name: ba
-version: 3
+version: 4
 ---
-# Checklist BA (business) · v2
+# Checklist BA (business) · v4 — từ v6 dùng làm pre-flight của intent-analyst/context-validator; ba-reviewer chỉ spawn khi người yêu cầu (§4.17)
 ## review-intent-plan (Gate A — soi cả 3 phần của intent-plan.md)
 ### Phần 1 — Intent
 - [ ] Intent là OUTCOME (đo được), không phải solution
@@ -37,3 +37,4 @@ version: 3
 - v2: thêm nhánh review-intent-plan (3 phần), ràng buộc tự đủ + nguồn + ≤5h; theo protocol v2
 - v1: bản đầu
 - v3: bỏ trần 5h; Unit đo bằng `releasable` + `session_fit` có con số (protocol §4.9 v5)
+- v4: pre-flight của intent-analyst/context-validator; ba-reviewer on-demand (§4.17, 6.0.0)

@@ -5,7 +5,7 @@
 perspective: BE|FE|shared
 status: todo
 claimed_by: -
-approver: <reviewer — assign lúc tạo board>
+approver: <theo tầng review của Unit (§4.17): tier none = self · peer = dev còn lại trong bolt · specialist = vai theo trigger — assign lúc tạo board>
 depends_on: []
 comms: []
 notes: -
