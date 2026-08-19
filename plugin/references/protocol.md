@@ -1,7 +1,7 @@
 # AI-DLC Protocol — giao thức chung (v4)
 
 > MỌI agent và skill của plugin PHẢI tuân thủ file này. Tài liệu phương pháp gốc: white paper AI-DLC
-> (bản dịch nội bộ TechTus — `docs/whitepaper-ai-dlc-vi.md` trong repo plugin). Mâu thuẫn → white paper thắng.
+> (`docs/whitepaper-ai-dlc-vi.md` trong repo plugin). Mâu thuẫn → white paper thắng.
 
 ## 1. Phân cấp & pha
 

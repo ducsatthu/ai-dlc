@@ -1,6 +1,8 @@
 # ai-dlc — AI-Driven Development Lifecycle plugin
 
-Agent team theo white paper AWS AI-DLC (bản dịch nội bộ Mynavi TechTus Vietnam).
+> **[EXPERIMENTAL]** — Plugin đang trong giai đoạn thử nghiệm. API và luật gate có thể thay đổi giữa các phiên bản.
+
+Agent team theo white paper AWS AI-DLC.
 Phân cấp **Intent → Unit → Bolt → Task** · 3 pha Inception/Construction/Operations ·
 gates A–G · Control Tower · override per project · learning loop qua retro.
 

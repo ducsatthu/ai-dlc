@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-Repo **plugin `ai-dlc`** (kiêm marketplace — 1 repo duy nhất): đóng gói phương pháp **AI-DLC** (AI-Driven Development Lifecycle, theo white paper AWS — bản dịch nội bộ Mynavi TechTus Vietnam) thành Claude Code plugin cài được, có Control Tower, override per project và learning loop qua retro.
+Repo **plugin `ai-dlc`** (kiêm marketplace — 1 repo duy nhất): đóng gói phương pháp **AI-DLC** (AI-Driven Development Lifecycle, theo white paper AWS) thành Claude Code plugin cài được, có Control Tower, override per project và learning loop qua retro. **Status: EXPERIMENTAL.**
 
 - **Tài liệu chuẩn (SSOT) của phương pháp**: `docs/whitepaper-ai-dlc-vi.md` — mọi mâu thuẫn giữa tài liệu giải quyết theo file này.
 - **Phân cấp**: Project → Intent → Unit → Bolt → Task. Một Unit chạy qua một hoặc nhiều Bolt (song song/tuần tự); mỗi Bolt: Domain Design → Logical Design + ADR → Code + Unit Test.

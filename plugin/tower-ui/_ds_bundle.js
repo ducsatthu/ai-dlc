@@ -4278,7 +4278,7 @@ try { (() => {
         textTransform: 'uppercase',
         color: 'var(--muted)'
       }
-    }, "AI-DLC \xB7 Engineering process \xB7 TechTus"), /*#__PURE__*/React.createElement(StatusChip, {
+    }, "AI-DLC \xB7 Engineering process"), /*#__PURE__*/React.createElement(StatusChip, {
       tone: "gate"
     }, "B\u1EA2N THI\u1EBET K\u1EBE v3 \u2014 CH\u1EDC DUY\u1EC6T")), /*#__PURE__*/React.createElement("h1", {
       style: {
