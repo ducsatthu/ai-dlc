@@ -56,6 +56,14 @@ if os.path.abspath(ROOT) != os.path.abspath(ASKED):
 A = os.path.join(ROOT, ".ai-dlc")
 CM = os.path.join(A, "context-memory")
 UI_SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "tower-ui")
+# Version thật của gói đang chạy — đọc từ plugin.json cạnh script, không hardcode
+# (bug tới 6.1.0: chuỗi "5.0.0" nằm chết trong code, tower khai sai version qua hai bản major).
+try:
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..",
+                           ".claude-plugin", "plugin.json"), encoding="utf-8") as _pf:
+        PLUGIN_VERSION = json.load(_pf).get("version", "?")
+except Exception:  # noqa: BLE001
+    PLUGIN_VERSION = "?"
 OUT = os.path.join(A, "tower")
 
 MAX_DOC_BYTES = 400_000  # trần an toàn cho một tài liệu nhúng vào data.js
@@ -1846,7 +1854,7 @@ first = intents[0]["id"] if intents else None
 data = {
     "inboxPending": inbox_pending,
     "project": {"name": os.path.basename(ROOT), "root": ROOT,
-                "generated": datetime.datetime.now().strftime("%d/%m %H:%M"), "plugin": "5.0.0"},
+                "generated": datetime.datetime.now().strftime("%d/%m %H:%M"), "plugin": PLUGIN_VERSION},
     "intents": intents, "unitsByIntent": units_by_intent, "gates": gates, "docs": docs,
     "sourcesByIntent": sources_by_intent, "flowByIntent": flow_by_intent,
     "metricsByIntent": metrics_by_intent,

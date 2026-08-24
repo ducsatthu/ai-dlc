@@ -1,5 +1,12 @@
 # Changelog — ai-dlc plugin
 
+## 6.1.1 (2026-08-24) — tower khai đúng version gói
+
+- `tower_generate.py` đọc version từ `.claude-plugin/plugin.json` thay vì chuỗi hardcode —
+  lộ ra khi update PILOT lên 6.1.0 mà `data.js` vẫn khai `"plugin": "5.0.0"` (nằm chết từ 5.0.0,
+  qua hai bản major không ai thấy vì không có chỗ đối chiếu). Đúng luật §4.11: số trên tower
+  phải truy được về nguồn thật.
+
 ## 6.1.0 (2026-08-22) — Tower decision-first: mở lên chỉ thấy "Cần tôi quyết", hoạt động AI vào Tra cứu
 
 **Nguồn: phản hồi trực tiếp của chủ gói trên tower 6.0.0** ("thông tin rất loạn, chưa đủ rõ để làm;
