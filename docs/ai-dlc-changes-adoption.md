@@ -3,6 +3,8 @@
 > Nguồn: AWS — AI-DLC Method Definition. Trích xuất từ slide deck `AI-DLC-changes-adoption.html` (Engineering process · 2026).
 >
 > Thông điệp chính: **AI-DLC thay đổi đơn vị công việc, không chỉ tốc độ sinh code.** So sánh với Agile / Sprint và với cách nhận một ticket lớn từ khách hàng — kèm quy trình cho dự án cần reverse engineering.
+>
+> **Cập nhật 2026-08-21 (white paper v2 — Human-Lead):** các lane "Human" trong tài liệu này được đọc lại theo v2 — con người **dẫn đội** (đặt đích, bẻ lái, phản hồi trên sản phẩm chạy được, ký Gate R), **không gác cổng** từng bước. Chỗ nào bảng dưới ghi "Human quyết định / validate / review" thì hiểu là: AI tự chốt + ghi giả định (`ASM`) và đi tiếp; người quyết khi đảo ngược đắt, khi nhìn thấy Showcase, và tại Gate R. Chi tiết: `whitepaper-ai-dlc-vi.md` §II.
 
 ## 1. Bảng so sánh: Agile / Ticket-driven / AI-DLC
 
@@ -37,20 +39,20 @@ Tóm tắt: **Sprint → Bolt · Epic → Unit of Work.** Hai hàng khác biệt
 
 **AI-DLC** — hội thoại đảo chiều giữa AI và người:
 
-| # | Bước | Lane |
-|---|---|---|
-| 1 | Business Intent | Human |
-| 2 | Phân tích intent | AI |
-| 3 | Hỏi những gì chưa rõ | AI |
-| 4 | BA / PO / Dev quyết định | Human |
-| 5 | Tạo requirements / design | AI |
-| 6 | Team validate phương án, kế hoạch thực thi; xác định goal và DoD với quality gate và security gate | Human |
-| 7 | Code + test | AI |
-| 8 | Team review output | Human |
-| 9 | Sửa theo review | AI |
-| 10 | Deploy | Human |
+| # | Bước | Lane (deck gốc) | Đọc theo v2 Human-Lead |
+|---|---|---|---|
+| 1 | Business Intent | Human | Lead đặt đích + outcome đo được + ranh đỏ |
+| 2 | Phân tích intent | AI | như cũ — ghi Mốc `CP`, đi tiếp |
+| 3 | Hỏi những gì chưa rõ | AI | **không hỏi rồi chờ**: chọn mặc định, ghi `ASM`; câu đảo đắt → Mốc chờ có hạn |
+| 4 | BA / PO / Dev quyết định | Human | Lead chỉ quyết tại Mốc chờ (đích, thứ tự Unit) hoặc khi chạm ranh đỏ |
+| 5 | Tạo requirements / design | AI | như cũ |
+| 6 | Team validate phương án, kế hoạch thực thi; xác định goal và DoD với quality gate và security gate | Human | **đội AI tự chốt** (Team Agreement, tầng review); Lead đọc Bản tin ca, bẻ lái nếu lệch |
+| 7 | Code + test | AI | như cũ |
+| 8 | Team review output | Human | **Showcase**: Lead dùng sản phẩm chạy được, phản hồi `FB` theo từng giả định |
+| 9 | Sửa theo review | AI | Bolt sửa theo FB, Showcase lại |
+| 10 | Deploy | Human | **Gate R** — chốt chặn duy nhất, Lead ký sau khi đọc đủ hồ sơ |
 
-→ **AI là execution engine. Người giữ context, trade-off và quyết định.**
+→ **AI là execution engine. Người giữ context, trade-off và quyết định** — ở v2: quyết định *ở chỗ đảo ngược đắt và ở chỗ nhìn thấy sản phẩm*, không phải ở mọi bước.
 
 ## 3. Ví dụ: cùng một yêu cầu "Foreign National Onboarding"
 
@@ -140,10 +142,10 @@ Ba lane: **Client · Delivery Team (Human tasks) · AI Agents (AI tasks)**. Stag
 
 | Stage | Client | Delivery Team | AI Agents |
 |---|---|---|---|
-| **5 · Unit Definition** | Approve scope | Validate: Unit = observable outcome | AI chia Intent thành Units theo business capability |
-| **6 · Construction** | | Dev validate từng bước | Domain Design → Logical Design → Code + Tests → Fix |
-| **7 · Acceptance** | Business acceptance / UAT → approve deploy | Internal acceptance | Acceptance Evidence: AC · tests · screenshots · limitations |
-| **8 · Release** | | Trace decision → requirement → design → code | Persist mọi artefact → **Context Memory** |
+| **5 · Unit Definition** | *(v2)* Lead chọn **thứ tự Unit / cái gì nhìn trước** tại Mốc chờ — không duyệt từng dòng | Validate: Unit = observable outcome, `releasable` | AI chia Intent thành Units theo business capability |
+| **6 · Construction** | | *(v2)* Lead đọc Bản tin ca, bẻ lái nếu cần — **không** validate từng bước | Domain Design → Logical Design → Code + Tests → Team Agreement nội bộ |
+| **7 · Acceptance** | *(v2)* **Showcase**: dùng sản phẩm chạy được, phản hồi `FB` trên từng giả định | Dựng Showcase Pack: bấm gì · nhìn gì · giả định nào đang hiện · cần quyết gì | Acceptance Evidence: AC · tests · screenshots · limitations · Sổ giả định |
+| **8 · Release** | *(v2)* **Gate R** — Lead đọc đủ hồ sơ 9 mục, tự dùng (soak), ký `release`/`hold` | Trace Intent → Unit → ASM → code | Persist mọi artefact → **Context Memory** |
 
 Ví dụ minh họa cho request "RFE/NOID cases":
 

@@ -1,6 +1,6 @@
 # UI kit — Control Tower (web app)
 
-Recreation of the five screens specified in `docs/control-tower-design-prompt.md`. Dark is the default mode (ops console); the top-right toggle switches to light. Vietnamese is the UI language; English terms — Intent, Unit, Bolt, Gate, Task, MSG, RV, DEC, LL — are kept verbatim.
+Recreation of the five screens specified in the former `docs/control-tower-design-prompt.md` (removed from the repo 2026-08-21; the gate-centric screen model is superseded by white paper v2 `docs/whitepaper-ai-dlc-vi.md` §XII — shift brief, assumption ledger, showcase feedback, Gate R). Dark is the default mode (ops console); the top-right toggle switches to light. Vietnamese is the UI language; English terms — Intent, Unit, Bolt, Gate, Task, MSG, RV, DEC, LL — are kept verbatim.
 
 | File | Screen |
 |---|---|

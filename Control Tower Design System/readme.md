@@ -10,11 +10,11 @@ Everything in this system was derived from an attached, read-only codebase mount
 
 | Source | What it gave us |
 |---|---|
-| `docs/control-tower-design-prompt.md` | The product spec: 5 screens, jobs-to-be-done, colour semantics, sample data, "ops console / air-traffic control" direction |
-| `docs/agent-team-blueprint.html` | Ground-truth CSS (the entire token set), the 17-agent roster, the workflow, and an embedded Control Tower mock |
-| `docs/simulation-phase2-pilot.html` | Ground-truth CSS (identical tokens), the dry-run walkthrough, task-board and timeline patterns, real sample data (INT-001, UOW-01..04, TSK-01..05, MSG-0058, RV-010..013, LL-002, RISK-04) |
+| `docs/control-tower-design-prompt.md` — **removed from the repo 2026-08-21** (see git history before `fc42411`) | Was the product spec: 5 screens, jobs-to-be-done, colour semantics, sample data, "ops console / air-traffic control" direction. The 5-screen, gate-centric model it described is superseded by white paper v2 (`docs/whitepaper-ai-dlc-vi.md` §XII: main screen = shift brief, assumption ledger, showcase with per-row feedback, Gate R only) |
+| `docs/archive/agent-team-blueprint-v1.html` | Ground-truth CSS (the entire token set), the 17-agent roster, the v1 workflow, and an embedded Control Tower mock |
+| `docs/archive/simulation-phase2-pilot-v1.html` | Ground-truth CSS (identical tokens), the dry-run walkthrough, task-board and timeline patterns, real sample data (INT-001, UOW-01..04, TSK-01..05, MSG-0058, RV-010..013, LL-002, RISK-04) |
 
-Product context: an outsourcing engineering organisation adopting AWS's AI-DLC method. Work flows through 8 stages (`1 Request → 2 Discovery → 3 Validation → 4 Clarify → 5 Units → 6 Construction → 7 Acceptance → 8 Release`) and **stops at 7 mandatory gates (A–G)** waiting on a human. No mechanism lets an agent pass a gate. The running example throughout the system is *PILOT Phase 2 — Release Planning + Milestone + Backlog Integration*.
+Product context: an outsourcing engineering organisation adopting AWS's AI-DLC method. Work flows through 8 stages (`1 Request → 2 Discovery → 3 Validation → 4 Clarify → 5 Units → 6 Construction → 7 Acceptance → 8 Release`). **v1 (what this design system was built against) stopped at 7 mandatory gates (A–G) waiting on a human.** White paper v2 (2026-08-21, *Human-Lead*) replaces that with three stop types — checkpoints that never wait (◇), showcases where the Lead gives feedback on a running product (◉), and a single hard gate before release plus red lines (■). Tokens and components here still apply; screen inventory should be re-derived from v2 §XII when the tower is rebuilt. The running example throughout the system is *PILOT Phase 2 — Release Planning + Milestone + Backlog Integration*.
 
 Two surfaces are represented:
 
@@ -142,5 +142,5 @@ Three things exist here that the sources do not define, each added because the s
 ### Caveats
 
 - **Fonts are system stacks.** The sources declare no `@font-face` and ship no font binaries, so none are bundled. If the organisation has real brand fonts, send the files and the stacks will be replaced.
-- The workflow SVG diagrams in `docs/agent-team-blueprint.html` were not traced pixel-for-pixel; their content is re-expressed as Mermaid on `ui_kits/engineering-docs/diagrams.html`.
+- The workflow SVG diagrams in `docs/archive/agent-team-blueprint-v1.html` were not traced pixel-for-pixel; their content is re-expressed as Mermaid on `ui_kits/engineering-docs/diagrams.html`.
 - Mermaid 11 loads from CDN (`cdn.jsdelivr.net`) on first diagram render — diagrams need network access.

@@ -1,6 +1,6 @@
 # UI kit — Engineering docs
 
-Recreation of the long-form process documents this repo publishes as standalone HTML: `docs/agent-team-blueprint.html` (v3 blueprint) and `docs/simulation-phase2-pilot.html` (dry-run walkthrough). Both share one layout, so this kit builds the blueprint and the dry-run's timeline pattern in a single page.
+Recreation of the long-form process documents this repo publishes as standalone HTML: `docs/archive/agent-team-blueprint-v1.html` (v3 blueprint) and `docs/archive/simulation-phase2-pilot-v1.html` (dry-run walkthrough) — both archived 2026-08-21, superseded by white paper v2 (`docs/whitepaper-ai-dlc-vi.md`). Both share one layout, so this kit builds the blueprint and the dry-run's timeline pattern in a single page.
 
 | File | Contents |
 |---|---|
