@@ -18,4 +18,4 @@ description: Learning loop AI-DLC — retro sau release (hoặc theo yêu cầu)
    Khoảng trống tìm ra ở đây **ghi vào LL, KHÔNG dựng bù**: hồ sơ viết ngược từ code đã chạy là mô tả code
    đội lốt quyết định thiết kế, và nó xoá luôn khả năng ai đó phát hiện vấn đề ở intent sau.
 2. Mở **Gate G**, DỪNG (trình LL + patch).
-3. Approve → DEC; apply patch vào `.ai-dlc/overrides/` (mode patch, frontmatter source: LL-NNN); tăng version + changelog governance; cập nhật OVERRIDES.md index; nhắc `/dlc-contribute` nếu lesson mang tính chuẩn chung.
+3. Approve → DEC; apply patch vào `.ai-dlc/overrides/` (mode patch, frontmatter source: LL-NNN); tăng version + changelog governance; cập nhật OVERRIDES.md index; nhắc `/ai-dlc:dlc-contribute` nếu lesson mang tính chuẩn chung.

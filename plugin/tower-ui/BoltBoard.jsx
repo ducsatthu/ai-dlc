@@ -124,7 +124,7 @@ function StepCard({ s, onDoc }) {
   );
 }
 
-function BoltBoard({ data, intentId, unitId, onOpenTask, onOpenUnit, onDoc }) {
+function BoltBoard({ data, intentId, unitId, onOpenTask, onOpenUnit, onDoc, onSelectUnit }) {
   const [view, setView] = React.useState('list');
   const units = (data.unitsByIntent || {})[intentId] || [];
   const unit = units.find(u => u.id === unitId) || null;
@@ -140,11 +140,22 @@ function BoltBoard({ data, intentId, unitId, onOpenTask, onOpenUnit, onDoc }) {
 
   return (
     <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Sidebar không còn cây Unit (6.1.0 — điều hướng chỉ tới cấp yêu cầu), nên chọn phần việc ở đây. */}
+      {units.length > 0 && (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)', marginRight: 4 }}>Phần việc</span>
+          {units.filter(u => !u.descoped).map(u => (
+            <span key={u.id} onClick={() => onSelectUnit && onSelectUnit(u.id)} style={{ cursor: 'pointer' }} title={u.id + ' · ' + u.status}>
+              <Chip tone={u.id === unitId ? 'agent' : u.status === 'done' ? 'done' : 'pending'}>{u.name}</Chip>
+            </span>
+          ))}
+        </div>
+      )}
       {!unit && (
         <div style={{ border: '1px solid var(--line)', borderRadius: 'var(--radius-md)', padding: '12px 14px', fontSize: 13.5, color: 'var(--muted)' }}>
           {units.length
-            ? 'Chưa chọn Unit nào — chọn một Unit ở cây bên trái.'
-            : intentId + ' chưa được phân rã thành Unit — intent còn ở pha Inception.'}
+            ? 'Chưa chọn phần việc nào — chọn ở hàng trên.'
+            : 'Yêu cầu này chưa được chia thành phần việc — còn ở bước làm rõ yêu cầu.'}
         </div>
       )}
 
@@ -204,7 +215,7 @@ function BoltBoard({ data, intentId, unitId, onOpenTask, onOpenUnit, onDoc }) {
                       <strong> chưa lập file task</strong>, không phải vì chưa ai làm gì —
                       {unit.status === 'done'
                         ? ' unit đã đóng, nhiều khả năng nó chạy trước khi có luật ghi task xuống file.'
-                        : ' /dlc-bolt sinh file này khi bolt bắt đầu.'}
+                        : ' /ai-dlc:dlc-bolt sinh file này khi bolt bắt đầu.'}
                     </React.Fragment>
                   : 'Chưa có bolt thì cũng chưa có task board — task sinh ra bên trong bolt (chặng 5/6).'}
               </div>

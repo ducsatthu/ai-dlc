@@ -1,5 +1,64 @@
 # Changelog — ai-dlc plugin
 
+## 6.1.0 (2026-08-22) — Tower decision-first: mở lên chỉ thấy "Cần tôi quyết", hoạt động AI vào Tra cứu
+
+**Nguồn: phản hồi trực tiếp của chủ gói trên tower 6.0.0** ("thông tin rất loạn, chưa đủ rõ để làm;
+sidebar loạn, chưa gần gũi với người dùng") — không phải LL qua Gate G. Spec:
+`docs/control-tower-lead-view.md`; nguyên tắc: white paper v2 §VII.4. **Không đổi luật gate** — đây là
+bước đi được trước khi chốt phương án 7.0.0 (`docs/plugin-transition-plan.md`). Chỉ đổi UI (`tower-ui/`),
+generator không đổi.
+
+### Màn mặc định mới: Cần tôi quyết (`LeadInbox.jsx`)
+- Chỉ thẻ cần NGƯỜI hành động, thứ tự: ký phát hành (Gate F) → đang đứng (escalation mức
+  high/medium hoặc chạm phạm vi) → gate A/B/C/D/G → xem thử (Gate E) → **câu hỏi đang chặn** (từng thẻ)
+  → phát hiện mức low chưa ai nhận → câu hỏi không chặn (**gom một thẻ mỗi yêu cầu**). Tối đa 7 thẻ,
+  còn lại "và N việc khác ▸".
+- Mỗi thẻ: câu hỏi một dòng bằng lời (Gate A–G đọc lại: "Đích của yêu cầu này đúng chưa?"…) · **"Nếu
+  bạn im lặng"** (6.x: "đội đang đứng"; câu hỏi: cột *nếu im lặng* của §4.10) · phương án + "đội đề xuất"
+  từ decision brief · nút quyết ngay trên thẻ · *Xem thêm ▸* mở đúng một tài liệu.
+- Trống ⇒ một dòng "Không có gì cần bạn. Đội đang làm việc." — không hiện gì khác.
+- Ca đối chứng lúc viết: PILOT có 0 gate mở · 12 escalation mở · 38 câu hỏi mở (5 chặn) ⇒ 19 thẻ thay vì
+  50; thẻ đầu tiên là việc đứng, không phải panel agent.
+
+### Bản tin hôm nay (`Brief.jsx`) — tầng 1
+- Một trang bằng lời: đã làm · sẵn để bạn xem · cần bạn · đang đứng · sức khoẻ đội (một dòng, link
+  sang Đội AI). Không bảng, không mã.
+
+### Sidebar viết lại (`Shell.jsx`)
+- Ba khối: *Cần tôi quyết* (badge) · *Bản tin hôm nay* · **Việc đang làm** = tên yêu cầu + một dòng
+  trạng thái bằng lời ("đang xây 1/30 · 1 chờ bạn"), tối đa 5, đã xong gấp lại.
+- **Gỡ**: header `AI-DLC · 18 agents · gates A–G`, cây `Intent → Unit → Bolt`, chấm màu, đuôi `gate E`/`△`,
+  `+N unit ngoài phạm vi`, `_trash`, chân `supervisor · Human`. Rộng 268 → 220.
+- **Tra cứu ▾** (gấp) chứa mọi màn cũ, tên Việt trước, tên cũ trong ngoặc: Phần việc & vòng xây (Bolt /
+  Task Board) · Trao đổi & soát (Comms & Reviews) · **Đội AI (Mission Control)** · Dòng chảy 3 pha · Danh
+  sách yêu cầu (Intents) · Luật & bài học (Governance & Learning). Không màn nào bị bỏ.
+- Vì sidebar không còn cây Unit, `BoltBoard` có hàng chọn phần việc ở đầu màn.
+- Tên yêu cầu cắt dấu `"` bao quanh (`plainName`) — intent.md của PILOT để nguyên ngoặc kép cả câu.
+- Thanh trên bỏ chip `N MỤC CHỜ BẠN` (badge sidebar đã là nguồn duy nhất). Màn mở mặc định là `inbox`;
+  pref cũ `mission` được đổi sang `inbox` một lần.
+
+### Trả lời ngay trên tower — không phải quay về terminal
+- Thẻ câu hỏi có **ô nhập + "Gửi câu trả lời"** (và "Dùng mặc định" khi cột *nếu im lặng* có nội dung);
+  thẻ gom câu không chặn mở từng câu để trả lời; thẻ escalation có ô **"Chỉ đạo"**.
+- `tower_serve.py` thêm `POST /answer` (token như `/decision`) → `inbox/answer-<INT>-<OQ>-<ts>.json` ·
+  `inbox/direction-<INT>-<ESC>-<ts>.json`. Server chỉ xếp hàng, **không sửa hồ sơ** — áp nguyên văn là việc
+  của orchestrator khi drain (protocol §5 có format + luật: Trạng thái `đã chốt` · bảng *Đã trả lời* ·
+  changelog · `blocking` ⇒ gỡ chặn · direction ⇒ mục *Chỉ đạo* + owner/status trong ESC).
+- Generator thêm `inboxPending` (file còn trong `inbox/`): thẻ đã gửi biến khỏi "Cần tôi quyết" và một dòng
+  "N việc bạn đã gửi đang chờ phiên Claude Code áp" thay thế — không hỏi lại, không hiện lại sau F5.
+- Hook SessionStart, `dlc-resume`, `dlc-orchestrator`, `dlc-tower` cập nhật luật drain cho ba loại file.
+
+### Sửa hướng dẫn gọi lệnh
+- Skill của plugin được Claude Code đặt tên `/<plugin>:<skill>` ⇒ lệnh thật là **`/ai-dlc:dlc-tower`**,
+  `/ai-dlc:dlc-resume`, … Dạng `/dlc-…` trong README, CLAUDE.md, MIGRATION, protocol, SKILL.md, template,
+  chuỗi in ra từ hook/script/tower UI (34 file) đã đổi sang dạng có prefix. Tên thư mục skill, tên agent
+  và path không đổi. Các entry CHANGELOG cũ giữ nguyên dạng cũ (lịch sử).
+
+### Nợ
+- Thẻ Gate E mới chỉ là "xem thử rồi ký" trên gate_doc — Showcase Pack thật (bấm gì, nhìn gì, giả định
+  nào đang hiện) là việc của 7.0.0 (§IV white paper v2). Mốc chờ (`wait_until`) chưa có ở 6.x.
+- Trả lời câu hỏi vẫn là mở file / trả lời trong phiên — tower chưa ghi `FB` (7.0.0).
+
 ## 6.0.0 (2026-08-19) — Gỡ Review Board mặc định: review theo tầng rủi ro, self-verify có bằng chứng, peer trong bolt
 
 **Nguồn: quyết định của chủ gói, KHÔNG phải LL qua Gate G** — cùng vị thế với 5.0.0, và cùng kỷ luật:

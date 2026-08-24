@@ -28,4 +28,4 @@ description: Stage 5 AI-DLC — refine Provisional Unit Map thành unit-plan.md 
    review chính là duyệt "unit nào chạy không reviewer"**, muốn nâng tầng unit nào thì request-changes đúng
    dòng đó. DỪNG.
 5. Khi approve: ghi DEC, status stage 6 (`phase: construction`), unlock các Unit được duyệt.
-   Đề xuất `/dlc-bolt UOW-NN`.
+   Đề xuất `/ai-dlc:dlc-bolt UOW-NN`.

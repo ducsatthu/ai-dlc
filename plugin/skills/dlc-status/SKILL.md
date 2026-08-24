@@ -15,4 +15,4 @@ Báo cáo gồm:
 - Inbox chưa drain (nếu có) — nhắc quyết định đã đến từ tower
 - Cảnh báo: HOF `accepted` treo lâu (phiên trước có thể chết giữa chừng), gate thiếu gate_doc
 
-Không sửa gì, không spawn agent. Muốn **vào việc** chứ không chỉ xem thì dùng `/dlc-resume`.
+Không sửa gì, không spawn agent. Muốn **vào việc** chứ không chỉ xem thì dùng `/ai-dlc:dlc-resume`.

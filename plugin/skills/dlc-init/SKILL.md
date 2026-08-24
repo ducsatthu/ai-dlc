@@ -10,4 +10,4 @@ description: Khởi tạo AI-DLC cho project hiện tại — seed .ai-dlc/ (con
 3. **Workspace Map**: scan repo (thư mục code FE/BE, wiki/docs, swagger, tests, đọc CLAUDE.md/AGENTS.md của dự án nếu có) → điền `templates/workspace-map.md` thành đề xuất → **trình user xác nhận/sửa từng mục** (mục không tồn tại để null). User mô tả thêm bằng lời → ghi vào map. Ghi file `.ai-dlc/workspace-map.md`.
 4. Gợi ý `.gitignore`: đơn giản nhất `.ai-dlc/`; hoặc commit chọn lọc (giữ overrides/ + governance/ + decisions + lessons, ignore tower/ + comms/).
 5. Ghi 1 dòng vào `.ai-dlc/context-memory/governance/changelog.md`: init bởi plugin version nào, ngày nào.
-6. Kết thúc: in hướng dẫn bước tiếp theo (`/dlc-intent "<yêu cầu>"`), và nhắc rằng phiên sau vào lại dự án bằng `/dlc-resume` (không phải đọc lại từ đầu).
+6. Kết thúc: in hướng dẫn bước tiếp theo (`/ai-dlc:dlc-intent "<yêu cầu>"`), và nhắc rằng phiên sau vào lại dự án bằng `/ai-dlc:dlc-resume` (không phải đọc lại từ đầu).

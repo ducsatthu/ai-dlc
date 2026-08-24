@@ -4,7 +4,7 @@ description: Bắt đầu một Intent AI-DLC mới từ yêu cầu của user (
 ---
 
 Đọc `${CLAUDE_PLUGIN_ROOT}/references/protocol.md` (§1.1, §2.1, §4.8, §4.9). Yêu cầu `.ai-dlc/` đã init
-(chưa có → chạy `/dlc-init` trước).
+(chưa có → chạy `/ai-dlc:dlc-init` trước).
 
 Đầu ra của stage 1 là **`intent-plan.md`** — tài liệu markdown tự đủ, được Control Tower render toàn văn
 để người duyệt đọc trước khi bấm Approve. Không có tài liệu này thì không có Gate A.

@@ -1,7 +1,7 @@
 ---
 name: dor
 version: 3
-updated_by: /dlc-init (seed mặc định — duyệt lại tại Gate D đầu tiên)
+updated_by: /ai-dlc:dlc-init (seed mặc định — duyệt lại tại Gate D đầu tiên)
 ---
 # Definition of Ready · v3 — Unit đủ điều kiện vào Bolt khi:
 - [ ] AC đo được, trace về intent

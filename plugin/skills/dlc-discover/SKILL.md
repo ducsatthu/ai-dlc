@@ -15,4 +15,4 @@ description: Stage 2 AI-DLC — Context Discovery sau khi Gate A approve. Đọc
    cần gì để đóng (protocol §4.8).
 4. Cập nhật `status.md` (stage 2 → 3), chạy `tower_generate.py`. Green-field thuần: ghi as-is tối giản
    (repo trống/chưa liên quan) — nhưng ledger vẫn phải đóng đủ dòng cho các nguồn đã lên kế hoạch.
-5. Đề xuất bước kế: `/dlc-validate`.
+5. Đề xuất bước kế: `/ai-dlc:dlc-validate`.

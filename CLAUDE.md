@@ -6,11 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Repo **plugin `ai-dlc`** (kiêm marketplace — 1 repo duy nhất): đóng gói phương pháp **AI-DLC** (AI-Driven Development Lifecycle, theo white paper AWS) thành Claude Code plugin cài được, có Control Tower, override per project và learning loop qua retro. **Status: EXPERIMENTAL.**
 
-- **Tài liệu chuẩn (SSOT) của phương pháp**: `docs/whitepaper-ai-dlc-vi.md` — mọi mâu thuẫn giữa tài liệu giải quyết theo file này.
+- **Tài liệu chuẩn (SSOT) của phương pháp**: `docs/whitepaper-ai-dlc-vi.md` — **v2 Human-Lead (2026-08-21)**: con người là Lead dẫn đội, không gác cổng. Bảy gate A–G được thay bằng ba loại điểm dừng (Mốc `CP` không chờ · Điểm nhìn/Showcase `SC` phản hồi trên sản phẩm chạy được · Chốt chặn = Gate R + Ranh đỏ), Sổ giả định `ASM` thay open questions chặn, Bẻ lái `STR` mọi lúc. Mọi mâu thuẫn giữa tài liệu giải quyết theo file này. **Gói 6.0.0 vẫn chạy luật v1** cho tới 7.0.0 — lộ trình và phương án chọn ở `docs/plugin-transition-plan.md`; bản v1 lưu `docs/archive/`. Các dòng dưới đây mô tả luật gói **đang chạy** (v1/6.0.0).
 - **Phân cấp**: Project → Intent → Unit → Bolt → Task. Một Unit chạy qua một hoặc nhiều Bolt (song song/tuần tự); mỗi Bolt: Domain Design → Logical Design + ADR → Code + Unit Test.
 - **Nguyên tắc**: AI đề xuất trước — con người xác nhận trước khi đi tiếp. Gates A–G, không agent nào được vượt.
-- **Handoff (§9)**: mọi lần spawn agent phải có `context-memory/handoffs/HOF-NNNN.md`; prompt spawn chỉ trỏ tới file. Agent nhận việc phải đặt `status: accepted` ngay và cập nhật `heartbeat`/`progress` ở mỗi mốc (§9.4) — không làm thì Control Tower mù. `session/board.md` sinh ra từ `handoffs/` — không sửa tay. Vào lại dự án bằng `/dlc-resume`.
-- **Tower LIVE**: `/dlc-tower serve` tự sinh lại khi `.ai-dlc/` đổi, UI poll `/state` mỗi 5s; panel *Hoạt động gần đây* quét mtime nên vẫn thấy agent kể cả khi nó quên khai báo HOF.
+- **Handoff (§9)**: mọi lần spawn agent phải có `context-memory/handoffs/HOF-NNNN.md`; prompt spawn chỉ trỏ tới file. Agent nhận việc phải đặt `status: accepted` ngay và cập nhật `heartbeat`/`progress` ở mỗi mốc (§9.4) — không làm thì Control Tower mù. `session/board.md` sinh ra từ `handoffs/` — không sửa tay. Vào lại dự án bằng `/ai-dlc:dlc-resume`.
+- **Tower LIVE**: `/ai-dlc:dlc-tower serve` tự sinh lại khi `.ai-dlc/` đổi, UI poll `/state` mỗi 5s; panel *Hoạt động gần đây* quét mtime nên vẫn thấy agent kể cả khi nó quên khai báo HOF. **6.1.0 decision-first** (`docs/control-tower-lead-view.md`): màn mặc định *Cần tôi quyết* chỉ chứa thẻ cần người hành động; *Bản tin hôm nay* một trang; mọi panel agent/HOF/feed/KPI nằm trong *Tra cứu ▾* (Mission Control cũ = *Đội AI*). Khi thêm panel mới cho tower: **không đặt lên tầng 0**.
 - **Ngân sách context (§10)**: đọc frontmatter trước, tra qua `session/INDEX.md`, mở đúng mục — không nạp toàn văn intent-plan/unit-plan/as-is.
 - **Ba luật v2 (chống sai từ gốc)**: stage 1 sinh `intent-plan.md` (Intent + Source Reading Plan + Provisional Unit Map, duyệt toàn văn tại Gate A) · **No-unread-source** (§4.8: mọi nguồn phải có trạng thái cuối + evidence trong `source-ledger.md`; còn `planned` là chặn Gate B/D) · **Unit = một phiên · tự ra được sản phẩm** (§4.9 **v5** — trần 5h ĐÃ BỎ ở 5.0.0: cắt theo `releasable` + `session_fit` có con số, không theo đồng hồ; `estimate_hours` vẫn cần breakdown nhưng không còn ngưỡng; trần giờ thành núm dự án `governance/sizing.md`. Mỗi Unit vẫn đủ User Story · NFR · Rủi ro). Gate duyệt bằng tài liệu markdown đọc toàn văn trên Control Tower — approve mù bị chặn ở cả UI lẫn server.
 - **Open questions tách theo người trả lời (§4.10, v3)**: `open-questions-business.md` (gate_doc của C, viết bằng lời, cấm thuật ngữ code) và `open-questions-tech.md` (câu `CHẶN UOW-NN` chặn Gate D). Mỗi câu: một quyết định · một người cụ thể · phương án chọn sẵn kèm giá · mặc định nếu im lặng · **dòng "đã soát nguồn nào mà không thấy đáp án"** (§4.10.9 — thiếu là chưa đủ điều kiện gửi). Quyết định chạm cả hai phía → cặp mã `OQB-NN` ↔ `OQT-NN`.
@@ -27,15 +27,15 @@ Repo **plugin `ai-dlc`** (kiêm marketplace — 1 repo duy nhất): đóng gói 
 | `.claude-plugin/marketplace.json` | Marketplace trỏ `./plugin` |
 | `plugin/` | Gói chính: 16 agents (`agents/`), 16 skills `dlc-*` (`skills/`), 8 checklists có version (`skills/checklists/`), templates, hooks (SessionStart + PreToolUse gate guard), scripts (`tower_generate` · `tower_serve` · `session_brief`), `MIGRATION.md` |
 | `plugin/references/protocol.md` | **Giao thức chung — mọi agent/skill tuân theo** (gates, layout `.ai-dlc/`, format MSG/RV/DEC/LL, binding rules, model tiers) |
-| `docs/` | White paper, blueprint HTML, plugin plan, dry-run PILOT, design prompt Control Tower |
+| `docs/` | `whitepaper-ai-dlc-vi.md` (SSOT v2 Human-Lead) · `plugin-transition-plan.md` (6.0.0 → 7.0.0, chờ chọn phương án) · `control-tower-lead-view.md` (spec tower decision-first: màn mặc định chỉ "Cần tôi quyết", hoạt động AI vào Tra cứu ẩn) · `ai-dlc-changes-adoption.md` · `archive/` (white paper v1, plugin plan v1, blueprint + dry-run HTML v1 — không còn là chuẩn). Design prompt Control Tower đã gỡ (2026-08-21) |
 
 ## Commands (khi plugin đã cài)
 
 ```
 claude plugin marketplace add <path-repo-này>   # hoặc org/ai-dlc trên GitHub
 claude plugin install ai-dlc@ai-dlc
-/dlc-init → /dlc-intent "..." → /dlc-discover → /dlc-validate → /dlc-units → /dlc-bolt → /dlc-accept → /dlc-retro
-/dlc-resume (vào lại dự án ở phiên mới) · /dlc-revise (khi tower gửi "yêu cầu chỉnh sửa") · /dlc-status · /dlc-tower [serve] · /dlc-map · /dlc-tasks · /dlc-doctor · /dlc-contribute
+/ai-dlc:dlc-init → /ai-dlc:dlc-intent "..." → /ai-dlc:dlc-discover → /ai-dlc:dlc-validate → /ai-dlc:dlc-units → /ai-dlc:dlc-bolt → /ai-dlc:dlc-accept → /ai-dlc:dlc-retro
+/ai-dlc:dlc-resume (vào lại dự án ở phiên mới) · /ai-dlc:dlc-revise (khi tower gửi "yêu cầu chỉnh sửa") · /ai-dlc:dlc-status · /ai-dlc:dlc-tower [serve] · /ai-dlc:dlc-map · /ai-dlc:dlc-tasks · /ai-dlc:dlc-doctor · /ai-dlc:dlc-contribute
 ```
 
 Test scripts: `python3 -m py_compile plugin/scripts/*.py plugin/hooks/*.py` · `bash -n plugin/hooks/session_start.sh`.

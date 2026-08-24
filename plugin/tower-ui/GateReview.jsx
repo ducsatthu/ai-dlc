@@ -167,7 +167,7 @@ function GateReview({ gate, doc, revisions, onClose, onDecide }) {
                   {blockers.map((b, i) => <li key={i}>{b}</li>)}
                 </ul>
                 <div style={{ marginTop: 8, fontSize: 12.5, color: 'var(--muted)' }}>
-                  Sửa trong phiên Claude Code rồi chạy lại <code>/dlc-tower</code>; hoặc dùng
+                  Sửa trong phiên Claude Code rồi chạy lại <code>/ai-dlc:dlc-tower</code>; hoặc dùng
                   <b> Yêu cầu chỉnh sửa</b> ở dưới để gửi đúng yêu cầu này về cho agent.
                 </div>
               </Note>

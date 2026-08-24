@@ -2,174 +2,124 @@
 const NS = window.ControlTowerDesignSystem_68131c;
 const { StatusChip, IdCode } = NS;
 
+/* Điều hướng của LEAD, không phải của phương pháp (docs/control-tower-lead-view.md §3):
+   tên thay mã · chỉ tới cấp yêu cầu (Intent) · trạng thái bằng lời · mọi màn kỹ thuật gấp
+   trong "Tra cứu". Tên tiếng Việt trước, tên cũ (6.0.0) trong ngoặc để người quen không lạc. */
 const NAV = [
-  { key: 'mission', label: 'Mission Control', mark: '◇' },
-  { key: 'flow', label: 'Dòng chảy 3 pha', mark: '≡' },
-  { key: 'intents', label: 'Intents', mark: '▤' },
-  { key: 'intent', label: 'Intent Detail', mark: '·' },
-  { key: 'bolt', label: 'Bolt / Task Board', mark: '▦' },
-  { key: 'comms', label: 'Comms & Reviews', mark: '→' },
-  { key: 'gov', label: 'Governance & Learning', mark: '△' }
+  { key: 'inbox', label: 'Cần tôi quyết' },
+  { key: 'brief', label: 'Bản tin hôm nay' },
+  { key: 'bolt', label: 'Phần việc & vòng xây', old: 'Bolt / Task Board' },
+  { key: 'comms', label: 'Trao đổi & soát', old: 'Comms & Reviews' },
+  { key: 'mission', label: 'Đội AI', old: 'Mission Control' },
+  { key: 'flow', label: 'Dòng chảy 3 pha' },
+  { key: 'intents', label: 'Danh sách yêu cầu', old: 'Intents' },
+  { key: 'gov', label: 'Luật & bài học', old: 'Governance & Learning' }
 ];
+const LOOKUP = NAV.slice(2);
 
-/* Sidebar = cây Intent → Unit → Bolt (Control Tower Design System, variant C).
-   Cây phản ánh đúng phân cấp của phương pháp, nên vị trí trong cây trả lời được
-   "tôi đang ở đâu" mà không cần đọc breadcrumb. Màu chấm theo semantic DS:
-   xanh lá = xong · hổ phách = đang trong bolt · đỏ = chặn · xám = chưa qua gate. */
 const MICRO = { fontFamily: 'var(--mono)', fontSize: 9.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--muted)' };
-const UNIT_DOT = {
-  done: 'var(--ok)', 'in-bolt': 'var(--accent)', blocked: 'var(--danger)',
-  'pending-gate': 'var(--line)', descoped: 'var(--line)'
-};
-const unitsOf = (data, id) => (data.unitsByIntent || {})[id] || [];
+/* Tên yêu cầu lấy từ title trong intent.md — có dự án để nguyên dấu ngoặc kép quanh cả câu. */
+const plainName = s => String(s || '').trim().replace(/^["“”']+|["“”']+$/g, '').trim();
 
-function Leaf({ depth, caret, dot, id, name, on, dim, onClick, onCaret, tail, title }) {
+/* Một dòng trạng thái bằng lời cho mỗi yêu cầu — tối đa hai ý. Màu chỉ phụ hoạ chữ. */
+function intentSummary(i) {
+  const [live, done] = i.units || [0, 0];
+  let s;
+  if (i.stage >= 8 && live > 0 && done >= live) s = { text: 'đã xong · ' + done + '/' + live, done: true };
+  else if (i.phase === 'inception') s = { text: 'đang làm rõ yêu cầu' };
+  else if (i.phase === 'construction') s = { text: 'đang xây ' + done + '/' + live };
+  else s = { text: 'đang nghiệm thu ' + done + '/' + live };
+  return s;
+}
+
+function NavItem({ on, onClick, children, badge, indent, muted }) {
   return (
-    <div title={title} style={{
-      display: 'flex', alignItems: 'center', gap: 4, padding: '0 6px 0 ' + (6 + depth * 13) + 'px',
-      height: 24, borderRadius: 'var(--radius-sm)',
-      background: on ? 'var(--accent-bg)' : 'transparent',
-      boxShadow: on ? 'inset 2px 0 0 var(--accent)' : 'none'
+    <button onClick={onClick} style={{
+      display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left',
+      padding: '7px 10px', paddingLeft: indent ? 22 : 10, borderRadius: 'var(--radius-sm)', cursor: 'pointer',
+      border: '1px solid ' + (on ? 'var(--line)' : 'transparent'),
+      background: on ? 'var(--surface-2)' : 'transparent',
+      color: on ? 'var(--ink)' : muted ? 'var(--muted)' : 'var(--ink)', fontSize: indent ? 13 : 13.5
     }}>
-      {caret ? (
-        <button onClick={onCaret} style={{ width: 12, flex: 'none', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontFamily: 'var(--mono)', fontSize: 9, padding: 0 }}>{caret}</button>
-      ) : <span style={{ width: 12, flex: 'none' }} />}
-      {dot && <span style={{ width: 6, height: 6, borderRadius: 999, background: dot, flex: 'none' }} />}
-      <button onClick={onClick} style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'baseline', gap: 6, background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}>
-        <span style={{ fontFamily: 'var(--mono)', fontSize: 11, flex: 'none', color: on ? 'var(--accent)' : dim ? 'var(--muted)' : 'var(--ink)' }}>{id}</span>
-        <span style={{ fontSize: 11.5, color: 'var(--muted)', opacity: on ? 1 : 0.85, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</span>
-      </button>
-      {tail}
-    </div>
+      <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{children}</span>
+      {badge}
+    </button>
   );
 }
 
-function Sidebar({ screen, setScreen, gateCount, project, data, intentId, setIntentId, unitId, setUnitId, expanded, setExpanded }) {
+function Sidebar({ screen, setScreen, inboxCount, project, data, intentId, onOpenIntent, lookupOpen, setLookupOpen }) {
   const intents = data.intents || [];
-  const isOpen = id => (expanded || []).includes(id);
-  const toggle = id => setExpanded(e => (e.includes(id) ? e.filter(x => x !== id) : e.concat(id)));
-  const openIntent = id => {
-    setIntentId(id);
-    const u = unitsOf(data, id);
-    if (!u.some(x => x.id === unitId)) setUnitId(u.length ? u[0].id : null);
-    setExpanded(e => (e.includes(id) ? e : e.concat(id)));
-    setScreen('intent');
-  };
-  const flat = (key, mark, label, badge) => {
-    const on = screen === key;
+  const [showDone, setShowDone] = React.useState(false);
+  const active = intents.filter(i => !intentSummary(i).done);
+  const finished = intents.filter(i => intentSummary(i).done);
+  const onLookup = LOOKUP.some(l => l.key === screen);
+  const badge = inboxCount > 0 ? (
+    <span style={{ fontFamily: 'var(--mono)', fontSize: 10.5, color: 'var(--accent)', border: '1px solid var(--accent)', background: 'var(--accent-bg)', borderRadius: 999, padding: '0 6px' }}>{inboxCount}</span>
+  ) : null;
+
+  const IntentRow = ({ i }) => {
+    const s = intentSummary(i);
+    const on = (screen === 'intent' || screen === 'flow' || screen === 'bolt') && i.id === intentId;
     return (
-      <button key={key} onClick={() => setScreen(key)} style={{
-        display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left',
+      <button onClick={() => onOpenIntent(i.id)} title={i.id} style={{
+        display: 'flex', flexDirection: 'column', gap: 2, width: '100%', textAlign: 'left',
         padding: '7px 10px', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
         border: '1px solid ' + (on ? 'var(--line)' : 'transparent'),
-        background: on ? 'var(--surface-2)' : 'transparent',
-        color: on ? 'var(--ink)' : 'var(--muted)', fontSize: 13.5
+        background: on ? 'var(--surface-2)' : 'transparent'
       }}>
-        <span style={{ fontFamily: 'var(--mono)', fontSize: 12, width: 12, color: on ? 'var(--accent)' : 'var(--muted)' }}>{mark}</span>
-        <span style={{ flex: 1 }}>{label}</span>{badge}
+        <span style={{ fontSize: 13.5, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{plainName(i.name)}</span>
+        <span style={{ fontSize: 11, color: s.done ? 'var(--ok)' : 'var(--muted)' }}>
+          {s.text}{i.gate && !s.done ? <span style={{ color: 'var(--accent)' }}> · 1 chờ bạn</span> : null}
+        </span>
       </button>
     );
   };
+
   return (
     <nav style={{
-      width: 268, flex: 'none', borderRight: '1px solid var(--line)', background: 'var(--surface)',
-      display: 'flex', flexDirection: 'column', padding: '16px 0',
-      /* cuộn DỌC thôi: một chuỗi dài trong dữ liệu không được phép đẩy cây điều hướng ra ngoài */
-      overflowY: 'auto', overflowX: 'hidden'
+      width: 220, flex: 'none', borderRight: '1px solid var(--line)', background: 'var(--surface)',
+      display: 'flex', flexDirection: 'column', padding: '16px 0', overflowY: 'auto', overflowX: 'hidden'
     }}>
-      <div style={{ padding: '0 18px 14px', borderBottom: '1px solid var(--line)' }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-          <span style={{ color: 'var(--accent)', fontFamily: 'var(--mono)' }}>◇</span>
-          <span style={{ fontSize: 17, fontWeight: 750, letterSpacing: '-0.02em' }}>Control Tower</span>
-        </div>
-        <div style={{ ...MICRO, fontSize: 10.5, marginTop: 4 }}>AI-DLC · 18 agents · gates A–G</div>
+      <div style={{ padding: '0 18px 12px' }}>
+        <div style={{ fontSize: 16, fontWeight: 750, letterSpacing: '-0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+          title={project && project.root}>{(project && project.name) || 'Dự án'}</div>
       </div>
 
-      <div style={{ padding: '10px 8px 8px', display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {flat('mission', '◇', 'Mission Control', gateCount > 0 ? (
-          <span style={{ fontFamily: 'var(--mono)', fontSize: 10.5, color: 'var(--accent)', border: '1px solid var(--accent)', background: 'var(--accent-bg)', borderRadius: 999, padding: '0 6px' }}>{gateCount}</span>
-        ) : null)}
-        {flat('flow', '≡', 'Dòng chảy 3 pha')}
+      <div style={{ padding: '0 8px 10px', display: 'flex', flexDirection: 'column', gap: 2, borderBottom: '1px solid var(--line)' }}>
+        <NavItem on={screen === 'inbox'} onClick={() => setScreen('inbox')} badge={badge}>▸ Cần tôi quyết</NavItem>
+        <NavItem on={screen === 'brief'} onClick={() => setScreen('brief')} muted>Bản tin hôm nay</NavItem>
       </div>
 
-      <div style={{ padding: '8px 6px 10px', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 10px 8px' }}>
-          <span style={MICRO}>Intent → Unit → Bolt</span>
-          <button onClick={() => setScreen('intents')} style={{ marginLeft: 'auto', background: 'transparent', border: 'none', cursor: 'pointer', ...MICRO, fontSize: 9, color: screen === 'intents' ? 'var(--accent)' : 'var(--muted)' }}>bảng {intents.length}</button>
-        </div>
-        {intents.length === 0 && (
-          <div style={{ padding: '2px 12px 4px', fontSize: 11.5, color: 'var(--muted)' }}>
-            Chưa có intent nào — chạy <code style={{ fontFamily: 'var(--mono)' }}>/dlc-intent</code>.
+      <div style={{ padding: '10px 8px', borderBottom: '1px solid var(--line)' }}>
+        <div style={{ ...MICRO, padding: '0 10px 6px' }}>Việc đang làm</div>
+        {active.length === 0 && finished.length === 0 && (
+          <div style={{ padding: '2px 10px 4px', fontSize: 12, color: 'var(--muted)' }}>
+            Chưa có yêu cầu nào — chạy <code style={{ fontFamily: 'var(--mono)' }}>/ai-dlc:dlc-intent</code>.
           </div>
         )}
-        {intents.map(i => {
-          const units = unitsOf(data, i.id);
-          const live = units.filter(u => !u.descoped);
-          const out = units.length - live.length;
-          const open = isOpen(i.id);
-          const sel = i.id === intentId;
-          return (
-            <div key={i.id}>
-              <Leaf depth={0} caret={units.length ? (open ? '▾' : '▸') : '·'} onCaret={() => toggle(i.id)}
-                dot={i.gate ? 'var(--accent)' : 'var(--line)'} id={i.id} name={i.name}
-                title={i.gate ? 'Gate ' + i.gate + ' đang chờ bạn' : 'stage ' + i.stage + ' · ' + i.phase}
-                on={sel && (screen === 'intent' || screen === 'flow')} dim={!sel}
-                onClick={() => openIntent(i.id)}
-                tail={i.gate ? (
-                  /* Cắt cứng: dữ liệu bẩn (gate_open ghi lạc cả một câu) từng làm nhãn này dài 336px
-                     và đẩy vỡ cả sidebar. Nhãn điều hướng không bao giờ được co giãn theo nội dung. */
-                  <span style={{ ...MICRO, fontSize: 9, color: 'var(--accent)', flex: 'none', maxWidth: 54, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    gate {String(i.gate).slice(0, 12)}
-                  </span>
-                ) : null} />
-              {open && (live.length ? live.map(u => {
-                const uSel = sel && unitId === u.id;
-                const go = () => { setIntentId(i.id); setUnitId(u.id); setScreen('bolt'); };
-                return (
-                  <div key={u.id}>
-                    <Leaf depth={1} dot={UNIT_DOT[u.status] || 'var(--line)'} id={u.id} name={u.name}
-                      title={u.id + ' · ' + u.status + (u.rawStatus ? ' (spec.md ghi: ' + u.rawStatus + ')' : '')}
-                      on={uSel && screen === 'bolt'} dim={!uSel} onClick={go}
-                      tail={u.problems && u.problems.length
-                        ? <span title={u.problems.join(' · ')} style={{ color: 'var(--danger)', fontFamily: 'var(--mono)', fontSize: 10, flex: 'none' }}>△</span>
-                        : null} />
-                    {uSel && ((u.boltDetails || []).length
-                      ? u.boltDetails.map(b => (
-                        <Leaf key={b.path} depth={2} id={b.id}
-                          name={b.stepsDone + '/' + b.stepsTotal + ' chặng · ' + b.tasks.length + ' task'}
-                          title={b.path + ' — thiếu: ' + (b.steps.filter(s => !s.exists).map(s => s.label).join(', ') || 'không thiếu chặng nào')}
-                          on={false} dim onClick={go} />
-                      ))
-                      : <Leaf depth={2} id="—" name="chưa có bolt nào" on={false} dim onClick={go} />)}
-                  </div>
-                );
-              }) : (
-                <div style={{ padding: '2px 6px 2px 32px', fontSize: 11, color: 'var(--muted)', opacity: 0.8 }}>chưa phân rã thành Unit</div>
-              ))}
-              {open && out > 0 && (
-                <div style={{ padding: '2px 6px 2px 32px', ...MICRO, fontSize: 9 }}>+{out} unit ngoài phạm vi</div>
-              )}
-              {open && (i.obsolete || []).length > 0 && (
-                <div title={'units/_trash/: ' + i.obsolete.join(', ') + ' — giữ làm bằng chứng cho retro, không tính vào thống kê'}
-                  style={{ padding: '2px 6px 2px 32px', ...MICRO, fontSize: 9 }}>+{i.obsolete.length} unit lỗi thời (_trash)</div>
-              )}
-            </div>
-          );
-        })}
+        {active.slice(0, 5).map(i => <IntentRow key={i.id} i={i} />)}
+        {active.length > 5 && <div style={{ padding: '2px 10px', fontSize: 11, color: 'var(--muted)' }}>và {active.length - 5} yêu cầu khác — xem Danh sách yêu cầu</div>}
+        {finished.length > 0 && (
+          <button onClick={() => setShowDone(v => !v)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '6px 10px 2px', ...MICRO, fontSize: 9.5, color: 'var(--muted)' }}>
+            đã xong ({finished.length}) {showDone ? '▴' : '▸'}
+          </button>
+        )}
+        {showDone && finished.map(i => <IntentRow key={i.id} i={i} />)}
       </div>
 
       <div style={{ padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <div style={{ ...MICRO, padding: '0 10px 6px' }}>Xuyên suốt</div>
-        {flat('comms', '→', 'Comms & Reviews')}
-        {flat('gov', '△', 'Governance & Learning')}
+        <NavItem on={false} muted onClick={() => setLookupOpen(v => !v)}>
+          {(lookupOpen || onLookup) ? 'Tra cứu ▾' : 'Tra cứu ▸'}
+        </NavItem>
+        {(lookupOpen || onLookup) && LOOKUP.map(l => (
+          <NavItem key={l.key} indent muted on={screen === l.key} onClick={() => setScreen(l.key)}>
+            {l.label}{l.old ? <span style={{ fontSize: 10.5, color: 'var(--muted)', opacity: 0.7 }}> ({l.old})</span> : null}
+          </NavItem>
+        ))}
       </div>
 
-      <div style={{ marginTop: 'auto', padding: '12px 18px 0', borderTop: '1px solid var(--line)' }}>
-        <div style={{ fontFamily: 'var(--mono)', fontSize: 10.5, color: 'var(--muted)', lineHeight: 1.8 }}>
-          <div>supervisor · Human</div>
-          <div style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{(project && project.name) || '—'}</div>
-          {project && project.generated && <div style={{ opacity: 0.75 }}>cập nhật {project.generated}</div>}
-        </div>
+      <div style={{ marginTop: 'auto', padding: '12px 18px 0', borderTop: '1px solid var(--line)', fontSize: 11.5, color: 'var(--muted)' }}>
+        {project && project.generated ? 'cập nhật ' + project.generated : ''}
       </div>
     </nav>
   );
@@ -226,5 +176,5 @@ function SectionLabel({ children, style }) {
   return <div style={{ fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 8, ...style }}>{children}</div>;
 }
 
-Object.assign(window, { Sidebar, TopBar, Drawer, SectionLabel, NAV });
+Object.assign(window, { Sidebar, TopBar, Drawer, SectionLabel, NAV, plainName });
 })();

@@ -15,7 +15,7 @@ unit_max_hours: null
 ```
 
 `null` = không trần (mặc định). Đặt một con số nếu dự án này **có lý do riêng** để giới hạn — ví dụ đội
-mới, vùng code lạ, hoặc muốn ép nhịp release ngắn trong giai đoạn đầu. Khi có số, tower và `/dlc-doctor`
+mới, vùng code lạ, hoặc muốn ép nhịp release ngắn trong giai đoạn đầu. Khi có số, tower và `/ai-dlc:dlc-doctor`
 chỉ **cảnh báo** khi vượt, không chặn gate: chặn gate vẫn là hai điều kiện trên.
 
 > Đặt trần ở đây là một **quyết định có chủ**, nên ghi kèm một DEC nói vì sao và khi nào gỡ. Trần giờ vốn
@@ -24,5 +24,5 @@ chỉ **cảnh báo** khi vượt, không chặn gate: chặn gate vẫn là hai
 
 ## Đổi núm này
 
-Sửa file, ghi một DEC, rồi chạy lại `/dlc-tower`. Đang giữa một intent thì trần mới **không** áp ngược cho
+Sửa file, ghi một DEC, rồi chạy lại `/ai-dlc:dlc-tower`. Đang giữa một intent thì trần mới **không** áp ngược cho
 Unit đã qua Gate D — không dựng bù hồ sơ (protocol §4.9, mục kế hoạch cũ).

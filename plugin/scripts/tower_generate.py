@@ -49,7 +49,7 @@ def resolve_root(start):
 ROOT, ASKED = resolve_root(sys.argv[1] if len(sys.argv) > 1 else os.getcwd())
 if ROOT is None:
     sys.exit("Không tìm thấy dự án AI-DLC nào từ '%s' (thiếu `.ai-dlc/context-memory/`).\n"
-             "Không tạo gì cả — chạy `/dlc-init` nếu đây là dự án mới, hoặc truyền đúng gốc:\n"
+             "Không tạo gì cả — chạy `/ai-dlc:dlc-init` nếu đây là dự án mới, hoặc truyền đúng gốc:\n"
              "  python3 tower_generate.py <đường-dẫn-gốc-dự-án>" % ASKED)
 if os.path.abspath(ROOT) != os.path.abspath(ASKED):
     print("gốc dự án: %s (bạn đưa vào '%s')" % (ROOT, ASKED), file=sys.stderr)
@@ -1824,8 +1824,27 @@ if os.path.isdir(idir):
                       "others": max(0, len(live_cands or cands) - 1)}
         tasks = pick[2]
 
+# inbox/ — việc người đã gửi từ tower (quyết định gate · câu trả lời · chỉ đạo) mà phiên Claude Code CHƯA áp
+# (file còn nằm ngoài processed/). Tower dùng để chuyển thẻ sang "đã gửi, chờ áp" thay vì hỏi lại.
+inbox_pending = []
+_ib = os.path.join(A, "inbox")
+if os.path.isdir(_ib):
+    for _f in sorted(os.listdir(_ib)):
+        if not _f.endswith(".json"):
+            continue
+        try:
+            with open(os.path.join(_ib, _f), encoding="utf-8") as _fh:
+                _j = json.load(_fh)
+        except Exception:  # noqa: BLE001 — file hỏng vẫn phải hiện là "đang treo"
+            _j = {}
+        inbox_pending.append({"file": _f, "kind": _j.get("kind") or _f.split("-")[0],
+                              "intent": _j.get("intent", ""), "code": _j.get("code", ""),
+                              "esc": _j.get("esc", ""), "gate": _j.get("gate", ""),
+                              "at": _j.get("answered_at") or _j.get("decided_at", "")})
+
 first = intents[0]["id"] if intents else None
 data = {
+    "inboxPending": inbox_pending,
     "project": {"name": os.path.basename(ROOT), "root": ROOT,
                 "generated": datetime.datetime.now().strftime("%d/%m %H:%M"), "plugin": "5.0.0"},
     "intents": intents, "unitsByIntent": units_by_intent, "gates": gates, "docs": docs,

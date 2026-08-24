@@ -357,7 +357,7 @@ người dùng dưới dạng link 404, vì HOF đóng lại là phát hiện ch
 - Agent gặp lỗi/nguy cơ **ngoài Unit của mình** ⇒ mở một mục trong `context-memory/escalations/ESC-NNN.md`
   (frontmatter: `found_by` · `where` · `severity` · `owner: —` · `status: open`), **rồi** mới ghi vào HOF.
 - Chỉ ghi trong HOF là **chưa đủ** — HOF có vòng đời của một lượt việc, escalation sống tới khi có người nhận.
-- Control Tower hiện hàng đợi này; `status: open` không có `owner` quá 2 phiên → nhắc ở `/dlc-doctor`.
+- Control Tower hiện hàng đợi này; `status: open` không có `owner` quá 2 phiên → nhắc ở `/ai-dlc:dlc-doctor`.
 - Escalation chạm scope/business ⇒ vẫn theo §4 điểm 6 (gate động), không tự vá.
 
 ### 4.14 Unit lỗi thời vào `units/_trash/`, không xoá (v4 — LL-002 P-6)
@@ -414,7 +414,7 @@ Luật:
 1. **Khai trước, duyệt một lần.** `review:` là trường bắt buộc của `spec.md` từ v6; thiếu ⇒ chặn Gate D
    (như thiếu `releasable`). Người duyệt Gate D thấy cả cột Review trong unit-plan — muốn nâng tầng unit
    nào thì `request-changes` đúng dòng đó, một dòng là đủ.
-2. **Trigger là để đối chiếu, không phải để cảm nhận.** `/dlc-doctor` và tower grep dấu vết thật
+2. **Trigger là để đối chiếu, không phải để cảm nhận.** `/ai-dlc:dlc-doctor` và tower grep dấu vết thật
    (diff/bolt chạm pattern security, có file migration, bolt có cả FE+BE…) và so với tầng đã khai — chạm
    trigger mà khai `none` là **FIX**, không phải chuyện khẩu vị.
 3. **Đổi tầng giữa chừng có chiều.** Đang code mà phát hiện trigger (đụng auth ngoài dự kiến…) ⇒ **nâng
@@ -538,6 +538,33 @@ Inbox quyết định từ tower (`inbox/gate-INT-NNN-X-<ts>.json`):
  "previewed":true,"decided_at":"<ISO>"}
 ```
 
+Câu trả lời / chỉ đạo gửi từ tower (6.1.0 — cùng hàng đợi, cùng luật drain):
+`inbox/answer-INT-NNN-OQB-NN-<ts>.json` · `inbox/direction-INT-NNN-ESC-NNN-<ts>.json`
+```json
+{"kind":"answer","intent":"INT-001","code":"OQB-03","audience":"business","file":"open-questions-business.md",
+ "question":"<nguyên văn câu hỏi>","answer":"<nguyên văn câu trả lời>","used_default":false,"blocking":true,
+ "answered_by":"Lead (tower)","answered_at":"<ISO>"}
+{"kind":"direction","intent":"INT-001","esc":"ESC-011","title":"<tiêu đề escalation>",
+ "answer":"<nguyên văn chỉ đạo>","answered_by":"Lead (tower)","answered_at":"<ISO>"}
+```
+
+Áp khi drain (cùng lượt với quyết định gate, **trước mọi việc khác**, không hỏi lại người):
+
+- `answer` → mở đúng `file` của intent: dòng `code` trong *Bảng điều phối* đổi Trạng thái → `đã chốt`; thêm dòng
+  vào bảng *Đã trả lời* (Mã · Chốt là gì = **nguyên văn** `answer` · Ai quyết = `answered_by` · Khi nào ·
+  DEC); ghi dòng Changelog cuối file. Câu chạm scope/nghiệp vụ ⇒ ghi DEC (cột DEC trỏ tới), câu kỹ thuật
+  thường ⇒ cột DEC `—`. `blocking: true` (câu `CHẶN UOW-NN`) ⇒ gỡ chặn ngay: HOF/unit đang đứng vì câu đó
+  tiếp tục từ chính file HOF. `used_default: true` ⇒ ghi rõ "chốt theo mặc định, Lead xác nhận" — vẫn là
+  quyết định của người, không phải [ASSUMED]. **Không diễn giải lại lời người quyết**; cần làm rõ thì ghi
+  câu hỏi mới, không sửa câu trả lời.
+- `direction` → thêm mục `## Chỉ đạo · <ngày> · <answered_by>` vào `escalations/ESC-NNN.md` với nguyên văn;
+  `owner:` = người được chỉ định trong chỉ đạo (không có thì = `answered_by`); `status:` theo nội dung
+  (`owned` nếu giao việc · `resolved`/`closed` nếu chỉ đạo bỏ qua/đã xong — ghi lý do). Chỉ đạo sinh việc ⇒
+  HOF mới trỏ ESC.
+- Xong mới `mv` sang `inbox/processed/`. **File còn trong `inbox/` = chưa áp** — tower đọc chính điều này
+  để hiện "đã gửi, chờ áp" thay vì hỏi lại; drain xong mà quên move là tower hiện sai.
+- Phiên đang sống: Monitor `inbox/*.json` (skill `dlc-tower`) bắt cả answer/direction, không chỉ gate.
+
 ## 6. Phân tầng model (ai chạy bằng model nào)
 
 | Tier | Model | Agents | Lý do |
@@ -594,7 +621,7 @@ phiên cùng làm. Vì vậy:
 | `returned` | agent nhận | trả lại vì thiếu điều kiện (nêu rõ thiếu gì) — không phải thất bại, là tín hiệu |
 | `superseded` | người giao | bị thay bởi HOF khác (trỏ tới HOF mới) |
 
-Phiên chết giữa chừng → HOF vẫn nằm ở `accepted`. Phiên sau `/dlc-resume` nhìn thấy ngay "việc này đang
+Phiên chết giữa chừng → HOF vẫn nằm ở `accepted`. Phiên sau `/ai-dlc:dlc-resume` nhìn thấy ngay "việc này đang
 treo ở ai, từ lúc nào, đang chờ gì" và tiếp tục **từ chính file đó** — không mất thông tin, không hỏi lại.
 
 ### 9.2 Luật viết HOF
@@ -612,7 +639,7 @@ treo ở ai, từ lúc nào, đang chờ gì" và tiếp tục **từ chính fil
 
 ### 9.3 Bảng vị trí (station board)
 
-`session/board.md` là **bản kết xuất** từ thư mục `handoffs/` — sinh lại bởi `/dlc-resume`, `/dlc-status` và
+`session/board.md` là **bản kết xuất** từ thư mục `handoffs/` — sinh lại bởi `/ai-dlc:dlc-resume`, `/ai-dlc:dlc-status` và
 tower generator. **Không sửa tay** (sửa tay là tạo nguồn sự thật thứ hai). Mỗi dòng: vị trí (agent) · đang giữ
 HOF nào · thuộc INT/UOW/BOLT/TSK nào · từ lúc nào · đang chờ gì.
 
@@ -688,7 +715,7 @@ Chọn theo tính chất việc, không theo thói quen:
    Board nằm im trong hộp thư của `pmpo-INT003` · `pmpo2-INT003` · `qa-INT003` · `rv019` · `rv020` —
    những agent không tồn tại. Người gửi tin là đã giao việc; không ai đọc. Vì vậy: **sau khi spawn, đối
    chiếu `members` trong `~/.claude/teams/<team>/config.json` trước khi gửi**, và tower quét hộp thư mang
-   tên không có trong `members` → *tin chết* (`team.deadLetters`, `/dlc-doctor` mục 1g). Đây chính là
+   tên không có trong `members` → *tin chết* (`team.deadLetters`, `/ai-dlc:dlc-doctor` mục 1g). Đây chính là
    `LL-002` ("13 lần xin review, 0 verdict") lặp lại một tầng cao hơn — lần này cái làm nó vô hình là một
    thông báo thành công.
 
@@ -723,14 +750,14 @@ xuống đĩa trước đã**.
 
 Tower đối chiếu `members` (phiên đang sống) với `teammate:` trong HOF và gắn ba trạng thái: `working` (còn
 việc) · `zombie` (HOF đã đóng mà phiên còn sống) · `unknown` (không HOF nào khai tên nó). `team.zombies`
-là danh sách lead cần tắt; `/dlc-doctor` mục 1f nhắc lại.
+là danh sách lead cần tắt; `/ai-dlc:dlc-doctor` mục 1f nhắc lại.
 
 Ghi chú vận hành (đúng với bản Claude Code hiện tại): địa chỉ của phiên chính là **`team-lead`**, không phải
 `main`; teammate **không** thừa kế `/model` của lead (khai `model:` trong HOF nếu tier quan trọng); spawn
 bằng đúng agent definition của gói (`ai-dlc:dlc-*`) để teammate thừa hưởng tools/model của vai đó.
 
 > Trạng thái của mục này: **hướng dẫn, chưa phải luật chặn gate.** Nó sinh ra từ quan sát thực tế
-> (PILOT · INT-003 · 13/08) chứ chưa qua một LL được Gate G duyệt — nên `/dlc-doctor` chỉ **WARN**, không FIX.
+> (PILOT · INT-003 · 13/08) chứ chưa qua một LL được Gate G duyệt — nên `/ai-dlc:dlc-doctor` chỉ **WARN**, không FIX.
 > Qua Gate G ở retro kế thì nâng thành luật.
 
 ### 9.6 Nghiệm kết quả — người giao đánh giá TRƯỚC khi kết quả được dùng (v6)
@@ -762,7 +789,7 @@ Ràng buộc:
 Mục tiêu: một phiên mới **không nạp lại cả dự án**. Luật:
 
 1. **Đọc theo tầng**: frontmatter trước (status.md, spec.md, ledger) → chỉ mở toàn văn khi frontmatter không
-   đủ trả lời. `/dlc-resume` chỉ được đọc: `workspace-map.md`, frontmatter các `status.md`, thư mục
+   đủ trả lời. `/ai-dlc:dlc-resume` chỉ được đọc: `workspace-map.md`, frontmatter các `status.md`, thư mục
    `handoffs/` (frontmatter), danh sách `inbox/`. Không đọc `intent-plan.md`, `unit-plan.md`, `as-is/*` toàn văn.
 2. **Tra cứu qua `session/INDEX.md`** — bản đồ "cần biết X → file Y, mục Z". Cần chi tiết thì đọc **đúng mục**
    (Grep/section), không đọc cả file dài.

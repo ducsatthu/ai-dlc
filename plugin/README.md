@@ -10,15 +10,15 @@ gates A–G · Control Tower · override per project · learning loop qua retro.
 ```
 /plugin marketplace add <org-hoặc-path>/ai-dlc
 /plugin install ai-dlc@ai-dlc
-cd <project> && /dlc-init        # seed .ai-dlc/ + dựng Workspace Map
-/dlc-intent "yêu cầu của bạn"    # bắt đầu — flow dừng ở Gate A chờ bạn
-/dlc-resume                      # phiên sau: vào lại đúng chỗ dừng, không đọc lại từ đầu
+cd <project> && /ai-dlc:dlc-init        # seed .ai-dlc/ + dựng Workspace Map
+/ai-dlc:dlc-intent "yêu cầu của bạn"    # bắt đầu — flow dừng ở Gate A chờ bạn
+/ai-dlc:dlc-resume                      # phiên sau: vào lại đúng chỗ dừng, không đọc lại từ đầu
 ```
 
 ## Commands
-`/dlc-init` `/dlc-map` `/dlc-intent` `/dlc-discover` `/dlc-validate` `/dlc-units`
-`/dlc-bolt` `/dlc-tasks` `/dlc-accept` `/dlc-retro` `/dlc-revise` `/dlc-resume` `/dlc-status`
-`/dlc-tower [serve]` `/dlc-doctor` `/dlc-contribute`
+`/ai-dlc:dlc-init` `/ai-dlc:dlc-map` `/ai-dlc:dlc-intent` `/ai-dlc:dlc-discover` `/ai-dlc:dlc-validate` `/ai-dlc:dlc-units`
+`/ai-dlc:dlc-bolt` `/ai-dlc:dlc-tasks` `/ai-dlc:dlc-accept` `/ai-dlc:dlc-retro` `/ai-dlc:dlc-revise` `/ai-dlc:dlc-resume` `/ai-dlc:dlc-status`
+`/ai-dlc:dlc-tower [serve]` `/ai-dlc:dlc-doctor` `/ai-dlc:dlc-contribute`
 
 ## Nhiều phiên, nhiều vị trí — không mất bối cảnh (v2.1)
 
@@ -26,11 +26,11 @@ Agent giao việc cho nhau bằng **file**, không bằng prompt: mỗi lần sp
 `context-memory/handoffs/HOF-NNNN.md` (nhiệm vụ 1 câu · `read_first` trỏ `path#mục` + vì sao · DoD của lượt ·
 trả về gì), prompt spawn chỉ là *"đọc HOF-NNNN, làm theo, cập nhật lại file đó khi xong"*.
 
-- Phiên kết thúc giữa chừng → HOF vẫn ở `accepted`; `/dlc-resume` chỉ ngay ra ai đang giữ gì và tiếp tục từ
+- Phiên kết thúc giữa chừng → HOF vẫn ở `accepted`; `/ai-dlc:dlc-resume` chỉ ngay ra ai đang giữ gì và tiếp tục từ
   chính file đó. Không hỏi lại, không dựng lại bối cảnh.
 - `session/board.md` (bảng vị trí) **sinh ra từ** `handoffs/` — phiên chính nhìn thấy các vị trí khác đang ở đâu.
 - Chuỗi HOF là nguồn bằng chứng của retro: việc đi qua tay ai, tắc ở đâu, trả lại mấy lần.
-- Đọc ít: `/dlc-resume` chỉ nạp stdout của `session_brief.py` + tối đa 1 HOF; cần chi tiết thì tra
+- Đọc ít: `/ai-dlc:dlc-resume` chỉ nạp stdout của `session_brief.py` + tối đa 1 HOF; cần chi tiết thì tra
   `session/INDEX.md` rồi mở **đúng mục** (protocol §10).
 
 ## Hỏi đúng người, hỏi bằng ngôn ngữ của họ (v3)
@@ -81,19 +81,19 @@ Kèm hai luật về cách làm việc: **phép đo phải có ca đối chứng
 ## Nguyên tắc
 - AI đề xuất trước — con người xác nhận trước khi đi tiếp. Không agent nào vượt gate.
 - **Cấm approve mù**: mỗi gate có một tài liệu markdown tự đủ; Approve chỉ mở sau khi người duyệt
-  xác nhận đã đọc toàn văn (server chặn lần nữa). Verdict thứ ba là *Yêu cầu chỉnh sửa* → `/dlc-revise`.
+  xác nhận đã đọc toàn văn (server chặn lần nữa). Verdict thứ ba là *Yêu cầu chỉnh sửa* → `/ai-dlc:dlc-revise`.
 - Output resolve path qua `.ai-dlc/workspace-map.md` — không đoán.
 - Custom per project: `.ai-dlc/overrides/` thắng bản plugin; retro (Gate G) là đường
-  duy nhất sửa chuẩn; `/dlc-contribute` đưa lesson lên gói chung.
+  duy nhất sửa chuẩn; `/ai-dlc:dlc-contribute` đưa lesson lên gói chung.
 - Giao thức đầy đủ: `references/protocol.md`. Phương pháp gốc: white paper
   (`docs/whitepaper-ai-dlc-vi.md` ở repo).
 
 ## Control Tower — LIVE
-`/dlc-tower serve` chạy chế độ **LIVE**: trang poll `/state` mỗi 5 giây, server tự sinh lại dashboard khi
+`/ai-dlc:dlc-tower serve` chạy chế độ **LIVE**: trang poll `/state` mỗi 5 giây, server tự sinh lại dashboard khi
 `.ai-dlc/` đổi. Bạn thấy ngay: vị trí nào đang có agent (kèm `progress` + nhịp sống), file thật nào vừa được
 ghi trong 2 giờ qua, và cảnh báo khi có agent chạy mà chưa khai `status: accepted` (protocol §9.4).
 
-Màn: Mission Control (gate queue · vị trí đang làm việc · hoạt động gần đây) · **Dòng chảy 3 pha** (Inception · Construction ·
+Màn mặc định (6.1.0): **Cần tôi quyết** — chỉ thẻ cần người hành động (ký gate · việc đang đứng · câu hỏi chặn), mỗi thẻ có "nếu bạn im lặng" + nút quyết · **Bản tin hôm nay** (một trang bằng lời) · sidebar chỉ tên yêu cầu + một dòng trạng thái. Mọi màn kỹ thuật gấp trong **Tra cứu ▾**: Đội AI (Mission Control cũ: vị trí đang làm việc · hoạt động gần đây) · **Dòng chảy 3 pha** (Inception · Construction ·
 Operations, mỗi Unit là một mạch chạy xuyên ba khối) · Intent Detail (Units · Nguồn · Open questions tách
 nghiệp vụ/kỹ thuật ·
 Decisions · Chỉnh sửa · Tài liệu) · Bolt board · Comms & Reviews · Governance.

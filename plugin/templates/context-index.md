@@ -1,7 +1,7 @@
 ---
 type: context-index
 updated: <ngày>
-updated_by: /dlc-resume
+updated_by: /ai-dlc:dlc-resume
 ---
 
 # INDEX — cần biết gì thì mở file nào

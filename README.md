@@ -34,52 +34,52 @@
 cd <your-project>
 
 # 2. Khởi tạo AI-DLC cho dự án (seed .ai-dlc/ + Workspace Map)
-/dlc-init
+/ai-dlc:dlc-init
 
 # 3. Bắt đầu một Intent mới — flow dừng ở Gate A chờ bạn duyệt
-/dlc-intent "mô tả yêu cầu của bạn"
+/ai-dlc:dlc-intent "mô tả yêu cầu của bạn"
 
 # 4. Phiên sau: vào lại đúng chỗ dừng, không đọc lại từ đầu
-/dlc-resume
+/ai-dlc:dlc-resume
 ```
 
 ## Flow chính
 
 ```
-/dlc-intent → /dlc-discover → /dlc-validate → /dlc-units → /dlc-bolt → /dlc-accept → /dlc-retro
+/ai-dlc:dlc-intent → /ai-dlc:dlc-discover → /ai-dlc:dlc-validate → /ai-dlc:dlc-units → /ai-dlc:dlc-bolt → /ai-dlc:dlc-accept → /ai-dlc:dlc-retro
 ```
 
 | Stage | Skill | Mô tả |
 |-------|-------|-------|
-| 1. Request | `/dlc-intent` | Biến yêu cầu thành Intent Plan + Source Reading Plan + Unit Map |
-| 2. Discovery | `/dlc-discover` | Đọc nguồn, dựng AS-IS model |
-| 3–4. Validation | `/dlc-validate` | Trình bày AS-IS, sinh open questions tách business/tech |
-| 5. Planning | `/dlc-units` | Refine Unit Map → Unit Plan chốt |
-| 6. Construction | `/dlc-bolt` | Code theo Bolt: Domain Design → Logical Design → Code + Test |
-| 7. Acceptance | `/dlc-accept` | Gom Acceptance Evidence, verify chuỗi truy vết |
-| 8. Retro | `/dlc-retro` | Rút lesson learned, đề xuất patch plugin |
+| 1. Request | `/ai-dlc:dlc-intent` | Biến yêu cầu thành Intent Plan + Source Reading Plan + Unit Map |
+| 2. Discovery | `/ai-dlc:dlc-discover` | Đọc nguồn, dựng AS-IS model |
+| 3–4. Validation | `/ai-dlc:dlc-validate` | Trình bày AS-IS, sinh open questions tách business/tech |
+| 5. Planning | `/ai-dlc:dlc-units` | Refine Unit Map → Unit Plan chốt |
+| 6. Construction | `/ai-dlc:dlc-bolt` | Code theo Bolt: Domain Design → Logical Design → Code + Test |
+| 7. Acceptance | `/ai-dlc:dlc-accept` | Gom Acceptance Evidence, verify chuỗi truy vết |
+| 8. Retro | `/ai-dlc:dlc-retro` | Rút lesson learned, đề xuất patch plugin |
 
 ## Tất cả commands
 
 | Command | Mục đích |
 |---------|----------|
-| `/dlc-init` | Khởi tạo `.ai-dlc/` cho dự án |
-| `/dlc-intent` | Bắt đầu Intent mới |
-| `/dlc-discover` | Chạy Discovery (đọc nguồn, dựng AS-IS) |
-| `/dlc-validate` | Validation + sinh open questions |
-| `/dlc-units` | Lập Unit Plan |
-| `/dlc-bolt` | Điều phối Construction cho một Unit |
-| `/dlc-tasks` | Xem/quản lý task board |
-| `/dlc-accept` | Gom bằng chứng Acceptance |
-| `/dlc-retro` | Retrospective + lesson learned |
-| `/dlc-resume` | Vào lại dự án ở phiên mới |
-| `/dlc-revise` | Xử lý yêu cầu chỉnh sửa từ tower |
-| `/dlc-status` | Xem trạng thái hiện tại |
-| `/dlc-map` | Xem/cập nhật Workspace Map |
-| `/dlc-tower` | Sinh Control Tower dashboard |
-| `/dlc-tower serve` | Chạy Control Tower LIVE (auto-refresh) |
-| `/dlc-doctor` | Kiểm tra sức khỏe dự án |
-| `/dlc-contribute` | Đóng gói lesson learned thành PR lên plugin |
+| `/ai-dlc:dlc-init` | Khởi tạo `.ai-dlc/` cho dự án |
+| `/ai-dlc:dlc-intent` | Bắt đầu Intent mới |
+| `/ai-dlc:dlc-discover` | Chạy Discovery (đọc nguồn, dựng AS-IS) |
+| `/ai-dlc:dlc-validate` | Validation + sinh open questions |
+| `/ai-dlc:dlc-units` | Lập Unit Plan |
+| `/ai-dlc:dlc-bolt` | Điều phối Construction cho một Unit |
+| `/ai-dlc:dlc-tasks` | Xem/quản lý task board |
+| `/ai-dlc:dlc-accept` | Gom bằng chứng Acceptance |
+| `/ai-dlc:dlc-retro` | Retrospective + lesson learned |
+| `/ai-dlc:dlc-resume` | Vào lại dự án ở phiên mới |
+| `/ai-dlc:dlc-revise` | Xử lý yêu cầu chỉnh sửa từ tower |
+| `/ai-dlc:dlc-status` | Xem trạng thái hiện tại |
+| `/ai-dlc:dlc-map` | Xem/cập nhật Workspace Map |
+| `/ai-dlc:dlc-tower` | Sinh Control Tower dashboard |
+| `/ai-dlc:dlc-tower serve` | Chạy Control Tower LIVE (auto-refresh) |
+| `/ai-dlc:dlc-doctor` | Kiểm tra sức khỏe dự án |
+| `/ai-dlc:dlc-contribute` | Đóng gói lesson learned thành PR lên plugin |
 
 ## Gates
 
@@ -108,7 +108,7 @@ Từ v6.0.0, review theo **tầng rủi ro** (§4.17): mặc định dev tự so
 ## Control Tower
 
 ```bash
-/dlc-tower serve
+/ai-dlc:dlc-tower serve
 ```
 
 Mở browser tại `http://localhost:8642`. Dashboard tự cập nhật mỗi 5 giây:
@@ -179,7 +179,7 @@ docs/
 
 ```bash
 # Sau khi retro sinh LL-NNN và Gate G approve
-/dlc-contribute
+/ai-dlc:dlc-contribute
 ```
 
 Skill tự động:

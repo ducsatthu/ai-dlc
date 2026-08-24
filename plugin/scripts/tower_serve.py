@@ -41,7 +41,7 @@ def resolve_root(start):
 ROOT, ASKED = resolve_root(sys.argv[1] if len(sys.argv) > 1 else os.getcwd())
 if ROOT is None:
     sys.exit("Không tìm thấy dự án AI-DLC nào từ '%s' (thiếu `.ai-dlc/context-memory/`).\n"
-             "Không tạo gì cả — chạy `/dlc-init` trước, hoặc truyền đúng gốc dự án." % ASKED)
+             "Không tạo gì cả — chạy `/ai-dlc:dlc-init` trước, hoặc truyền đúng gốc dự án." % ASKED)
 PORT = int(sys.argv[2]) if len(sys.argv) > 2 else 8642
 A = os.path.join(ROOT, ".ai-dlc")
 INBOX = os.path.join(A, "inbox")
@@ -166,7 +166,7 @@ class H(BaseHTTPRequestHandler):
 
     def _serve_state(self):
         """Phần state hay đổi, cho UI poll. Tự sinh lại tower nếu .ai-dlc/ mới hơn data.js
-        → không cần ai nhớ chạy /dlc-tower mỗi lần agent ghi file."""
+        → không cần ai nhớ chạy /ai-dlc:dlc-tower mỗi lần agent ghi file."""
         if not self._token_ok():
             self._fail(403, "Thiếu hoặc sai token")
             return
@@ -201,7 +201,45 @@ class H(BaseHTTPRequestHandler):
                               "mtime": int(os.path.getmtime(target))}, ensure_ascii=False).encode("utf-8")
         self._send(200, payload)
 
+    def _post_answer(self):
+        """Trả lời câu hỏi / chỉ đạo escalation ngay trên tower (6.1.0).
+
+        Ghi `inbox/answer-<INT>-<OQ>-<ts>.json` hoặc `inbox/direction-<ESC>-<ts>.json` — cùng hàng đợi durable
+        với quyết định gate: phiên Claude Code đang sống bắt qua Monitor, phiên mới drain ở SessionStart.
+        Server KHÔNG sửa file open-questions/escalation — áp nguyên văn vào hồ sơ là việc của orchestrator
+        (protocol §5), để mọi thay đổi hồ sơ vẫn đi qua một chỗ và có changelog."""
+        if not self._token_ok():
+            self._fail(403, "Thiếu hoặc sai token")
+            return
+        try:
+            n = int(self.headers.get("Content-Length", "0"))
+            data = json.loads(self.rfile.read(n) or b"{}")
+            kind = data.get("kind")
+            if kind not in ("answer", "direction"):
+                raise ValueError("kind phải là answer (câu hỏi) hoặc direction (chỉ đạo escalation)")
+            if not (data.get("answer") or "").strip():
+                raise ValueError("câu trả lời / chỉ đạo không được rỗng")
+            if kind == "answer" and not (data.get("intent") and data.get("code")):
+                raise ValueError("thiếu intent hoặc mã câu hỏi")
+            if kind == "direction" and not data.get("esc"):
+                raise ValueError("thiếu mã escalation")
+        except Exception as e:  # noqa: BLE001
+            self._fail(400, str(e))
+            return
+        data["answer"] = data["answer"].strip()
+        data.setdefault("answered_by", "Lead (tower)")
+        data["answered_at"] = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime())
+        key = data["code"] if kind == "answer" else data["esc"]
+        fname = "{}-{}-{}-{}.json".format(
+            kind, re.sub(r"[^\w-]", "", data.get("intent") or "none"), re.sub(r"[^\w-]", "", key), int(time.time()))
+        with open(os.path.join(INBOX, fname), "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        self._send(200, json.dumps({"ok": True, "file": fname}).encode("utf-8"))
+
     def do_POST(self):
+        if self.path.startswith("/answer"):
+            self._post_answer()
+            return
         if not self.path.startswith("/decision"):
             self._fail(404, "Endpoint không tồn tại")
             return

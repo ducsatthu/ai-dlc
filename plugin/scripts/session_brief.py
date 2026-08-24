@@ -62,8 +62,8 @@ def tower_counts(intent_id):
 
 PHASE = {1: "inception", 2: "inception", 3: "inception", 4: "inception", 5: "inception",
          6: "construction", 7: "operations", 8: "operations"}
-GATE_NEXT = {"A": "/dlc-discover", "B": "/dlc-validate", "C": "/dlc-units",
-             "D": "/dlc-bolt <UOW-NN>", "E": "/dlc-bolt", "F": "/dlc-accept", "G": "/dlc-retro"}
+GATE_NEXT = {"A": "/ai-dlc:dlc-discover", "B": "/ai-dlc:dlc-validate", "C": "/ai-dlc:dlc-units",
+             "D": "/ai-dlc:dlc-bolt <UOW-NN>", "E": "/ai-dlc:dlc-bolt", "F": "/ai-dlc:dlc-accept", "G": "/ai-dlc:dlc-retro"}
 
 
 def read(p):
@@ -141,7 +141,7 @@ def lst(v):
 
 
 if not os.path.isdir(A):
-    print("Chưa có .ai-dlc/ ở %s — chạy /dlc-init trước." % ROOT)
+    print("Chưa có .ai-dlc/ ở %s — chạy /ai-dlc:dlc-init trước." % ROOT)
     sys.exit(1)
 
 # ---------- handoffs → vị trí ----------
@@ -295,7 +295,7 @@ source: context-memory/handoffs/
 # Bảng vị trí — ai đang giữ việc gì
 
 > **Sinh ra từ `handoffs/`. KHÔNG sửa tay** — muốn đổi trạng thái một vị trí thì sửa file HOF rồi chạy lại
-> `/dlc-status` hoặc `/dlc-resume`.
+> `/ai-dlc:dlc-status` hoặc `/ai-dlc:dlc-resume`.
 
 ## Đang có người (`accepted`)
 
@@ -368,7 +368,7 @@ L.append("AI-DLC · %s · %s" % (os.path.basename(ROOT), NOW.strftime("%d/%m %H:
 L.append("")
 L.append("INTENTS")
 if not intents:
-    L.append("  (chưa có intent nào — /dlc-intent \"<yêu cầu>\")")
+    L.append("  (chưa có intent nào — /ai-dlc:dlc-intent \"<yêu cầu>\")")
 for it in intents:
     gate = ("GATE %s ĐANG MỞ → đọc %s%s" % (it["gate"], it["gate_doc"] or "?",
                                             " v" + it["plan_v"] if it["plan_v"] else "")) if it["gate"] else "không có gate chờ"
@@ -440,12 +440,12 @@ for r in stations["accepted"]:
     L.append("  %d. Tiếp tục %s — đọc %s rồi làm tiếp đúng phần còn treo" % (n, r["id"], r["path"])); n += 1
 for it in intents:
     if it["gate"]:
-        L.append("  %d. %s đang chờ người quyết Gate %s → /dlc-tower serve để đọc & duyệt" % (n, it["id"], it["gate"])); n += 1
+        L.append("  %d. %s đang chờ người quyết Gate %s → /ai-dlc:dlc-tower serve để đọc & duyệt" % (n, it["id"], it["gate"])); n += 1
     elif it["stage"] < 8:
         L.append("  %d. %s chưa có gate chờ → bước kế: %s" % (
-            n, it["id"], GATE_NEXT.get(sorted(re.findall(r"[A-G]", it["passed"]))[-1] if re.findall(r"[A-G]", it["passed"]) else "A", "/dlc-status"))); n += 1
+            n, it["id"], GATE_NEXT.get(sorted(re.findall(r"[A-G]", it["passed"]))[-1] if re.findall(r"[A-G]", it["passed"]) else "A", "/ai-dlc:dlc-status"))); n += 1
 if n == 1:
-    L.append("  (không có việc treo — mở intent mới bằng /dlc-intent)")
+    L.append("  (không có việc treo — mở intent mới bằng /ai-dlc:dlc-intent)")
 if last_log:
     L.append("")
     L.append("PHIÊN TRƯỚC (%s) dừng ở: %s" % (last_log["id"], last_log["stop"]))

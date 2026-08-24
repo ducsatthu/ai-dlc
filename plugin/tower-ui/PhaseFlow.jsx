@@ -156,7 +156,7 @@ function PhaseFlow({ data, intentId, gates, onDoc, onGate, onOpenUnit, onSelectI
   const src = (data.sourcesByIntent || {})[intentId];
   const intent = data.intents.find(x => x.id === intentId) || data.intents[0];
   if (!flow || !intent) {
-    return <div style={{ padding: 24, color: 'var(--muted)' }}>Chưa có intent nào trong <code>.ai-dlc/</code>. Chạy <code>/dlc-intent</code> để bắt đầu.</div>;
+    return <div style={{ padding: 24, color: 'var(--muted)' }}>Chưa có intent nào trong <code>.ai-dlc/</code>. Chạy <code>/ai-dlc:dlc-intent</code> để bắt đầu.</div>;
   }
   const c = (src && src.counts) || {};
   const met = (data.metricsByIntent || {})[intentId] || {};

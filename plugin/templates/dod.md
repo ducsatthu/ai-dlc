@@ -1,7 +1,7 @@
 ---
 name: dod
 version: 4
-updated_by: /dlc-init (seed mặc định — duyệt lại tại Gate D đầu tiên)
+updated_by: /ai-dlc:dlc-init (seed mặc định — duyệt lại tại Gate D đầu tiên)
 source: LL-002 (Gate G · DEC-0027) · LL-001 — retro INT-001 dự án PILOT
 ---
 # Definition of Done · v4 — Unit được coi là xong khi:

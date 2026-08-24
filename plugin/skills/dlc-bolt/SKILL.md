@@ -10,4 +10,4 @@ description: Stage 6 AI-DLC — chạy một Bolt cho một Unit (args UOW-NN [B
    **theo tầng**: self-verify có bằng chứng · peer là dev còn lại · specialist đúng vai trigger → Fix →
    **Gate E(b) DỪNG** demo). Gate E(a)/E(b) của NGƯỜI dừng cho MỌI tầng.
 2. Coordinator spawn `ai-dlc:dlc-be-dev` / `ai-dlc:dlc-fe-dev` theo task board; hàng rào PreToolUse hook đã chặn code-write khi chưa qua Gate D.
-3. Mỗi checkpoint/gate: cập nhật status + tower rồi kết thúc lượt. Bolt xong: đề xuất bolt kế hoặc `/dlc-accept UOW-NN`.
+3. Mỗi checkpoint/gate: cập nhật status + tower rồi kết thúc lượt. Bolt xong: đề xuất bolt kế hoặc `/ai-dlc:dlc-accept UOW-NN`.

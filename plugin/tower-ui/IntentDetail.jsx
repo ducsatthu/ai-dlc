@@ -282,7 +282,7 @@ function IntentDetail({ data, intentId, onOpenBolt, onOpenList, onSelectIntent, 
                 ))}
               </div>
             ) : <div style={{ color: 'var(--muted)', fontSize: 14 }}>
-              Tài liệu gate được nhúng khi gate đang mở. Mở tower bằng <code>/dlc-tower serve</code> để đọc mọi file
+              Tài liệu gate được nhúng khi gate đang mở. Mở tower bằng <code>/ai-dlc:dlc-tower serve</code> để đọc mọi file
               trong <code>.ai-dlc/context-memory/</code>.
             </div>
           )}

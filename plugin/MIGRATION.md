@@ -67,7 +67,7 @@ Cái đổi là: từ nay dashboard **nói ra** những gì trước đây im l�
 
 ### Việc nên làm, theo thứ tự rẻ → đắt
 1. `mkdir -p .ai-dlc/context-memory/escalations` — chỗ cho phát hiện ngoài phạm vi unit (§4.13).
-2. Chạy `/dlc-doctor`. Đọc hai dòng mới: unit `done` **không có** `rv:`/`review_waived_by:`, và unit `done`
+2. Chạy `/ai-dlc:dlc-doctor`. Đọc hai dòng mới: unit `done` **không có** `rv:`/`review_waived_by:`, và unit `done`
    **không có** `bolts/`/`tasks.md`/`evidence/`. Đây là ảnh chụp nợ hiện tại, không phải lỗi mới sinh ra.
 3. Với các unit đã đóng **không có review**: đừng đi tạo RV ngược. Ghi **một** `DEC` nói rõ "đợt này chạy
    không có reviewer độc lập cho N unit, vì <lý do>" rồi điền `review_waived_by: DEC-NNNN`. Một dòng sự
@@ -106,7 +106,7 @@ những câu đó — lúc đó tách luôn theo §4.10.
 5. Giữ file cũ hay xoá đều được — có bản tách thì generator bỏ qua bản gộp. Giữ lại thì truy vết dễ hơn.
 
 ### Dấu hiệu tách sai
-- Câu business vẫn có `path/file.ts`, tên bảng, tên hàm → chưa dịch ra lời, `/dlc-doctor` sẽ báo FIX.
+- Câu business vẫn có `path/file.ts`, tên bảng, tên hàm → chưa dịch ra lời, `/ai-dlc:dlc-doctor` sẽ báo FIX.
 - Người trả lời ghi kiểu `BA/Tech Lead/Test Lead` → chưa biết hỏi ai; phải là **một** vai + tên người.
 - Câu kỹ thuật mà quyết định cuối thuộc về kinh doanh → phải có **cặp** `OQT-NN` ↔ `OQB-NN`, không đẩy nguyên
   câu kỹ thuật ra Gate C.
@@ -118,7 +118,7 @@ Hạ về 2.2.x: gộp thủ công hai file thành `open-questions.md`, đổi `
 
 Chỉ thêm: `GET /state`, poll 5s ở UI, `heartbeat`/`progress` trong HOF, panel hoạt động.
 
-- **Server tower đang chạy phải khởi động lại** để có `/state` (`/dlc-tower serve`). Token giữ nguyên trong
+- **Server tower đang chạy phải khởi động lại** để có `/state` (`/ai-dlc:dlc-tower serve`). Token giữ nguyên trong
   `.ai-dlc/.tower-token` nên URL cũ vẫn dùng được. Không restart thì UI lặng lẽ chạy chế độ `TĨNH`.
 - HOF cũ không có `heartbeat`/`progress` vẫn đọc được (hiện "chưa báo tiến độ"). Từ nay agent nhận việc phải
   đặt `accepted` + báo nhịp — xem protocol §9.4.
@@ -126,10 +126,10 @@ Chỉ thêm: `GET /state`, poll 5s ở UI, `heartbeat`/`progress` trong HOF, pan
 
 ## 2.0.x → 2.1.0 (cộng thêm, không cần làm gì)
 
-2.1.0 chỉ **thêm**: thư mục `context-memory/handoffs/` + `context-memory/session/`, lệnh `/dlc-resume`,
+2.1.0 chỉ **thêm**: thư mục `context-memory/handoffs/` + `context-memory/session/`, lệnh `/ai-dlc:dlc-resume`,
 script `session_brief.py`. Không đổi gate, không đổi format file cũ.
 
-- Dự án đang chạy: lần đầu chạy `/dlc-resume` (hoặc `/dlc-status`) sẽ tự tạo `session/board.md` và
+- Dự án đang chạy: lần đầu chạy `/ai-dlc:dlc-resume` (hoặc `/ai-dlc:dlc-status`) sẽ tự tạo `session/board.md` và
   `session/INDEX.md`. Chưa có HOF nào thì board rỗng — bình thường.
 - Từ 2.1.0, **mọi lần spawn agent phải có một file HOF** (protocol §9). Việc đang chạy dở bằng cách cũ
   (bối cảnh trong prompt) không phải viết bù HOF ngược — nhưng lần giao việc tiếp theo thì viết.
@@ -170,7 +170,7 @@ nên checklist v1 và DoR/DoD v1 tiếp tục áp cho intent đó tới khi đó
 ## 3. Nâng một intent đang mở lên 2.0.0
 
 ```
-/dlc-doctor                     # xem thiếu gì
+/ai-dlc:dlc-doctor                     # xem thiếu gì
 ```
 rồi theo thứ tự:
 
@@ -187,10 +187,10 @@ rồi theo thứ tự:
 
 ## 4. Intent mới
 
-Không phải làm gì — `/dlc-intent` đã theo 2.0.0. Governance mới (DoR v2/DoD v2, checklist v2) chỉ được pin vào
+Không phải làm gì — `/ai-dlc:dlc-intent` đã theo 2.0.0. Governance mới (DoR v2/DoD v2, checklist v2) chỉ được pin vào
 intent tạo **sau** khi nâng plugin.
 
-Nếu project có `overrides/` cho `dor.md`/`dod.md`/checklist: kiểm lại bằng `/dlc-doctor` — nhiều override 1.x
+Nếu project có `overrides/` cho `dor.md`/`dod.md`/checklist: kiểm lại bằng `/ai-dlc:dlc-doctor` — nhiều override 1.x
 đã được upstream vào bản v2, giữ lại là tự làm khó mình.
 
 ## 5. Nợ quy trình phải trả (bắt buộc)
@@ -198,7 +198,7 @@ Nếu project có `overrides/` cho `dor.md`/`dod.md`/checklist: kiểm lại b�
 Repo này quy định: sửa luật/checklist trong gói phải đi từ một LL đã qua Gate G của dự án thật. 2.0.0 sinh ra
 từ phản hồi vận hành của chủ sở hữu chứ chưa qua retro chính thức, nên CHANGELOG ghi `LL-PENDING`.
 
-**Dự án đầu tiên chạy 2.0.0** phải: mở LL trong retro (`/dlc-retro`) đánh giá ba luật mới (Intent Plan,
+**Dự án đầu tiên chạy 2.0.0** phải: mở LL trong retro (`/ai-dlc:dlc-retro`) đánh giá ba luật mới (Intent Plan,
 No-unread-source, Unit ≤5h) — thực tế có giảm lỗi "đọc thiếu nguồn" không, trần 5h có làm vỡ vụn Unit không —
 rồi cập nhật link LL vào entry 2.0.0 của CHANGELOG.
 

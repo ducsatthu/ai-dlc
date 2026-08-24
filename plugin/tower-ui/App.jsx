@@ -192,13 +192,14 @@ function App() {
     activity: live.activity || base.activity,
     tasks: live.tasks && live.tasks.length ? live.tasks : base.tasks,
     feed: live.feed && live.feed.length ? live.feed : base.feed,
+    inboxPending: live.inboxPending || base.inboxPending || [],
     project: { ...base.project, generated: live.generated || base.project.generated }
   } : base), [live]);
 
   /* Chỗ đang đứng phải sống qua reload. Tower tự sinh lại mỗi lần .ai-dlc/ đổi và
      người dùng F5 liên tục — về màn mặc định mỗi lần là mất chỗ đang đọc dở.
      Khoá theo tên project để hai dự án mở cùng máy không giẫm lên nhau. */
-  const SCREENS = ['mission', 'flow', 'intents', 'intent', 'bolt', 'comms', 'gov'];
+  const SCREENS = ['inbox', 'brief', 'mission', 'flow', 'intents', 'intent', 'bolt', 'comms', 'gov'];
   const PREF_KEY = 'ai-dlc.tower.' + ((base.project && base.project.name) || 'default');
   const saved = React.useMemo(() => {
     try { return JSON.parse(localStorage.getItem(PREF_KEY) || '{}') || {}; } catch (e) { return {}; }
@@ -207,23 +208,23 @@ function App() {
   const firstIntent = (data.intents[0] && data.intents[0].id) || null;
   const savedIntent = data.intents.some(i => i.id === saved.intentId) ? saved.intentId : firstIntent;
   const unitsOfSaved = (data.unitsByIntent || {})[savedIntent] || [];
+  /* Mặc định là "Cần tôi quyết" (docs/control-tower-lead-view.md §1). Chỗ đang đứng vẫn sống qua
+     reload, trừ 'mission' của bản cũ — màn đó giờ là Tra cứu, không còn là nơi mở ra đầu tiên. */
   const [screen, setScreen] = React.useState(
-    SCREENS.includes(saved.screen) ? saved.screen : (data.gates.length ? 'mission' : 'flow'));
+    SCREENS.includes(saved.screen) && saved.screen !== 'mission' ? saved.screen : 'inbox');
   const [intentId, setIntentId] = React.useState(savedIntent);
   const [unitId, setUnitId] = React.useState(
     unitsOfSaved.some(u => u.id === saved.unitId) ? saved.unitId
       : (unitsOfSaved.find(u => !u.descoped) || unitsOfSaved[0] || {}).id || null);
-  const [navOpen, setNavOpen] = React.useState(
-    Array.isArray(saved.navOpen) ? saved.navOpen.filter(id => data.intents.some(i => i.id === id))
-      : (savedIntent ? [savedIntent] : []));
+  const [lookupOpen, setLookupOpen] = React.useState(!!saved.lookupOpen);
   const [theme, setTheme] = React.useState(saved.theme === 'light' ? 'light' : 'dark');
   const [gates, setGates] = React.useState(data.gates);
 
   React.useEffect(() => {
     try {
-      localStorage.setItem(PREF_KEY, JSON.stringify({ theme, screen, intentId, unitId, navOpen }));
+      localStorage.setItem(PREF_KEY, JSON.stringify({ theme, screen, intentId, unitId, lookupOpen }));
     } catch (e) { /* private mode / quota — mất trí nhớ chứ không gãy màn hình */ }
-  }, [theme, screen, intentId, unitId, navOpen]);
+  }, [theme, screen, intentId, unitId, lookupOpen]);
   const [drawer, setDrawer] = React.useState(null);
   const [toast, setToast] = React.useState(null);
   const [review, setReview] = React.useState(null);   // gate đang được đọc để quyết
@@ -247,7 +248,7 @@ function App() {
     fetch('/doc?path=' + encodeURIComponent(path) + '&token=' + encodeURIComponent(token))
       .then(r => r.ok ? r.json() : Promise.reject(r.status))
       .then(j => setViewDoc({ path: j.path, name: path.split('/').pop(), markdown: j.markdown }))
-      .catch(() => say('Không đọc được ' + path + ' — tower đang mở dạng file tĩnh? Chạy /dlc-tower serve.'));
+      .catch(() => say('Không đọc được ' + path + ' — tower đang mở dạng file tĩnh? Chạy /ai-dlc:dlc-tower serve.'));
   };
 
   /* Quyết định thật — POST về tower_serve → .ai-dlc/inbox/ (durable).
@@ -274,14 +275,33 @@ function App() {
             : 'Đã reject — lý do đã gửi về orchestrator');
         }
       } else if (r.status === 403) {
-        say('Thiếu/sai token — mở lại tower bằng đúng URL có ?token=… (in ở terminal khi chạy /dlc-tower serve); mở 1 lần là nhớ cookie');
+        say('Thiếu/sai token — mở lại tower bằng đúng URL có ?token=… (in ở terminal khi chạy /ai-dlc:dlc-tower serve); mở 1 lần là nhớ cookie');
       } else {
         r.json().then(j => say('Server từ chối (' + r.status + '): ' + (j.error || ''), 6000))
           .catch(() => say('Server từ chối (' + r.status + ') — xem log tower_serve', 6000));
       }
     }).catch(() => {
-      say('Không nối được server — tower đang mở dạng file tĩnh hoặc server đã tắt; chạy /dlc-tower serve');
+      say('Không nối được server — tower đang mở dạng file tĩnh hoặc server đã tắt; chạy /ai-dlc:dlc-tower serve');
     });
+  };
+
+  /* Trả lời câu hỏi / chỉ đạo escalation ngay trên tower → POST /answer → .ai-dlc/inbox/ (durable).
+     Server chỉ xếp hàng; phiên Claude Code áp nguyên văn vào hồ sơ rồi làm tiếp (protocol §5). */
+  const answer = payload => {
+    const token = new URLSearchParams(location.search).get('token') || '';
+    return fetch('/answer?token=' + encodeURIComponent(token), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+    }).then(r => {
+      if (r.ok) {
+        say(payload.kind === 'direction'
+          ? 'Đã gửi chỉ đạo — phiên Claude Code đang chạy sẽ áp vào escalation và làm tiếp; phiên đã đóng thì /ai-dlc:dlc-resume là nó drain'
+          : 'Đã gửi câu trả lời — đội áp nguyên văn vào hồ sơ rồi làm tiếp; phiên đã đóng thì /ai-dlc:dlc-resume là nó drain', 6000);
+        return true;
+      }
+      if (r.status === 403) say('Thiếu/sai token — mở lại tower bằng đúng URL có ?token=… (in ở terminal khi chạy /ai-dlc:dlc-tower serve)');
+      else r.json().then(j => say('Server từ chối (' + r.status + '): ' + (j.error || ''), 6000)).catch(() => say('Server từ chối (' + r.status + ')', 6000));
+      return false;
+    }).catch(() => { say('Không nối được server — tower đang mở dạng file tĩnh hoặc server đã tắt; chạy /ai-dlc:dlc-tower serve'); return false; });
   };
 
   const openGate = (gateOrLetter) => {
@@ -294,19 +314,22 @@ function App() {
 
   const intentName = (data.intents.find(x => x.id === intentId) || data.intents[0] || {}).name || '';
   const unitSel = ((data.unitsByIntent || {})[intentId] || []).find(u => u.id === unitId) || null;
+  const inboxCount = window.buildInbox ? window.buildInbox(data, gates).length : gates.length;
   const titles = {
-    mission: ['Mission Control', 'cái gì đang chờ tôi · mọi thứ đang ở đâu'],
+    inbox: ['Cần tôi quyết', inboxCount ? inboxCount + ' việc đang chờ bạn' : 'không có gì chờ bạn'],
+    brief: ['Bản tin hôm nay', 'một trang, bằng lời — chi tiết ở Tra cứu'],
+    mission: ['Đội AI', 'vị trí agent · handoff · hoạt động gần đây · tin chết (Mission Control cũ)'],
     flow: ['Dòng chảy — Inception · Construction · Operations', intentId ? intentId + ' · mỗi Unit là một mạch chạy xuyên ba pha' : ''],
-    intents: ['Intents', data.intents.length + ' intent đang mở · lọc theo trạng thái, loại brownfield, người yêu cầu'],
-    intent: [(intentId || '') + ' · ' + intentName, 'Units · Nguồn · Handoff · Open questions · Decisions · Chỉnh sửa · Tài liệu'],
-    bolt: [unitSel ? unitSel.id + ' · ' + unitSel.name : 'Bolt / Task Board',
+    intents: ['Danh sách yêu cầu', data.intents.length + ' yêu cầu · lọc theo trạng thái, loại brownfield, người yêu cầu'],
+    intent: [intentName || (intentId || ''), (intentId || '') + ' · phần việc · nguồn · handoff · câu hỏi · quyết định · tài liệu'],
+    bolt: [unitSel ? unitSel.name : 'Phần việc & vòng xây',
       unitSel
-        ? (unitSel.boltDetails && unitSel.boltDetails.length
-            ? unitSel.boltDetails.length + ' bolt · mỗi bolt: Domain Design → Logical Design + ADR → Code + Unit Test'
-            : 'unit này chưa có bolt nào — chặng thiết kế chưa để lại gì trên đĩa')
-        : 'chọn một Unit ở cây bên trái'],
-    comms: ['Comms & Reviews', 'mọi trao đổi là văn bản truy vết được'],
-    gov: ['Governance & Learning', 'DoR/DoD · risk · tech-debt · lessons']
+        ? unitSel.id + ' · ' + (unitSel.boltDetails && unitSel.boltDetails.length
+            ? unitSel.boltDetails.length + ' vòng xây · mỗi vòng: Domain Design → Logical Design + ADR → Code + Unit Test'
+            : 'chưa có vòng xây nào — chặng thiết kế chưa để lại gì trên đĩa')
+        : 'chọn một phần việc ở hàng trên'],
+    comms: ['Trao đổi & soát', 'mọi trao đổi là văn bản truy vết được (Comms & Reviews)'],
+    gov: ['Luật & bài học', 'DoR/DoD · risk · tech-debt · lessons (Governance & Learning)']
   };
   const crumbs = {
     flow: [{ label: 'Dự án · ' + (data.project ? data.project.name : '') }, { label: 'Dòng chảy' }],
@@ -320,9 +343,9 @@ function App() {
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--bg)', color: 'var(--ink)' }}>
-      <Sidebar screen={screen} setScreen={setScreen} gateCount={gates.length} project={data.project}
-        data={data} intentId={intentId} setIntentId={setIntentId} unitId={unitId} setUnitId={setUnitId}
-        expanded={navOpen} setExpanded={setNavOpen} />
+      <Sidebar screen={screen} setScreen={setScreen} inboxCount={inboxCount} project={data.project}
+        data={data} intentId={intentId} onOpenIntent={id => { setIntentId(id); setScreen('intent'); }}
+        lookupOpen={lookupOpen} setLookupOpen={setLookupOpen} />
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <TopBar title={titles[screen][0]} subtitle={titles[screen][1]} theme={theme} setTheme={setTheme}
           crumbs={crumbs[screen]} onCrumb={setScreen}
@@ -333,7 +356,6 @@ function App() {
                   {liveOn ? 'LIVE · ' + (data.project ? data.project.generated : '') : 'TĨNH — không tự cập nhật'}
                 </StatusChip>
               </span>
-              <StatusChip tone={gates.length ? 'gate' : 'done'}>{gates.length ? gates.length + ' MỤC CHỜ BẠN' : 'KHÔNG CÓ GÌ CHỜ BẠN'}</StatusChip>
             </span>
           } />
         {needReload && (
@@ -348,6 +370,11 @@ function App() {
           </div>
         )}
         <div style={{ flex: 1, overflow: 'auto' }}>
+          {screen === 'inbox' && <LeadInbox data={data} gates={gates} onOpenGate={openGate} onDoc={openDoc}
+            onAnswer={answer} onBrief={() => setScreen('brief')} />}
+          {screen === 'brief' && <Brief data={data} gates={gates} onInbox={() => setScreen('inbox')}
+            onLookup={k => { setLookupOpen(true); setScreen(typeof k === 'string' ? k : 'mission'); }}
+            onOpenIntent={id => { setIntentId(id); setScreen('intent'); }} />}
           {screen === 'mission' && <MissionControl data={data} gates={gates} onOpenGate={openGate}
             onOpenIntent={id => { setIntentId(id); setScreen('flow'); }} onOpenFeed={m => setDrawer({ kind: 'msg', m })}
             onOpenDoc={openDoc} onMetric={m => setDrawer({ kind: 'metric', metric: m })} />}
@@ -363,7 +390,7 @@ function App() {
             onOpenBolt={() => setScreen('bolt')} onOpenList={() => setScreen('intents')} onSelectIntent={setIntentId}
             onDoc={openDoc} onOpenFlow={() => setScreen('flow')}
             onOpenUnit={u => { setUnitId(u.id); setDrawer({ kind: 'unit', u }); }} />}
-          {screen === 'bolt' && <BoltBoard data={data} intentId={intentId} unitId={unitId}
+          {screen === 'bolt' && <BoltBoard data={data} intentId={intentId} unitId={unitId} onSelectUnit={setUnitId}
             onOpenTask={t => setDrawer({ kind: 'task', t })} onOpenUnit={u => setDrawer({ kind: 'unit', u })}
             onDoc={openDoc} />}
           {screen === 'comms' && <CommsReviews data={data} onOpenFeed={m => setDrawer({ kind: 'msg', m })} />}

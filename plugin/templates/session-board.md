@@ -1,6 +1,6 @@
 ---
 type: station-board
-generated_by: /dlc-resume · /dlc-status · tower_generate.py
+generated_by: /ai-dlc:dlc-resume · /ai-dlc:dlc-status · tower_generate.py
 generated_at: <ISO>
 source: context-memory/handoffs/
 ---
@@ -8,7 +8,7 @@ source: context-memory/handoffs/
 # Bảng vị trí — ai đang giữ việc gì
 
 > **File này được SINH RA từ `handoffs/`. Không sửa tay** — sửa tay là tạo nguồn sự thật thứ hai.
-> Muốn đổi trạng thái một vị trí thì sửa file HOF tương ứng rồi chạy lại `/dlc-status`.
+> Muốn đổi trạng thái một vị trí thì sửa file HOF tương ứng rồi chạy lại `/ai-dlc:dlc-status`.
 
 ## Đang có người (status `accepted`)
 

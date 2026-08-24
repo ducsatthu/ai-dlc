@@ -15,7 +15,10 @@ Bạn là **orchestrator** của AI-DLC. Đọc `${CLAUDE_PLUGIN_ROOT}/reference
    (`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tower_generate.py`), thông báo rõ cần người quyết gì, KẾT THÚC LƯỢT.
    **Không có gate_doc → không được mở gate** (protocol §2.1). Trước khi mở, kiểm tra nhanh tài liệu có tự đủ
    không: người đọc một mình nó có quyết được không?
-4. Nhận quyết định (terminal hoặc `.ai-dlc/inbox/*.json`) — ba verdict:
+4. Nhận việc người gửi (terminal hoặc `.ai-dlc/inbox/*.json`). Ngoài quyết định gate, inbox còn có
+   `answer-*.json` (Lead trả lời câu hỏi ngay trên tower → áp nguyên văn vào file open-questions, gỡ chặn
+   nếu `blocking`) và `direction-*.json` (chỉ đạo escalation → ghi mục *Chỉ đạo* + owner/status vào ESC) —
+   luật đầy đủ ở protocol §5; áp xong mới move sang `processed/`. Quyết định gate — ba verdict:
    - `approve` → ghi DEC vào decisions-log, cập nhật status (gates_passed, gate_open=null, gate_doc=null),
      move file inbox sang `inbox/processed/`, chạy tiếp stage sau.
    - `request-changes` → **KHÔNG đóng gate**. Tạo `revisions/REV-NN.md` (protocol §2.2), giao lại cho agent

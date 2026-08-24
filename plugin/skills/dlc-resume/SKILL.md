@@ -4,7 +4,7 @@ description: Vào lại một dự án AI-DLC đã có bằng phiên mới — d
 ---
 
 Đọc `${CLAUDE_PLUGIN_ROOT}/references/protocol.md` §9 (handoff) và §10 (ngân sách context) — hai mục đó là
-luật của lệnh này. Yêu cầu `.ai-dlc/` đã tồn tại (chưa có → `/dlc-init`).
+luật của lệnh này. Yêu cầu `.ai-dlc/` đã tồn tại (chưa có → `/ai-dlc:dlc-init`).
 
 ## Luật context của lệnh này (quan trọng hơn tốc độ)
 
@@ -32,9 +32,16 @@ Bạn đang vào một dự án có thể đã chạy nhiều tuần. **KHÔNG n
    gate đang chờ người quyết → inbox chưa drain → HOF `returned` → HOF `accepted` treo lâu (dấu hiệu phiên
    trước chết giữa chừng) → cảnh báo nguồn `planned` / unit thiếu `releasable`·`session_fit`·`review:` → intent chưa có gate chờ.
 
-3. **Drain inbox trước mọi thứ khác** (nếu có): mỗi file `inbox/*.json` → đối chiếu `gate_open` trong
-   status.md → ghi DEC → move sang `inbox/processed/`. `verdict: request-changes` thì chuyển `/dlc-revise`,
-   KHÔNG đóng gate.
+3. **Drain inbox trước mọi thứ khác** (nếu có): mỗi file `inbox/*.json` →
+   - `gate-*`: đối chiếu `gate_open` trong status.md → ghi DEC → move sang `inbox/processed/`.
+     `verdict: request-changes` thì chuyển `/ai-dlc:dlc-revise`, KHÔNG đóng gate.
+   - `answer-*` (Lead trả lời câu hỏi ngay trên tower): áp **nguyên văn** vào file open-questions của intent
+     (Trạng thái `đã chốt` · bảng *Đã trả lời* · changelog; chạm scope ⇒ DEC); `blocking: true` ⇒ gỡ chặn và
+     tiếp tục HOF đang đứng vì câu đó. Không hỏi lại.
+   - `direction-*` (chỉ đạo escalation): ghi mục *Chỉ đạo* + `owner`/`status` vào `escalations/ESC-NNN.md`;
+     sinh việc thì HOF mới.
+   Chi tiết format + luật: protocol §5. Xong **mới** move sang `processed/` — file còn trong `inbox/` là
+   tower đang hiện "đã gửi, chờ áp".
 
 4. **Chốt một việc để tiếp** — hỏi người nếu có nhiều lựa chọn ngang nhau; có việc treo rõ ràng thì đề xuất
    thẳng. Rồi:
@@ -46,7 +53,7 @@ Bạn đang vào một dự án có thể đã chạy nhiều tuần. **KHÔNG n
 
 5. **Trong lúc làm** — mỗi lần giao việc cho agent khác là một HOF mới; mỗi lần một agent xong là HOF đóng
    lại kèm *Đã làm* / *Còn treo*. Chạy lại `session_brief.py --board-only` sau mỗi lần đổi trạng thái để
-   board khớp thực tế (tower cũng đọc `handoffs/` nên `/dlc-tower` sẽ hiện đúng).
+   board khớp thực tế (tower cũng đọc `handoffs/` nên `/ai-dlc:dlc-tower` sẽ hiện đúng).
 
 6. **Kết phiên** — điền `session/log/SES-NNN.md` (vào phiên thấy gì · đã làm · dừng ở đâu · việc kế tiếp ·
    có gì đáng thành LL không), rồi:

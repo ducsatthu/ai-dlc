@@ -4,7 +4,7 @@ description: Stage 3–4 AI-DLC — Context Validation (Gate B, tài liệu là 
 ---
 
 Điều kiện: `gates_passed` chứa A; `as-is/` tồn tại; **`source-ledger.md` không còn dòng `planned`**
-(còn → quay lại `/dlc-discover`, không được validate trên bối cảnh đọc dở).
+(còn → quay lại `/ai-dlc:dlc-discover`, không được validate trên bối cảnh đọc dở).
 
 1. **Gate B — Validation**: spawn `ai-dlc:dlc-context-validator` → bản trình bày AS-IS (≤1 trang, mỗi
    khẳng định kèm nguồn) ghép vào mục 5 của `source-ledger.md`; validator tự pre-flight theo
@@ -24,4 +24,4 @@ description: Stage 3–4 AI-DLC — Context Validation (Gate B, tài liệu là 
    bump `version` + changelog. Câu chưa chốt → working assumption `[ASSUMED]` + risk có chủ trong `risks.md`
    của Unit liên quan và `governance/risks.md`. Trước khi sang stage 5: rà `open-questions-tech.md`, câu
    `CHẶN` nào còn `open` thì đẩy cho tech lead ngay — đó là thứ sẽ chặn Gate D.
-   Cập nhật status stage 5, regenerate tower. Đề xuất `/dlc-units`.
+   Cập nhật status stage 5, regenerate tower. Đề xuất `/ai-dlc:dlc-units`.

@@ -16,7 +16,7 @@ echo "5. Không stage/gate nào được vượt khi chưa có DEC. AI đề xu�
 echo "6. Giao việc cho agent bằng file handoffs/HOF-NNNN.md, KHÔNG nhồi bối cảnh vào prompt (protocol §9)."
 echo "7. Đọc ít, tra đúng chỗ: dùng context-memory/session/INDEX.md; KHÔNG nạp toàn văn intent-plan/unit-plan/as-is (§10)."
 echo ""
-echo "VÀO LẠI DỰ ÁN: chạy /dlc-resume — dựng bảng vị trí từ handoffs, in briefing gọn, tiếp tục đúng chỗ dừng."
+echo "VÀO LẠI DỰ ÁN: chạy /ai-dlc:dlc-resume — dựng bảng vị trí từ handoffs, in briefing gọn, tiếp tục đúng chỗ dừng."
 
 # Vị trí đang treo (HOF chưa đóng)
 HOFS=$(grep -l '^status: accepted' "$AIDLC"/context-memory/handoffs/HOF-*.md 2>/dev/null | head -10)
@@ -35,9 +35,10 @@ fi
 PENDING=$(ls "$AIDLC/inbox/"*.json 2>/dev/null | head -20)
 if [ -n "$PENDING" ]; then
   echo ""
-  echo "INBOX CÓ QUYẾT ĐỊNH CHƯA XỬ LÝ (từ Control Tower) — orchestrator phải drain NGAY đầu phiên:"
+  echo "INBOX CÓ VIỆC NGƯỜI ĐÃ GỬI TỪ CONTROL TOWER, CHƯA ÁP — orchestrator phải drain NGAY đầu phiên:"
   for f in $PENDING; do echo "- $f"; done
-  echo "Với mỗi file: đối chiếu gate đang chờ trong status.md → ghi DEC vào governance/decisions-log.md → move file sang inbox/processed/ → chạy tiếp flow."
+  echo "gate-*.json: đối chiếu gate đang chờ trong status.md → ghi DEC → move sang inbox/processed/ → chạy tiếp flow."
+  echo "answer-*.json: áp NGUYÊN VĂN câu trả lời vào file open-questions (Trạng thái đã chốt + bảng Đã trả lời + changelog); câu blocking → gỡ chặn, tiếp tục HOF đang đứng. direction-*.json: ghi mục 'Chỉ đạo' + owner/status vào escalations/ESC-NNN.md. Xong mới move sang processed/ (protocol §5)."
 fi
 
 # Gate đang mở

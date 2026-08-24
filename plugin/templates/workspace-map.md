@@ -21,4 +21,4 @@ conventions:
   rules: "<quy ước riêng của dự án>"
 ```
 ## Changelog
-- <ngày>: khởi tạo bởi /dlc-init
+- <ngày>: khởi tạo bởi /ai-dlc:dlc-init

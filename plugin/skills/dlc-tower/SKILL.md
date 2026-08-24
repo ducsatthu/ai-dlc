@@ -5,8 +5,10 @@ description: Control Tower — generate dashboard từ .ai-dlc/ và serve local 
 
 1. Chạy `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tower_generate.py <project_root>` → `.ai-dlc/tower/index.html`.
 2. Args chứa "serve" → chạy nền `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tower_serve.py <project_root>`
-   (bind 127.0.0.1, in URL kèm token) và arm Monitor watch `.ai-dlc/inbox/*.json` để xử lý quyết định ngay
-   khi tới (ghi DEC, drain sang processed/, chạy tiếp flow).
+   (bind 127.0.0.1, in URL kèm token) và arm Monitor watch `.ai-dlc/inbox/*.json` để xử lý ngay khi tới:
+   `gate-*` (ghi DEC, chạy tiếp flow) · `answer-*` (Lead trả lời câu hỏi trên thẻ — áp nguyên văn vào
+   open-questions, gỡ chặn) · `direction-*` (chỉ đạo escalation) — luật ở protocol §5; xong mới move sang
+   `processed/`.
 3. **Chế độ LIVE (2.2.0)**: khi serve, trang tự poll `/state` mỗi 5 giây và **server tự chạy lại generator**
    nếu `.ai-dlc/` mới hơn `data.js`. Người giám sát thấy vị trí đang làm việc, nhịp sống của từng agent và
    file vừa đổi mà không phải làm gì. Huy hiệu góc phải: `LIVE · <giờ>`.
