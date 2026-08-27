@@ -135,9 +135,17 @@ cập nhật tower, gửi PushNotification (nếu có), rồi **KẾT THÚC LƯ�
 
 ## 3. Layout state trong project
 
+**Một `.ai-dlc/` = một space** (6.2.0): một đội ổn định, một bộ luật, một tower. Space không phải
+frontend/backend — đó là *code area* (`workspace-map.md` `areas:`). Một đội nhiều repo ⇒ `.ai-dlc/` ở thư
+mục cha, hook/script tìm từ cwd đi lên tối đa 2 cấp; hai đội có người duyệt riêng ⇒ hai `.ai-dlc/`.
+Không có `spaces/`. Code và test luôn nằm trong repo thật — `.ai-dlc/` chỉ giữ control plane và bằng chứng.
+
 ```
 .ai-dlc/
-├── workspace-map.md            # code/docs/wiki nằm đâu — NGUỒN DUY NHẤT để resolve path output
+├── workspace-map.md            # v2: repos · areas (code area = thư mục thật) · docs — NGUỒN DUY NHẤT để resolve path
+├── codekb/<repo-id>/           # bản đồ code BỀN VỮNG, promote từ as-is/ khi intent đóng (6.2.0):
+│   └── freshness.md static-model.md dynamic-model.md decisions-inventory.md
+│                               # intent kế reuse khi CURRENT — vẫn qua ledger (§4.8), không đọc thầm
 ├── context-memory/
 │   ├── governance/dor.md dod.md decisions-log.md changelog.md risks.md tech-debt-register.md
 │   ├── comms/MSG-NNNN.md       # message bus (trao đổi ngắn)
@@ -194,6 +202,10 @@ cập nhật tower, gửi PushNotification (nếu có), rồi **KẾT THÚC LƯ�
   ledger**. Phát hiện nguồn mới ngoài plan → thêm dòng `[ADDED]` vào ledger + ghi MSG note, KHÔNG dùng thầm.
 - Hai nguồn mâu thuẫn → `[CONFLICT]` trong ledger + câu hỏi Gate C. Agent không tự chọn bên nào.
 - Kết luận không truy được về một dòng ledger phải gắn `[INFERRED]` và không được dùng làm căn cứ AC.
+- **Codekb (6.2.0)**: `codekb/<repo>/` là AS-IS của intent trước được promote — **cũng là nguồn**, không phải
+  ngoại lệ. Reuse ⇒ mỗi file dùng là một dòng `read` với evidence `freshness.md CURRENT @<sha>`; quyết định
+  reuse/delta/rescan ghi ở mục 0 của ledger (người duyệt Gate B thấy). `STALE` mà vẫn reuse không delta,
+  hoặc dùng codekb không có dòng ledger ⇒ như đọc thầm — doctor FIX.
 
 ### 4.9 Unit = một phiên · tự ra được sản phẩm (v5 — thay trần 5h)
 

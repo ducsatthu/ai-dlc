@@ -1660,10 +1660,14 @@ MAX_SCAN = 40000
 def scan_activity():
     roots = [(A, ".ai-dlc")]
     wm = read(os.path.join(A, "workspace-map.md"))
+    # v1 `code.frontend: path` và v2 `areas.<x>.path: path` đều là `  key: value` — bắt chung.
+    # "." (repos.path của map v2) là cả workspace: bỏ, kẻo quét toàn repo thay vì code roots.
     for m in re.finditer(r"^\s{2,}\w+:\s*(\S+)\s*$", wm, re.M):
-        v = m.group(1).strip().strip('"')
+        v = m.group(1).strip().strip('"').strip("'")
         if v and v != "null":
-            p = os.path.join(ROOT, v)
+            p = os.path.abspath(os.path.join(ROOT, v))
+            if p == os.path.abspath(ROOT):
+                continue
             if os.path.isdir(p) and not any(p == r[0] for r in roots):
                 roots.append((p, v.rstrip("/")))
     now = datetime.datetime.now().timestamp()

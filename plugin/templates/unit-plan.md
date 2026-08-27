@@ -21,6 +21,9 @@ total_estimate_hours: 0
 > request-changes đúng dòng đó.
 > Luật cứng: mỗi Unit đủ **User Story · NFR · Rủi ro**, khai `releasable` + `session_fit` có con số (§4.9 v5)
 > và `review:` tầng kèm căn cứ trigger (§4.17). Không còn trần giờ.
+> **Cắt dọc là mặc định** (6.2.0): một Unit chạm nhiều code area (`areas:`) và ra được một thứ để bấm/gọi
+> ngay sau Bolt đầu — không cắt `u1-domain → u2-api → u3-web` rồi để Unit đầu `releasable: no`. Cắt theo area
+> chỉ khi contract giữa area đã chốt (`contract.md`) và mọi mảnh khai `released_with:`.
 
 ## 1. Đã đổi gì so với provisional (đọc trước tiên)
 
@@ -46,11 +49,11 @@ Còn nguồn `planned` chưa xử lý → **không được trình Gate D** (pro
 
 ## 3. Bảng Unit
 
-| Unit | Capability | Est (h) | Bolt | Song song/tuần tự | Phụ thuộc | US | NFR | Risk | Review (§4.17 — vì sao) | DoR |
-|---|---|---|---|---|---|---|---|---|---|---|
-| UOW-01 | | 4.0 | 1 | // với UOW-02 | — | 2 | 3 | 1 | `specialist(security)` — chạm role-matrix | ✅ |
-| UOW-02 | | 3.0 | 1 | | — | 1 | 2 | 1 | `none` — vùng quen, không trigger | ✅ |
-| | **Tổng** | **0.0** | | | | | | | | |
+| Unit | Capability | Areas | Est (h) | Bolt | Song song/tuần tự | Phụ thuộc | US | NFR | Risk | Review (§4.17 — vì sao) | DoR |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| UOW-01 | | api, web | 4.0 | 1 | // với UOW-02 | — | 2 | 3 | 1 | `specialist(security)` — chạm role-matrix | ✅ |
+| UOW-02 | | api | 3.0 | 1 | | — | 1 | 2 | 1 | `none` — vùng quen, không trigger | ✅ |
+| | **Tổng** | | **0.0** | | | | | | | | |
 
 ## 4. Chi tiết từng Unit
 

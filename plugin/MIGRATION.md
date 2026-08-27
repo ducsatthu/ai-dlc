@@ -1,5 +1,24 @@
 # MIGRATION — ai-dlc
 
+## 6.1.x → 6.2.0 — workspace map v2 + codekb (additive, không đổi luật gate)
+
+**Không bắt buộc làm gì.** Map v1 (`code:`/`tests:`) vẫn được `gate_guard`, tower và skill đọc. Intent đang
+chạy không cần khai `areas:`; doctor chỉ WARN.
+
+Nên làm khi rảnh (mỗi việc ≤ 15 phút):
+1. **Map v2**: chạy lại bước 3 của `/ai-dlc:dlc-init` (hoặc sửa tay `workspace-map.md`): thêm `version: 2`
+   vào frontmatter, `repos:` và `areas:` theo `templates/workspace-map.md`; giữ `code:` khớp `areas.*.path`.
+2. **Promote codekb cho intent đã đóng**: với intent brownfield ở stage 8 (PILOT: INT-001, INT-002), copy
+   nguyên văn `as-is/{static-model,dynamic-model,decisions-inventory}.md` của **intent đóng gần nhất** vào
+   `codekb/<repo>/`, viết `freshness.md` từ `templates/codekb-freshness.md` với `git_head` = commit lúc AS-IS
+   đó được đọc (tra `session/log/SES-*.md` hoặc `git log` quanh ngày ledger đóng; không chắc thì để
+   `status: UNKNOWN_SCOPE` — `dlc-discover` sẽ quét như chưa có, trung thực hơn khai `CURRENT`). Intent đang ở
+   stage 6 (INT-003) **không** promote — chờ nó đóng.
+3. Unit của intent kế khai `areas:`; unit-plan dùng cột *Areas*.
+
+**Rollback**: hạ về 6.1.x thì `areas:`/`repos:`/`codekb/` bị bỏ qua; `.ai-dlc/` ở thư mục cha (đa repo) sẽ
+không được hook tìm thấy — đặt lại vào repo hoặc giữ 6.2.
+
 ## 5.x → 6.0.0 — Review Board mặc định đã gỡ: review theo tầng rủi ro (§4.17)
 
 **Đổi luật điểm dừng trong Bolt + format `spec.md`** (major). Reviewer không còn là mặc định mọi nơi:

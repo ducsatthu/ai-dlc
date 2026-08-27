@@ -16,8 +16,10 @@ description: Bắt đầu một Intent AI-DLC mới từ yêu cầu của user (
 3. Spawn `ai-dlc:dlc-intent-analyst` với yêu cầu của user → `intent.md` (bản gọn) + **phần 1** của
    `intent-plan.md` (dựng từ `${CLAUDE_PLUGIN_ROOT}/templates/intent-plan.md`).
 4. Spawn `ai-dlc:dlc-source-planner` → **phần 2 (Source Reading Plan)**: quét thật workspace theo
-   workspace-map, điền bảng nguồn với "thông tin cụ thể phải lấy ra" cho từng nguồn, ghi lệnh/pattern đã
-   quét vào mục 2.5, đẩy nguồn ngoài repo thành câu hỏi ở 2.4.
+   workspace-map (v2: theo `areas` intent chạm — ghi luôn `areas` dự kiến vào 1.6), điền bảng nguồn với
+   "thông tin cụ thể phải lấy ra" cho từng nguồn, ghi lệnh/pattern đã quét vào mục 2.5, đẩy nguồn ngoài repo
+   thành câu hỏi ở 2.4. **`codekb/<repo>/` (nếu có) là nguồn dòng đầu tiên** của bảng 2.1, kèm trạng thái
+   freshness lúc lập plan — `dlc-discover` sẽ kiểm lại với HEAD trước khi reuse (6.2.0).
 5. Quay lại `ai-dlc:dlc-intent-analyst` → **phần 3 (Provisional Unit Map)**: trục phân rã + Units, mỗi Unit
    có User Story · NFR (ngưỡng số) · Rủi ro (mức/trigger/chủ) · **`releasable` + `session_fit` có con số**
    (§4.9 v5) · ước lượng có breakdown · nguồn chứng minh.

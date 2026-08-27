@@ -114,6 +114,19 @@ Chỉ đọc + báo cáo (sửa gì phải được user đồng ý từng mục
 5. So version checklist: pinned của intent đang chạy vs plugin hiện tại → liệt kê lệch (chỉ thông tin —
    pinned vẫn thắng trong intent đó). Intent tạo bằng plugin <2.0.0 → nhắc đọc `MIGRATION.md`.
 6. `inbox/` có file chưa processed → nhắc drain. `workspace-map.md` mục null mà flow sắp cần → nhắc.
+6a. **Workspace map v2 + codekb (6.2.0, protocol §3 · §4.8)**:
+   - Map còn `version: 1` (không có `areas:`) → **WARN**: chạy lại bước 3 của `dlc-init` để thêm `repos`/`areas`
+     (additive, không đổi luật). `areas.*.path` trỏ thư mục không tồn tại → **FIX**. `code.*` lệch `areas.*.path`
+     → **WARN** (hai chỗ nói hai đường).
+   - Unit `spec.md` có `areas:` chứa tên không có trong map → **FIX**. Intent lập từ 6.2 mà Unit thiếu `areas:`
+     → **WARN** (guard/tower không đối chiếu được). `tasks.md`/`evidence/` của Bolt liệt kê file nằm ngoài
+     `areas` của Unit → **WARN** kèm file — Bolt đang ghi ra ngoài chỗ Unit khai.
+   - `codekb/<repo>/freshness.md`: `git diff --name-only <git_head>..HEAD -- <areas_scanned paths>` có file mà
+     `status: CURRENT` → **FIX** (khai tươi mà đã cũ). Intent đang ở stage ≥3 có ledger mục 0 ghi `reuse` mà
+     freshness lúc đó không `CURRENT`, hoặc ledger có dòng trỏ `codekb/` không kèm evidence freshness → **FIX**
+     (đọc thầm dưới tên khác). Intent brownfield đã đóng (stage 8) mà không promote codekb → **WARN**.
+   - Nhiều `.ai-dlc/context-memory/` trong cùng cây thư mục (cha/con) → **hỏi người**: hai space thật (hai
+     đội) là hợp lệ; một space + một bản init nhầm thì xoá bản nhầm.
 6b. **`.ai-dlc` rác** — quét cả repo: thư mục `.ai-dlc/` nào **chỉ có `tower/`**, không có
    `context-memory/`, là dashboard rỗng do chạy generator sai chỗ (trước 4.0.0 script nhận bừa `cwd`
    làm gốc dự án). → **FIX**: xoá; state thật chỉ nằm ở gốc. Cũng kiểm `.ai-dlc/` lồng trong `.ai-dlc/`.

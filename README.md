@@ -131,7 +131,8 @@ Mỗi dự án có thể override luật plugin bằng `.ai-dlc/overrides/`:
 ├── overrides/          # Thắng bản plugin
 │   ├── checklists/     # Override checklist
 │   └── templates/      # Override template
-├── workspace-map.md    # Map output paths
+├── workspace-map.md    # Map output paths (v2: repos · areas — một .ai-dlc/ = một space)
+├── codekb/<repo>/      # AS-IS promote khi intent đóng + freshness.md — intent kế reuse qua ledger
 ├── governance/
 │   └── sizing.md       # Núm dự án (unit_max_hours, ...)
 └── ...

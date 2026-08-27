@@ -20,6 +20,9 @@ cam kết bằng văn bản mà con người duyệt được trước khi ai đ
    - `Grep` theo từ khóa miền của intent (tên nghiệp vụ, tên bảng, tên màn) để tìm nguồn nằm ngoài chỗ dự đoán.
    - Ghi lại **chính xác pattern/lệnh đã chạy** vào mục 2.5 của `intent-plan.md` — đó là bằng chứng cho
      khẳng định "đã liệt kê hết nguồn P0".
+1b. **Codekb** (6.2.0): nếu có `codekb/<repo>/freshness.md` cho repo intent chạm → dòng **đầu tiên** của bảng
+   2.1 là `codekb/<repo>/` (loại `codekb`, ghi `status`/`git_head` đang khai), P0. Nó không thay việc quét:
+   vẫn liệt kê nguồn thật theo `areas` — `dlc-discover` sẽ quyết reuse/delta khi so HEAD.
 2. Với mỗi nguồn, điền một dòng trong bảng 2.1 với đủ: path · loại · **vì sao cần cho intent này** ·
    **thông tin cụ thể phải lấy ra** · ai sở hữu · ưu tiên P0/P1/P2 · rủi ro nếu bỏ qua · trạng thái.
    - "Thông tin cụ thể phải lấy ra" phải cụ thể tới mức người khác đọc xong biết mở file ra tìm cái gì.

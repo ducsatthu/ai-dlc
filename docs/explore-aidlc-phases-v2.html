@@ -1,0 +1,784 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Bản đồ trực quan 5 phases, 33 stages, dependencies và human checkpoints của AI-DLC Workflows V2.">
+  <title>AI-DLC V2 — 5 Phases &amp; 33 Stages</title>
+  <style>
+    :root {
+      --ink:#18201f; --muted:#66706d; --paper:#f4f0e7; --surface:#fffdf8;
+      --line:#d7d0c3; --teal:#176b63; --teal-soft:#dcece7; --amber:#a66012;
+      --amber-soft:#f7e8ce; --red:#9d4437; --red-soft:#f4dfda; --blue:#315b8a;
+      --blue-soft:#e1e9f3; --violet:#6b4f87; --violet-soft:#eae3f0; --shadow:0 16px 42px rgba(39,45,42,.10);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background-color:var(--paper);background-image:linear-gradient(rgba(24,32,31,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(24,32,31,.035) 1px,transparent 1px);background-size:24px 24px;line-height:1.55}
+    button,select,input{font:inherit}
+    a{color:var(--teal)}
+    code{font-family:"SFMono-Regular",Consolas,monospace;font-size:.92em}
+    .wrap{width:min(1240px,calc(100% - 36px));margin:auto}
+    .topbar{position:sticky;top:0;z-index:30;background:rgba(244,240,231,.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+    .topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:56px}
+    .brand{font-weight:800;letter-spacing:-.02em}.brand span{color:var(--teal)}
+    nav{display:flex;gap:18px;overflow:auto;white-space:nowrap}nav a{color:var(--muted);text-decoration:none;font-size:.88rem;font-weight:700}nav a:hover{color:var(--ink)}
+    .hero{padding:74px 0 48px;border-bottom:1px solid var(--line)}
+    .eyebrow{display:flex;align-items:center;gap:10px;color:var(--teal);font-size:.78rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+    .version{padding:4px 8px;border:1px solid currentColor;border-radius:999px;letter-spacing:.04em}
+    h1{max-width:900px;margin:16px 0 18px;font-size:clamp(2.5rem,7vw,5.6rem);line-height:.95;letter-spacing:-.065em}
+    .hero-copy{max-width:850px;margin:0;color:var(--muted);font-size:clamp(1rem,2vw,1.25rem)}
+    .hero-copy strong{color:var(--ink)}
+    .hero-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin-top:34px;border:1px solid var(--line);background:var(--line)}
+    .hero-stat{background:var(--surface);padding:18px}.hero-stat b{display:block;font-size:1.8rem;line-height:1}.hero-stat span{color:var(--muted);font-size:.82rem}
+    section{padding:64px 0;border-bottom:1px solid var(--line)}
+    .section-head{display:grid;grid-template-columns:150px 1fr;gap:26px;align-items:start;margin-bottom:28px}
+    .kicker{margin:4px 0;color:var(--teal);font-size:.76rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+    h2{margin:0;font-size:clamp(1.8rem,4vw,3.25rem);line-height:1.05;letter-spacing:-.045em}
+    h3{margin:0 0 8px;line-height:1.2;letter-spacing:-.02em}
+    .desc{max-width:780px;margin:12px 0 0;color:var(--muted)}
+    .big-flow{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));align-items:center;gap:8px}
+    .phase-pill{min-height:126px;padding:16px;border:1px solid var(--line);background:var(--surface);box-shadow:0 8px 22px rgba(39,45,42,.05)}
+    .phase-pill small{display:block;color:var(--muted);font-weight:800}.phase-pill b{display:block;margin:10px 0 5px;font-size:1.1rem}.phase-pill span{font-size:.82rem;color:var(--muted)}
+    .phase-pill[data-phase="initialization"]{border-top:5px solid var(--teal)}.phase-pill[data-phase="ideation"]{border-top:5px solid var(--amber)}.phase-pill[data-phase="inception"]{border-top:5px solid var(--blue)}.phase-pill[data-phase="construction"]{border-top:5px solid var(--violet)}.phase-pill[data-phase="operation"]{border-top:5px solid var(--red)}
+    .flow-arrow{text-align:center;color:var(--muted);font-size:1.3rem}
+    .flow-note{margin-top:18px;padding:16px 18px;border-left:4px solid var(--teal);background:var(--teal-soft)}
+    .controls{display:flex;flex-wrap:wrap;align-items:end;gap:12px;margin-bottom:18px;padding:16px;border:1px solid var(--line);background:var(--surface)}
+    .field{display:grid;gap:5px}.field label{color:var(--muted);font-size:.74rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+    select{min-width:190px;padding:10px 34px 10px 11px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
+    .check{display:flex;align-items:center;gap:8px;min-height:42px;padding:0 4px;font-size:.88rem;font-weight:700}.check input{width:17px;height:17px;accent-color:var(--teal)}
+    .route-summary{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}.summary-chip{padding:8px 10px;border-radius:5px;background:var(--teal-soft);color:var(--teal);font-size:.8rem;font-weight:800}.summary-chip.muted{background:#e9e5dd;color:var(--muted)}
+    .map-shell{overflow:auto;border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow)}
+    .map-canvas{position:relative;display:grid;grid-template-columns:repeat(5,280px);gap:28px;min-width:1512px;padding:24px;isolation:isolate}
+    .edge-layer{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:visible}.edge{fill:none;stroke:#b9b2a7;stroke-width:1.5;opacity:.35}.edge.active{stroke:var(--teal);stroke-width:2.2;opacity:.85}.edge.related{opacity:1;stroke-width:2.6}.edge.inactive{stroke-dasharray:5 5;opacity:.22}
+    .phase-lane{position:relative;z-index:2;min-width:0;padding:14px 14px 18px;border-left:1px solid var(--line);border-right:1px solid var(--line);background:rgba(255,253,248,.86)}
+    .lane-head{position:sticky;top:0;z-index:3;margin:-14px -14px 14px;padding:14px;background:var(--surface);border-bottom:1px solid var(--line)}
+    .lane-head small{color:var(--muted);font-weight:800}.lane-head b{display:block;font-size:1.05rem}.lane-count{font-size:.76rem;color:var(--muted)}
+    .stage-list{display:grid;gap:14px}
+    .stage-node{position:relative;width:100%;min-height:94px;padding:12px 34px 12px 12px;text-align:left;color:var(--ink);border:1px solid var(--line);border-radius:7px;background:var(--surface);cursor:pointer;box-shadow:0 4px 12px rgba(39,45,42,.05);transition:opacity .18s,transform .18s,border-color .18s,box-shadow .18s}
+    .stage-node:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(39,45,42,.10)}.stage-node:focus-visible{outline:3px solid rgba(23,107,99,.25);outline-offset:2px}.stage-node.selected{border-color:var(--teal);box-shadow:0 0 0 3px rgba(23,107,99,.14)}
+    .stage-node.route-skip{opacity:.32;filter:grayscale(.65)}.stage-node.route-skip::after{content:"SKIP";position:absolute;right:8px;top:8px;color:var(--muted);font-size:.62rem;font-weight:900;letter-spacing:.08em}.stage-node.route-active::after{content:"RUN";position:absolute;right:8px;top:8px;color:var(--teal);font-size:.62rem;font-weight:900;letter-spacing:.08em}
+    .stage-node.hidden-stage{display:none}.stage-index{display:block;margin-bottom:4px;color:var(--muted);font-family:"SFMono-Regular",Consolas,monospace;font-size:.72rem;font-weight:800}.stage-title{display:block;font-size:.9rem;font-weight:800;line-height:1.25}.node-meta{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}.mini{padding:2px 5px;border-radius:3px;background:#ece8df;color:var(--muted);font-size:.61rem;font-weight:800;text-transform:uppercase}.mini.conditional{background:var(--blue-soft);color:var(--blue)}.mini.gate{background:var(--amber-soft);color:var(--amber)}.mini.review{background:var(--violet-soft);color:var(--violet)}
+    .map-help{display:flex;gap:18px;flex-wrap:wrap;margin:12px 0 0;color:var(--muted);font-size:.78rem}.legend-dot{display:inline-block;width:10px;height:10px;margin-right:5px;border-radius:2px;vertical-align:-1px}.run-dot{background:var(--teal)}.skip-dot{background:#aaa49b}.conditional-dot{background:var(--blue)}.gate-dot{background:var(--amber)}
+    .detail-panel{display:grid;grid-template-columns:180px 1fr;gap:26px;margin-top:24px;padding:24px;border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow)}
+    .detail-id{font-size:3rem;font-weight:900;line-height:1;color:var(--teal);letter-spacing:-.06em}.detail-phase{margin-top:10px;color:var(--muted);font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+    .detail-top{display:flex;gap:12px;justify-content:space-between;align-items:start}.detail-top h3{font-size:1.55rem}.source-link{white-space:nowrap;font-size:.78rem;font-weight:800}
+    .detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-top:18px;border:1px solid var(--line);background:var(--line)}.detail-cell{min-width:0;padding:14px;background:var(--surface)}.detail-cell small{display:block;margin-bottom:5px;color:var(--muted);font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:.06em}.detail-cell p{margin:0;font-size:.88rem}.detail-cell.human{background:var(--amber-soft)}
+    .dependency-row{display:flex;gap:6px;flex-wrap:wrap}.dep-chip{padding:3px 6px;border:1px solid var(--line);border-radius:4px;background:#f0ece4;font-family:"SFMono-Regular",Consolas,monospace;font-size:.72rem}.dep-chip.none{font-family:inherit;color:var(--muted)}
+    .phase-profiles{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.profile{padding:18px;border:1px solid var(--line);background:var(--surface)}.profile .num{color:var(--muted);font-size:2.4rem;font-weight:900;line-height:1}.profile h3{margin-top:14px}.profile dl{margin:14px 0 0}.profile dt{margin-top:10px;color:var(--muted);font-size:.67rem;font-weight:900;text-transform:uppercase;letter-spacing:.06em}.profile dd{margin:3px 0 0;font-size:.84rem}
+    .profile.init{border-top:5px solid var(--teal)}.profile.idea{border-top:5px solid var(--amber)}.profile.incept{border-top:5px solid var(--blue)}.profile.construct{border-top:5px solid var(--violet)}.profile.operate{border-top:5px solid var(--red)}
+    .gate-model{display:grid;grid-template-columns:1fr 1fr;gap:18px}.gate-flow,.human-map{padding:22px;border:1px solid var(--line);background:var(--surface)}
+    .gate-steps{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:16px}.gate-step{padding:8px 10px;border-radius:4px;background:#ece8df;font-size:.78rem;font-weight:800}.gate-step.human{background:var(--amber-soft);color:var(--amber)}.gate-step.machine{background:var(--violet-soft);color:var(--violet)}
+    .role-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:20px}.role{padding:14px;border-left:4px solid var(--amber);background:var(--surface);box-shadow:0 5px 16px rgba(39,45,42,.06)}.role b{font-size:.9rem}.role p{margin:4px 0 0;color:var(--muted);font-size:.77rem}
+    .scope-examples{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.example{padding:18px;border:1px solid var(--line);background:var(--surface)}.example h3{display:flex;justify-content:space-between;gap:10px}.example h3 span{color:var(--teal);font-size:.75rem}.example p{margin:7px 0 12px;color:var(--muted);font-size:.82rem}.mini-flow{display:flex;gap:5px;flex-wrap:wrap}.mini-flow span{padding:4px 6px;border-radius:3px;background:#ece8df;font-family:"SFMono-Regular",Consolas,monospace;font-size:.67rem}.mini-flow i{color:var(--muted);font-style:normal}
+    .concept-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin-bottom:22px;border:1px solid var(--line);background:var(--line)}.concept{padding:16px;background:var(--surface)}.concept small{display:block;color:var(--muted);font-size:.67rem;font-weight:900;text-transform:uppercase;letter-spacing:.07em}.concept b{display:block;margin-top:6px;font-size:1rem}.concept span{display:block;margin-top:3px;color:var(--muted);font-size:.78rem}
+    .model-grid{display:grid;grid-template-columns:minmax(300px,.9fr) minmax(0,1.4fr);gap:18px}.tree-card,.model-card{min-width:0;padding:20px;border:1px solid var(--line);background:var(--surface);box-shadow:0 8px 24px rgba(39,45,42,.06)}.tree-card h3,.model-card h3{display:flex;align-items:center;justify-content:space-between;gap:12px}.tag{padding:3px 7px;border-radius:999px;background:var(--teal-soft);color:var(--teal);font-size:.66rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em}.tag.custom{background:var(--amber-soft);color:var(--amber)}.tree{overflow:auto;margin:14px 0 0;padding:16px;border:1px solid var(--line);background:#efebe3;color:#34403d;font:700 .76rem/1.65 "SFMono-Regular",Consolas,monospace;white-space:pre}.tree .hot{color:var(--teal)}
+    .intent-units{display:grid;gap:8px;margin-top:14px}.intent-row{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center}.intent-label{padding:9px;border-radius:5px;background:var(--violet-soft);color:var(--violet);font-size:.72rem;font-weight:900;text-align:center}.unit-list{display:flex;gap:6px;flex-wrap:wrap}.unit{padding:7px 9px;border:1px solid var(--line);border-radius:4px;background:#f0ece4;font:700 .7rem "SFMono-Regular",Consolas,monospace}.code-rule{margin-top:14px;padding:12px 14px;border-left:4px solid var(--violet);background:var(--violet-soft);font-size:.82rem}
+    .record-example{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}.record-example small{display:block;margin-bottom:8px;color:var(--muted);font-size:.67rem;font-weight:900;text-transform:uppercase;letter-spacing:.06em}.record-tree{overflow:auto;margin:0;padding:14px;border:1px solid var(--line);background:#efebe3;color:#34403d;font:700 .7rem/1.62 "SFMono-Regular",Consolas,monospace;white-space:pre}
+    .repo-case{display:grid;grid-template-columns:minmax(300px,.8fr) minmax(0,1.5fr);gap:18px;margin-top:18px}.repo-flow{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:14px 0}.repo-flow span{padding:8px 10px;border-radius:4px;background:var(--teal-soft);color:var(--teal);font-size:.75rem;font-weight:900}.repo-flow i{color:var(--muted);font-style:normal;font-weight:900}.repo-set{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.repo-target{padding:12px;border:1px solid var(--line);background:#f0ece4}.repo-target b{display:block;font:800 .73rem "SFMono-Regular",Consolas,monospace}.repo-target span{display:block;margin-top:5px;color:var(--muted);font:700 .66rem/1.45 "SFMono-Regular",Consolas,monospace}.repo-note{margin-top:13px;padding:11px 13px;border-left:4px solid var(--teal);background:var(--teal-soft);font-size:.8rem}
+    .team-layout{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}.space-card{position:relative;padding:18px;border:1px solid var(--line);background:var(--surface)}.space-card::after{content:"";position:absolute;left:50%;bottom:-21px;width:1px;height:20px;background:var(--line)}.space-card small{color:var(--muted);font-size:.67rem;font-weight:900;text-transform:uppercase;letter-spacing:.06em}.space-card h3{margin-top:7px}.space-card p{margin:5px 0;color:var(--muted);font-size:.79rem}.ownership{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}.ownership span{padding:4px 6px;border-radius:3px;background:var(--blue-soft);color:var(--blue);font:700 .65rem "SFMono-Regular",Consolas,monospace}
+    .shared-repo{margin-top:20px;padding:20px;border:2px solid var(--teal);background:var(--teal-soft);text-align:center}.shared-repo b{display:block;font-size:1.05rem}.shared-repo p{max-width:760px;margin:5px auto 0;color:#3d5d58;font-size:.82rem}.boundary-flow{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap;margin-top:13px}.boundary-flow span{padding:6px 8px;border-radius:4px;background:var(--surface);font:700 .68rem "SFMono-Regular",Consolas,monospace}.boundary-flow i{color:var(--teal);font-style:normal;font-weight:900}
+    .sharing-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:22px}.share-card{padding:20px;border:1px solid var(--line);background:var(--surface)}.share-card.builtin{border-top:5px solid var(--teal)}.share-card.governance{border-top:5px solid var(--amber)}.share-card p{color:var(--muted);font-size:.82rem}.share-stack{display:grid;gap:8px;margin-top:13px}.share-node{padding:10px 12px;border:1px solid var(--line);background:#f0ece4;font-size:.78rem}.share-node strong{display:block}.share-arrow{text-align:center;color:var(--muted);font-weight:900}.no-auto{margin-top:14px;padding:12px 14px;background:var(--red-soft);color:#69372f;font-size:.8rem;font-weight:700}
+    .governance-example{display:grid;grid-template-columns:minmax(320px,.9fr) minmax(0,1.35fr);gap:18px;margin-top:18px}.governance-pipeline{display:grid;gap:8px;margin-top:14px}.governance-step{padding:12px 14px;border:1px solid var(--line);background:#f0ece4}.governance-step small{display:block;color:var(--muted);font-size:.65rem;font-weight:900;text-transform:uppercase;letter-spacing:.06em}.governance-step b{display:block;margin-top:3px;font-size:.85rem}.governance-step p{margin:4px 0 0;color:var(--muted);font-size:.76rem}.projection-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.projection{padding:10px;border:1px solid var(--line);background:var(--surface);font-size:.7rem}.projection b{display:block;color:var(--teal)}
+    .decision-table{width:100%;margin-top:22px;border-collapse:collapse;background:var(--surface);font-size:.8rem}.decision-table th,.decision-table td{padding:11px 12px;border:1px solid var(--line);text-align:left;vertical-align:top}.decision-table th{background:#e9e5dd;font-size:.68rem;text-transform:uppercase;letter-spacing:.05em}.decision-table td:first-child{font-weight:800}.yes{color:var(--teal);font-weight:900}.no{color:var(--red);font-weight:900}
+    .hygiene{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px}.hygiene article{padding:15px;border-left:4px solid var(--blue);background:var(--surface)}.hygiene b{display:block;font-size:.84rem}.hygiene p{margin:5px 0 0;color:var(--muted);font-size:.75rem}
+    .caveat{margin-top:18px;padding:16px 18px;border:1px solid #dfc18d;background:var(--amber-soft)}
+    .workspace-concepts{display:grid;gap:22px}.workspace-concept{display:grid;grid-template-columns:minmax(360px,.9fr) minmax(0,1.35fr);min-width:0;border:1px solid var(--line);background:var(--surface);box-shadow:0 10px 28px rgba(39,45,42,.07)}.concept-structure,.concept-explain{min-width:0;padding:22px}.concept-structure{border-right:1px solid var(--line);background:#f9f6ef}.concept-label{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:12px}.concept-label small{color:var(--muted);font-size:.66rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em}.concept-label b{font:900 1.05rem "SFMono-Regular",Consolas,monospace}.concept-tree{overflow:auto;margin:0;padding:16px;border:1px solid var(--line);background:#efebe3;color:#34403d;font:700 .71rem/1.6 "SFMono-Regular",Consolas,monospace;white-space:pre}.concept-explain h3{font-size:1.45rem}.concept-purpose{max-width:700px;margin:7px 0 17px;color:var(--muted);font-size:.9rem}.concept-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;border:1px solid var(--line);background:var(--line)}.concept-fact{min-width:0;padding:13px;background:var(--surface)}.concept-fact small{display:block;margin-bottom:5px;color:var(--muted);font-size:.64rem;font-weight:900;text-transform:uppercase;letter-spacing:.07em}.concept-fact p{margin:0;font-size:.78rem}.folder-notes{display:grid;gap:7px;margin-top:14px}.folder-note{display:grid;grid-template-columns:142px 1fr;gap:10px;padding:9px 11px;border-left:3px solid var(--line);background:#f1ede5;font-size:.75rem}.folder-note code{font-weight:800}.folder-note span{color:var(--muted)}.concept-warning{margin-top:14px;padding:11px 13px;border-left:4px solid currentColor;background:#f1ede5;font-size:.78rem}.workspace-concept[data-concept="memory"]{border-top:5px solid var(--teal)}.workspace-concept[data-concept="memory"] .concept-label b,.workspace-concept[data-concept="memory"] .concept-warning{color:var(--teal)}.workspace-concept[data-concept="knowledge"]{border-top:5px solid var(--blue)}.workspace-concept[data-concept="knowledge"] .concept-label b,.workspace-concept[data-concept="knowledge"] .concept-warning{color:var(--blue)}.workspace-concept[data-concept="codekb"]{border-top:5px solid var(--violet)}.workspace-concept[data-concept="codekb"] .concept-label b,.workspace-concept[data-concept="codekb"] .concept-warning{color:var(--violet)}.workspace-concept[data-concept="intents"]{border-top:5px solid var(--amber)}.workspace-concept[data-concept="intents"] .concept-label b,.workspace-concept[data-concept="intents"] .concept-warning{color:var(--amber)}
+    .mechanism-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;margin-bottom:22px;border:1px solid var(--line);background:var(--line)}.mechanism{position:relative;min-width:0;padding:20px;background:var(--surface)}.mechanism::before{content:"";position:absolute;inset:0 auto 0 0;width:5px;background:currentColor}.mechanism small{display:block;color:var(--muted);font-size:.65rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em}.mechanism b{display:block;margin:7px 0 4px;font-size:1.15rem}.mechanism p{margin:0;color:var(--muted);font-size:.8rem}.mechanism.skills{color:var(--amber)}.mechanism.hooks{color:var(--teal)}.mechanism.sensors{color:var(--violet)}
+    .runtime-flow{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));align-items:center;gap:7px;margin-bottom:22px;padding:16px;border:1px solid var(--line);background:#f0ece4}.runtime-step{min-height:74px;padding:12px;border:1px solid var(--line);background:var(--surface);text-align:center}.runtime-step small{display:block;color:var(--muted);font-size:.62rem;font-weight:900;text-transform:uppercase;letter-spacing:.06em}.runtime-step b{display:block;margin-top:7px;font-size:.78rem}.runtime-step[data-tone="skill"]{border-top:4px solid var(--amber)}.runtime-step[data-tone="hook"]{border-top:4px solid var(--teal)}.runtime-step[data-tone="sensor"]{border-top:4px solid var(--violet)}.runtime-arrow{text-align:center;color:var(--muted);font-weight:900}
+    .runtime-details{display:grid;gap:22px}.runtime-detail{display:grid;grid-template-columns:minmax(390px,.9fr) minmax(0,1.45fr);min-width:0;border:1px solid var(--line);background:var(--surface);box-shadow:0 10px 28px rgba(39,45,42,.07)}.runtime-structure,.runtime-explain{min-width:0;padding:22px}.runtime-structure{border-right:1px solid var(--line);background:#f9f6ef}.runtime-detail[data-runtime="hooks"]{border-top:5px solid var(--teal)}.runtime-detail[data-runtime="sensors"]{border-top:5px solid var(--violet)}.runtime-detail[data-runtime="skills"]{border-top:5px solid var(--amber)}.runtime-title{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}.runtime-title small{color:var(--muted);font-size:.65rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em}.runtime-title b{font:900 1.05rem "SFMono-Regular",Consolas,monospace}.runtime-tree{overflow:auto;margin:0;padding:16px;border:1px solid var(--line);background:#efebe3;color:#34403d;font:700 .68rem/1.58 "SFMono-Regular",Consolas,monospace;white-space:pre}.tree-caption{margin:10px 0 0;color:var(--muted);font-size:.7rem}.runtime-explain h3{font-size:1.5rem}.runtime-lead{margin:7px 0 16px;color:var(--muted);font-size:.88rem}.design-intent{margin:0 0 16px;padding:12px 14px;border-left:4px solid currentColor;background:#f1ede5;font-size:.8rem}.runtime-detail[data-runtime="hooks"] .design-intent{color:var(--teal)}.runtime-detail[data-runtime="sensors"] .design-intent{color:var(--violet)}.runtime-detail[data-runtime="skills"] .design-intent{color:var(--amber)}
+    .hook-groups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.hook-group{padding:13px;border:1px solid var(--line);background:#f5f1e9}.hook-group small{display:block;color:var(--muted);font-size:.62rem;font-weight:900;text-transform:uppercase;letter-spacing:.06em}.hook-group b{display:block;margin:5px 0;font-size:.85rem}.hook-group p{margin:0;color:var(--muted);font-size:.73rem}.hook-sequence{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:14px}.hook-sequence span{padding:7px 9px;border-radius:4px;background:var(--teal-soft);color:var(--teal);font:800 .67rem "SFMono-Regular",Consolas,monospace}.hook-sequence i{color:var(--muted);font-style:normal;font-weight:900}
+    .sensor-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.sensor-card{padding:13px;border:1px solid var(--line);background:#f5f1e9}.sensor-card code{display:block;color:var(--violet);font-size:.71rem;font-weight:900}.sensor-card small{display:block;margin-top:4px;color:var(--muted);font-size:.62rem;text-transform:uppercase}.sensor-card p{margin:6px 0 0;color:var(--muted);font-size:.73rem}.sensor-sequence{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));align-items:center;gap:5px;margin-top:14px;padding:12px;background:var(--violet-soft)}.sensor-sequence span{padding:7px 6px;background:var(--surface);font:800 .64rem "SFMono-Regular",Consolas,monospace;text-align:center}.sensor-sequence i{color:var(--violet);font-style:normal;font-weight:900;text-align:center}
+    .core-skills-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.core-skill-card{padding:14px;border:1px solid var(--line);background:#f5f1e9}.core-skill-card code{display:block;color:var(--amber);font-size:.75rem;font-weight:900}.core-skill-card b{display:block;margin-top:6px;font-size:.86rem}.core-skill-card p{margin:5px 0 0;color:var(--muted);font-size:.73rem}.skill-meta{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px}.skill-meta span{padding:3px 6px;border-radius:3px;background:var(--amber-soft);color:var(--amber);font-size:.61rem;font-weight:900;text-transform:uppercase}.runtime-note{margin-top:14px;padding:11px 13px;border-left:4px solid var(--line);background:#f1ede5;font-size:.77rem}.runtime-note strong{color:var(--ink)}
+    footer{padding:34px 0 50px;color:var(--muted);font-size:.8rem}.footer-row{display:flex;justify-content:space-between;gap:20px}
+    @media (max-width:1000px){.phase-profiles{grid-template-columns:repeat(2,1fr)}.role-grid,.scope-examples{grid-template-columns:repeat(2,1fr)}.detail-grid{grid-template-columns:repeat(2,1fr)}.hero-strip{grid-template-columns:repeat(2,1fr)}.model-grid,.repo-case,.governance-example,.workspace-concept,.runtime-detail{grid-template-columns:1fr}.workspace-concept .concept-structure,.runtime-structure{border-right:0;border-bottom:1px solid var(--line)}.hygiene{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width:760px){.wrap{width:min(100% - 24px,1240px)}.topbar .wrap{display:block;padding:10px 0}.brand{margin-bottom:7px}.section-head{grid-template-columns:1fr;gap:8px}.hero{padding:50px 0 34px}.big-flow,.runtime-flow{grid-template-columns:1fr}.flow-arrow,.runtime-arrow{transform:rotate(90deg)}.controls{align-items:stretch}.field,select{width:100%}.route-summary{margin-left:0}.detail-panel{grid-template-columns:1fr}.detail-grid{grid-template-columns:1fr}.detail-top{display:block}.source-link{display:inline-block;margin-top:8px}.phase-profiles,.gate-model,.role-grid,.scope-examples,.team-layout,.sharing-grid,.hygiene,.repo-set,.projection-grid,.concept-facts,.mechanism-strip,.hook-groups,.sensor-grid,.core-skills-grid{grid-template-columns:1fr}.folder-note{grid-template-columns:1fr;gap:3px}.footer-row{display:block}.map-canvas{grid-template-columns:repeat(5,250px);min-width:1362px}.hero-strip,.concept-strip{grid-template-columns:1fr 1fr}.intent-row{grid-template-columns:1fr}.intent-label{text-align:left}.space-card::after{display:none}.decision-table{display:block;overflow-x:auto;white-space:nowrap}.sensor-sequence{grid-template-columns:1fr}.sensor-sequence i{transform:rotate(90deg)}}
+    @media print{.topbar,.controls,.map-help{display:none}.map-shell{overflow:visible;box-shadow:none}.map-canvas{transform:scale(.72);transform-origin:top left;margin-bottom:-28%}section{break-inside:avoid}.stage-node.route-skip{opacity:.18}}
+  </style>
+</head>
+<body>
+  <div class="topbar"><div class="wrap"><div class="brand">AI-DLC <span>Phase Atlas</span></div><nav aria-label="Điều hướng"><a href="#overview">Tổng quan</a><a href="#map">33 stages</a><a href="#phases">5 phases</a><a href="#human">Human gates</a><a href="#examples">Flow mẫu</a><a href="#workspace-model">Spaces &amp; monorepo</a><a href="#workspace-internals">Bên trong space</a><a href="#runtime-components">Hooks · Sensors · Skills</a></nav></div></div>
+
+  <header class="hero">
+    <div class="wrap">
+      <div class="eyebrow">AI-DLC Workflows V2 <span class="version">v2.6.16 · branch v2</span></div>
+      <h1>5 phases.<br>33 quyết định có thứ tự.</h1>
+      <p class="hero-copy"><strong>Đây không phải checklist bắt buộc chạy hết.</strong> Scope chọn tuyến; điều kiện runtime tinh chỉnh tuyến; dependency giữ đúng thứ tự; human gate quyết định artifact đã đủ tốt để đi tiếp hay chưa.</p>
+      <div class="hero-strip"><div class="hero-stat"><b>5</b><span>lifecycle phases</span></div><div class="hero-stat"><b>33</b><span>stage definitions</span></div><div class="hero-stat"><b>9</b><span>stock scopes</span></div><div class="hero-stat"><b>30</b><span>business stages có human gate</span></div></div>
+    </div>
+  </header>
+
+  <main>
+    <section id="overview"><div class="wrap">
+      <div class="section-head"><p class="kicker">01 / Mental model</p><div><h2>Mỗi phase trả lời một câu hỏi khác nhau.</h2><p class="desc">Initialization tạo đường ray. Ideation xác nhận lý do. Inception biến lý do thành hợp đồng xây dựng. Construction biến hợp đồng thành code đã kiểm thử. Operation đưa code vào đời thực và khép vòng học hỏi.</p></div></div>
+      <div class="big-flow" aria-label="Luồng tổng thể năm phase">
+        <div class="phase-pill" data-phase="initialization"><small>PHASE 0 · 3</small><b>Initialization</b><span>Workspace này là gì và workflow đi đường nào?</span></div><div class="flow-arrow">→</div>
+        <div class="phase-pill" data-phase="ideation"><small>PHASE 1 · 7</small><b>Ideation</b><span>Vì sao làm, cho ai và phạm vi nào?</span></div><div class="flow-arrow">→</div>
+        <div class="phase-pill" data-phase="inception"><small>PHASE 2 · 9</small><b>Inception</b><span>Chính xác sẽ xây gì và chia việc ra sao?</span></div><div class="flow-arrow">→</div>
+        <div class="phase-pill" data-phase="construction"><small>PHASE 3 · 7</small><b>Construction</b><span>Thiết kế, code và kiểm chứng như thế nào?</span></div><div class="flow-arrow">→</div>
+        <div class="phase-pill" data-phase="operation"><small>PHASE 4 · 7</small><b>Operation</b><span>Đưa lên, quan sát và cải thiện ra sao?</span></div>
+      </div>
+      <div class="flow-note"><strong>Quy tắc đọc dependency:</strong> <code>requires_stage</code> là predecessor contract trong graph. Engine chỉ đòi các predecessor <em>đang hoạt động trên tuyến đã compile</em>; stage bị scope/condition bỏ qua không biến thành blocker giả.</div>
+    </div></section>
+
+    <section id="map"><div class="wrap">
+      <div class="section-head"><p class="kicker">02 / Interactive map</p><div><h2>Toàn bộ 33 stage trên một bản đồ.</h2><p class="desc">Chọn scope và loại project để xem tuyến dự kiến. Chọn một stage để thấy dependency, trigger, output, agent và human owner phù hợp. Đường nối mặc định chỉ hiện quanh stage đang chọn để graph không thành “mì spaghetti”.</p></div></div>
+      <div class="controls" aria-label="Bộ lọc tuyến workflow">
+        <div class="field"><label for="scopeSelect">Scope</label><select id="scopeSelect"><option value="enterprise">enterprise · 33</option><option value="feature" selected>feature · 33</option><option value="mvp">mvp · 23</option><option value="poc">poc · 8</option><option value="bugfix">bugfix · 7</option><option value="refactor">refactor · 8</option><option value="infra">infra · 13</option><option value="security-patch">security-patch · 10</option><option value="workshop">workshop · 26</option></select></div>
+        <div class="field"><label for="projectType">Project type</label><select id="projectType"><option value="brownfield" selected>brownfield · có code</option><option value="greenfield">greenfield · xây mới</option></select></div>
+        <label class="check"><input id="hideSkipped" type="checkbox">Ẩn stage bị skip</label>
+        <label class="check"><input id="showAllEdges" type="checkbox">Hiện mọi dependency</label>
+        <div class="route-summary"><span class="summary-chip" id="runCount">33 RUN</span><span class="summary-chip muted" id="skipCount">0 SKIP</span></div>
+      </div>
+
+      <div class="map-shell" id="mapShell">
+        <div class="map-canvas" id="mapCanvas">
+          <svg class="edge-layer" id="edgeLayer" aria-hidden="true"></svg>
+          <article class="phase-lane" data-lane="initialization"><div class="lane-head"><small>PHASE 0</small><b>Initialization</b><span class="lane-count">3 stages · deterministic</span></div><div class="stage-list">
+            <button class="stage-node" data-stage="workspace-scaffold"><span class="stage-index">0.1</span><span class="stage-title">Workspace Scaffold</span><span class="node-meta"><span class="mini">always</span></span></button>
+            <button class="stage-node" data-stage="workspace-detection"><span class="stage-index">0.2</span><span class="stage-title">Workspace Detection</span><span class="node-meta"><span class="mini">always</span></span></button>
+            <button class="stage-node" data-stage="state-init"><span class="stage-index">0.3</span><span class="stage-title">State Init</span><span class="node-meta"><span class="mini">always</span></span></button>
+          </div></article>
+          <article class="phase-lane" data-lane="ideation"><div class="lane-head"><small>PHASE 1</small><b>Ideation</b><span class="lane-count">7 stages · why / what</span></div><div class="stage-list">
+            <button class="stage-node" data-stage="intent-capture"><span class="stage-index">1.1</span><span class="stage-title">Intent Capture</span><span class="node-meta"><span class="mini">always</span><span class="mini gate">human</span><span class="mini review">review</span></span></button>
+            <button class="stage-node" data-stage="market-research"><span class="stage-index">1.2</span><span class="stage-title">Market Research</span><span class="node-meta"><span class="mini conditional">conditional</span><span class="mini gate">human</span></span></button>
+            <button class="stage-node" data-stage="feasibility"><span class="stage-index">1.3</span><span class="stage-title">Feasibility</span><span class="node-meta"><span class="mini conditional">conditional</span><span class="mini gate">human</span></span></button>
+            <button class="stage-node" data-stage="scope-definition"><span class="stage-index">1.4</span><span class="stage-title">Scope Definition</span><span class="node-meta"><span class="mini">always</span><span class="mini gate">human</span></span></button>
+            <button class="stage-node" data-stage="team-formation"><span class="stage-index">1.5</span><span class="stage-title">Team Formation</span><span class="node-meta"><span class="mini conditional">conditional</span><span class="mini gate">human</span></span></button>
+            <button class="stage-node" data-stage="rough-mockups"><span class="stage-index">1.6</span><span class="stage-title">Rough Mockups</span><span class="node-meta"><span class="mini conditional">conditional</span><span class="mini gate">human</span><span class="mini review">review</span></span></button>
+            <button class="stage-node" data-stage="approval-handoff"><span class="stage-index">1.7</span><span class="stage-title">Approval &amp; Handoff</span><span class="node-meta"><span class="mini">always</span><span class="mini gate">human</span></span></button>
+          </div></article>
+          <article class="phase-lane" data-lane="inception"><div class="lane-head"><small>PHASE 2</small><b>Inception</b><span class="lane-count">9 stages · define</span></div><div class="stage-list">
+            <button class="stage-node" data-stage="reverse-engineering"><span class="stage-index">2.1</span><span class="stage-title">Reverse Engineering</span><span class="node-meta"><span class="mini conditional">brownfield</span><span class="mini gate">human</span></span></button>
+            <button class="stage-node" data-stage="practices-discovery"><span class="stage-index">2.2</span><span class="stage-title">Practices Discovery</span><span class="node-meta"><span class="mini conditional">conditional</span><span class="mini gate">human</span></span></button>
+            <button class="stage-node" data-stage="requirements-analysis"><span class="stage-index">2.3</span><span class="stage-title">Requirements Analysis</span><span class="node-meta"><span class="mini">always</span><span class="mini gate">human</span><span class="mini review">review</span></span></button>
+            <button class="stage-node" data-stage="user-stories"><span class="stage-index">2.4</span><span class="stage-title">User Stories</span><span class="node-meta"><span class="mini conditional">conditional</span><span class="mini gate">human</span><span class="mini review">mob</span></span></button>
+            <button class="stage-node" data-stage="refined-mockups"><span class="stage-index">2.5</span><span class="stage-title">Refined Mockups</span><span class="node-meta"><span class="mini conditional">conditional</span><span class="mini gate">human</span><span class="mini review">review</span></span></button>
+            <button class="stage-node" data-stage="domain-design"><span class="stage-index">2.6</span><span class="stage-title">Domain Design</span><span class="node-meta"><span class="mini conditional">conditional</span><span class="mini gate">human</span><span class="mini review">review</span></span></button>
+            <button class="stage-node" data-stage="units-generation"><span class="stage-index">2.7</span><span class="stage-title">Units Generation</span><span class="node-meta"><span class="mini">always</span><span class="mini gate">plan + human</span><span class="mini review">review</span></span></button>
+            <button class="stage-node" data-stage="contract-design"><span class="stage-index">2.8</span><span class="stage-title">Contract Design</span><span class="node-meta"><span class="mini conditional">conditional</span><span class="mini gate">human</span><span class="mini review">review</span></span></button>
+            <button class="stage-node" data-stage="delivery-planning"><span class="stage-index">2.9</span><span class="stage-title">Delivery Planning</span><span class="node-meta"><span class="mini">always</span><span class="mini gate">human</span></span></button>
+          </div></article>
+          <article class="phase-lane" data-lane="construction"><div class="lane-head"><small>PHASE 3</small><b>Construction</b><span class="lane-count">7 stages · build</span></div><div class="stage-list">
+            <button class="stage-node" data-stage="functional-design"><span class="stage-index">3.1</span><span class="stage-title">Functional Design</span><span class="node-meta"><span class="mini conditional">conditional</span><span class="mini gate">human</span><span class="mini review">review</span></span></button>
+            <button class="stage-node" data-stage="nfr-requirements"><span class="stage-index">3.2</span><span class="stage-title">NFR Requirements</span><span class="node-meta"><span class="mini conditional">conditional</span><span class="mini gate">human</span><span class="mini review">review</span></span></button>
+            <button class="stage-node" data-stage="nfr-design"><span class="stage-index">3.3</span><span class="stage-title">NFR Design</span><span class="node-meta"><span class="mini conditional">conditional</span><span class="mini gate">human</span><span class="mini review">review</span></span></button>
+            <button class="stage-node" data-stage="infrastructure-design"><span class="stage-index">3.4</span><span class="stage-title">Infrastructure Design</span><span class="node-meta"><span class="mini conditional">conditional</span><span class="mini gate">human</span><span class="mini review">review</span></span></button>
+            <button class="stage-node" data-stage="code-generation"><span class="stage-index">3.5</span><span class="stage-title">Code Generation</span><span class="node-meta"><span class="mini">per unit</span><span class="mini gate">hard plan gate</span><span class="mini review">review</span></span></button>
+            <button class="stage-node" data-stage="build-and-test"><span class="stage-index">3.6</span><span class="stage-title">Build &amp; Test</span><span class="node-meta"><span class="mini">always</span><span class="mini gate">human</span></span></button>
+            <button class="stage-node" data-stage="ci-pipeline"><span class="stage-index">3.7</span><span class="stage-title">CI Pipeline</span><span class="node-meta"><span class="mini conditional">conditional</span><span class="mini gate">human</span></span></button>
+          </div></article>
+          <article class="phase-lane" data-lane="operation"><div class="lane-head"><small>PHASE 4</small><b>Operation</b><span class="lane-count">7 stages · run / learn</span></div><div class="stage-list">
+            <button class="stage-node" data-stage="deployment-pipeline"><span class="stage-index">4.1</span><span class="stage-title">Deployment Pipeline</span><span class="node-meta"><span class="mini conditional">conditional</span><span class="mini gate">human</span></span></button>
+            <button class="stage-node" data-stage="environment-provisioning"><span class="stage-index">4.2</span><span class="stage-title">Environment Provisioning</span><span class="node-meta"><span class="mini conditional">conditional</span><span class="mini gate">human</span></span></button>
+            <button class="stage-node" data-stage="deployment-execution"><span class="stage-index">4.3</span><span class="stage-title">Deployment Execution</span><span class="node-meta"><span class="mini conditional">conditional</span><span class="mini gate">human</span></span></button>
+            <button class="stage-node" data-stage="observability-setup"><span class="stage-index">4.4</span><span class="stage-title">Observability Setup</span><span class="node-meta"><span class="mini conditional">conditional</span><span class="mini gate">human</span></span></button>
+            <button class="stage-node" data-stage="incident-response"><span class="stage-index">4.5</span><span class="stage-title">Incident Response</span><span class="node-meta"><span class="mini conditional">conditional</span><span class="mini gate">human</span></span></button>
+            <button class="stage-node" data-stage="performance-validation"><span class="stage-index">4.6</span><span class="stage-title">Performance Validation</span><span class="node-meta"><span class="mini conditional">conditional</span><span class="mini gate">human</span></span></button>
+            <button class="stage-node" data-stage="feedback-optimization"><span class="stage-index">4.7</span><span class="stage-title">Feedback &amp; Optimization</span><span class="node-meta"><span class="mini conditional">conditional</span><span class="mini gate">human</span></span></button>
+          </div></article>
+        </div>
+      </div>
+      <div class="map-help"><span><i class="legend-dot run-dot"></i>Trong tuyến scope</span><span><i class="legend-dot skip-dot"></i>Scope/condition bỏ qua</span><span><i class="legend-dot conditional-dot"></i>Cần đánh giá điều kiện runtime</span><span><i class="legend-dot gate-dot"></i>Cần quyết định của con người</span></div>
+      <article class="detail-panel" id="detailPanel" aria-live="polite"><div><div class="detail-id" id="detailId">0.1</div><div class="detail-phase" id="detailPhase">Initialization</div></div><div><div class="detail-top"><div><h3 id="detailTitle">Workspace Scaffold</h3><p class="desc" id="detailPurpose">Tạo record và các thư mục phase đúng với scope.</p></div><a class="source-link" id="detailSource" href="#">Mở stage source ↗</a></div><div class="detail-grid"><div class="detail-cell"><small>Khi kích hoạt</small><p id="detailTrigger"></p></div><div class="detail-cell"><small>Dependency đang khai báo</small><div class="dependency-row" id="detailDeps"></div></div><div class="detail-cell"><small>Output / giá trị chuyển tiếp</small><p id="detailOutput"></p></div><div class="detail-cell"><small>AI lead / topology</small><p id="detailAgent"></p></div><div class="detail-cell"><small>Runtime rule</small><p id="detailRule"></p></div><div class="detail-cell human"><small>Human checkpoint khuyến nghị</small><p id="detailHuman"></p></div></div></div></article>
+    </div></section>
+
+    <section id="phases"><div class="wrap">
+      <div class="section-head"><p class="kicker">03 / Phase profiles</p><div><h2>Khi nào một phase xuất hiện?</h2><p class="desc">Một phase “chạy” khi scope có ít nhất một stage thuộc phase đó. Không phải phase nào cũng chạy trọn vẹn: ví dụ security patch chỉ lấy phần deploy của Operation, còn infra lấy NFR/CI/deploy nhưng bỏ code generation.</p></div></div>
+      <div class="phase-profiles">
+        <article class="profile init"><span class="num">0</span><h3>Initialization</h3><dl><dt>Dùng để</dt><dd>Tạo record, nhận diện workspace, compile tuyến và state.</dd><dt>Kích hoạt</dt><dd>Mọi intent, mọi scope.</dd><dt>Kết thúc khi</dt><dd><code>aidlc-state.md</code> READY hoặc route đến stage đầu.</dd><dt>Human</dt><dd>Không có gate; chỉ can thiệp khi detection sai hoặc submodule chưa init.</dd></dl></article>
+        <article class="profile idea"><span class="num">1</span><h3>Ideation</h3><dl><dt>Dùng để</dt><dd>Khóa problem, value, risk, scope, team và hình dung ban đầu.</dd><dt>Kích hoạt</dt><dd>Đầy đủ ở enterprise/feature; rút gọn ở mvp/poc; incremental scopes thường skip.</dd><dt>Kết thúc khi</dt><dd>Initiative brief/scope được đồng thuận để handoff.</dd><dt>Human</dt><dd>Sponsor, Product Owner, UX, Architect, Delivery owner.</dd></dl></article>
+        <article class="profile incept"><span class="num">2</span><h3>Inception</h3><dl><dt>Dùng để</dt><dd>Chuyển ý định thành requirements, architecture, Units, contracts và Bolt plan.</dd><dt>Kích hoạt</dt><dd>Ít nhất requirements-analysis chạy trong mọi scope; các stage khác do scope/condition.</dd><dt>Kết thúc khi</dt><dd>Đủ contract để Construction không phải đoán.</dd><dt>Human</dt><dd>Product/BA, UX, Domain expert, Architect, Tech Lead, Delivery.</dd></dl></article>
+        <article class="profile construct"><span class="num">3</span><h3>Construction</h3><dl><dt>Dùng để</dt><dd>Thiết kế chi tiết theo Unit, code, test và thiết lập CI.</dd><dt>Kích hoạt</dt><dd>Mọi scope có thay đổi code; infra chỉ chạy design/CI phù hợp.</dd><dt>Kết thúc khi</dt><dd>Tất cả Bolts hoàn tất, build/test đạt và CI sẵn sàng.</dd><dt>Human</dt><dd>Tech Lead, Developer, QA, Security, Platform/Cloud.</dd></dl></article>
+        <article class="profile operate"><span class="num">4</span><h3>Operation</h3><dl><dt>Dùng để</dt><dd>Deploy, provision, observe, ứng phó sự cố và đưa feedback về backlog.</dd><dt>Kích hoạt</dt><dd>Full ở enterprise/feature/workshop; partial ở infra/security-patch; MVP và incremental thường skip.</dd><dt>Kết thúc khi</dt><dd>Hệ thống chạy có SLO/feedback hoặc tuyến scope hoàn tất.</dd><dt>Human</dt><dd>Release owner, SRE, Security, Compliance, Service/Product owner.</dd></dl></article>
+      </div>
+    </div></section>
+
+    <section id="human"><div class="wrap">
+      <div class="section-head"><p class="kicker">04 / Human control</p><div><h2>AI làm việc; con người sở hữu quyết định.</h2><p class="desc">Ba stage Initialization tự chạy. Các stage nghiệp vụ có approval gate theo protocol; gate cần bằng chứng về một lượt người dùng sau quyết định trước đó và conductor không được tự gán approval thay người dùng. Reviewer agent chỉ cung cấp góc nhìn thứ hai, không thay thế quyền quyết định của con người.</p></div></div>
+      <div class="gate-model">
+        <article class="gate-flow"><h3>Gate thông thường</h3><p class="desc">Artifact chỉ trở thành contract đầu vào cho stage sau khi người có thẩm quyền chấp nhận.</p><div class="gate-steps"><span class="gate-step">Agent tạo artifact</span><span>→</span><span class="gate-step machine">Reviewer (nếu có)</span><span>→</span><span class="gate-step">Learning prompt</span><span>→</span><span class="gate-step human">Approve / Request Changes</span></div></article>
+        <article class="human-map"><h3>Construction đặc biệt</h3><p class="desc"><strong>Walking skeleton luôn được gate.</strong> Sau đó người dùng chọn autonomous hoặc gated cho các Bolt còn lại. Dù autonomous, <code>code-generation</code> vẫn phải resolve Testing Contract từ Testing Posture, fingerprint plan + test instructions và nhận human “Approve Plan” trước khi viết code. Thay đổi posture, scope, strategy, project type hoặc hai file plan sẽ làm approval hết hiệu lực; lỗi Bolt luôn halt-and-ask.</p></article>
+      </div>
+      <div class="role-grid" aria-label="Các vai trò human khuyến nghị">
+        <article class="role"><b>Sponsor / Product Owner</b><p>Value, intent, priority, scope, acceptance và trade-off sản phẩm.</p></article>
+        <article class="role"><b>Business / Domain Expert</b><p>Business rules, thuật ngữ, exception và tính đúng nghiệp vụ.</p></article>
+        <article class="role"><b>UX / Accessibility</b><p>User flow, interaction, content, usability và WCAG.</p></article>
+        <article class="role"><b>Architect / Tech Lead</b><p>Boundaries, contracts, ADR, dependency, maintainability và blast radius.</p></article>
+        <article class="role"><b>Developer</b><p>Tính khả thi implementation, coding plan, migration và code ownership.</p></article>
+        <article class="role"><b>QA / Quality Owner</b><p>Testing Posture (Methodology + Ordering), test strategy, coverage, traceability và release confidence.</p></article>
+        <article class="role"><b>Security / Compliance</b><p>Threat, controls, privacy, audit, regulatory evidence và residual risk.</p></article>
+        <article class="role"><b>Platform / SRE / Release</b><p>Cloud, CI/CD, rollback, SLO, observability, incident và production approval.</p></article>
+      </div>
+      <div class="caveat"><strong>Ranh giới quan trọng:</strong> metadata framework quy định <em>AI lead/support/reviewer</em>; tên human role phía trên là vai trò khuyến nghị theo loại quyết định. Tổ chức vẫn phải ánh xạ sang RACI, segregation-of-duties và approval policy thực tế của mình.</div>
+    </div></section>
+
+    <section id="examples"><div class="wrap">
+      <div class="section-head"><p class="kicker">05 / Typical routes</p><div><h2>Bốn tuyến để hình dung nhanh.</h2><p class="desc">Các tuyến dưới chỉ nêu spine; map tương tác phía trên là danh sách chính xác theo scope. Stage CONDITIONAL vẫn có thể bị bỏ qua khi điều kiện thực tế không tồn tại.</p></div></div>
+      <div class="scope-examples">
+        <article class="example"><h3>Feature <span>33 in route</span></h3><p>End-to-end; greenfield bỏ reverse-engineering tại runtime.</p><div class="mini-flow"><span>Init</span><i>→</i><span>Ideation</span><i>→</i><span>Inception</span><i>→</i><span>Bolts</span><i>→</i><span>Operate</span></div></article>
+        <article class="example"><h3>Bugfix <span>7 in route</span></h3><p>Hiểu code, khóa tiêu chí fix, sửa và kiểm thử; không ceremony sản phẩm/operation.</p><div class="mini-flow"><span>Init</span><i>→</i><span>RE</span><i>→</i><span>Req</span><i>→</i><span>Code</span><i>→</i><span>Test</span></div></article>
+        <article class="example"><h3>Infrastructure <span>13 in route</span></h3><p>Đi thẳng vào practices/requirements, NFR, infra, CI, deploy và observe.</p><div class="mini-flow"><span>Init</span><i>→</i><span>Practices</span><i>→</i><span>NFR</span><i>→</i><span>Infra</span><i>→</i><span>Operate</span></div></article>
+        <article class="example"><h3>Security patch <span>10 in route</span></h3><p>Narrow fast path nhưng giữ security constraint, test và đường deploy.</p><div class="mini-flow"><span>Init</span><i>→</i><span>RE</span><i>→</i><span>Security NFR</span><i>→</i><span>Code/Test</span><i>→</i><span>Deploy</span></div></article>
+      </div>
+    </div></section>
+
+    <section id="workspace-model"><div class="wrap">
+      <div class="section-head"><p class="kicker">06 / Workspace model</p><div><h2>Monorepo trước, space sau.</h2><p class="desc">Space không đại diện cho frontend, backend hay mobile. Hãy bắt đầu bằng một <code>default</code> space; mỗi feature là một intent, rồi Units Generation chia feature thành các vùng code. Chỉ tách space khi nhiều team ổn định thật sự cần ownership, practices, knowledge và approval độc lập.</p></div></div>
+
+      <div class="concept-strip" aria-label="Bốn khái niệm tổ chức chính">
+        <div class="concept"><small>Team ổn định</small><b>Space</b><span>Ranh giới method, knowledge, state và authority.</span></div>
+        <div class="concept"><small>Feature / đầu việc</small><b>Intent</b><span>Một lifecycle có state, audit và artifacts riêng.</span></div>
+        <div class="concept"><small>Phần cần xây</small><b>Unit</b><span>Một lát cắt code được thiết kế và generate riêng.</span></div>
+        <div class="concept"><small>Frontend / backend / mobile</small><b>Code area</b><span>Thư mục hoặc repo thật; không tự động là space.</span></div>
+      </div>
+
+      <div class="model-grid">
+        <article class="tree-card"><h3>HRM monorepo</h3><p class="desc">Một cross-functional product team quản lý toàn bộ sản phẩm thì chỉ cần một space.</p><pre class="tree" aria-label="Cấu trúc HRM monorepo">techtus-hrm/
+├── .codex/                  engine
+├── aidlc/spaces/
+│   └── <span class="hot">default/</span>
+│       ├── memory/
+│       ├── knowledge/
+│       ├── codekb/
+│       └── intents/
+├── apps/
+│   ├── web/
+│   ├── mobile/
+│   └── admin/
+├── services/
+│   ├── api/
+│   └── worker/
+├── packages/
+│   ├── domain/
+│   ├── contracts/
+│   ├── api-client/
+│   └── ui/
+└── infrastructure/</pre></article>
+
+        <article class="model-card"><h3>Một feature → một intent → nhiều Units</h3><p class="desc">Ví dụ <strong>Leave Request</strong>: state và tài liệu nằm trong intent; stage 3.5 ghi code thật vào đúng vùng của monorepo.</p><div class="intent-units">
+          <div class="intent-row"><span class="intent-label">Intent record</span><div class="unit-list"><span class="unit">aidlc/.../260818-leave-request/</span></div></div>
+          <div class="intent-row"><span class="intent-label">u1-domain</span><div class="unit-list"><span class="unit">packages/domain/src/leave/</span></div></div>
+          <div class="intent-row"><span class="intent-label">u2-api</span><div class="unit-list"><span class="unit">services/api/src/leave/</span></div></div>
+          <div class="intent-row"><span class="intent-label">u3-web</span><div class="unit-list"><span class="unit">apps/web/src/features/leave/</span></div></div>
+          <div class="intent-row"><span class="intent-label">u4-mobile</span><div class="unit-list"><span class="unit">apps/mobile/features/leave/</span></div></div>
+        </div><div class="record-example"><small>Cấu trúc record thực tế của intent</small><pre class="record-tree" aria-label="Cấu trúc intent 260818 leave request">aidlc/spaces/default/intents/
+└── 260818-leave-request/
+    ├── aidlc-state.md
+    ├── audit/
+    ├── inception/
+    │   ├── requirements-analysis/
+    │   ├── user-stories/
+    │   ├── domain-design/
+    │   ├── units-generation/
+    │   └── delivery-planning/
+    └── construction/
+        ├── u1-leave-domain/
+        ├── u2-leave-api/
+        ├── u3-leave-web/
+        └── u4-leave-mobile/</pre></div><div class="code-rule"><strong>3.5 Code Generation:</strong> plan, questions, summary và traceability ở intent record; application code, tests, migration và config ở workspace/repository thật — không nằm trong <code>aidlc/</code>.</div></article>
+      </div>
+
+      <div class="section-head" style="margin-top:42px"><p class="kicker">Một team · ba repos</p><div><h2>Frontend, backend và mobile tách repo vẫn có thể dùng một space.</h2><p class="desc">Repository là nơi code sống; space là nơi team giữ method, knowledge và workflow history. Nếu một product team sở hữu cả ba repo, một intent có thể ghi cả ba vào <code>repos</code> và Construction neo từng thay đổi vào đúng repository.</p></div></div>
+      <div class="repo-case">
+        <article class="tree-card"><h3>Multi-repo workspace <span class="tag">Một product team</span></h3><pre class="tree" aria-label="Cấu trúc frontend backend mobile ba repository">hrm-workspace/
+├── aidlc/
+│   └── spaces/
+│       └── <span class="hot">default/</span>
+│           └── intents/
+│               └── 260818-leave-request/
+├── hrm-web/          .git
+├── hrm-api/          .git
+└── hrm-mobile/       .git</pre></article>
+        <article class="model-card"><h3>Một intent chạm ba repositories</h3><p class="desc">Intent registry giữ tập repo tại lúc birth; stage 3.5 nhận target repo của Unit và ghi code vào repo đó.</p><div class="repo-flow"><span>default space</span><i>→</i><span>leave-request intent</span><i>→</i><span>repos: web, api, mobile</span></div><div class="repo-set">
+          <div class="repo-target"><b>hrm-api/</b><span>src/modules/leave/<br>tests/leave/</span></div>
+          <div class="repo-target"><b>hrm-web/</b><span>src/features/leave/<br>tests/leave/</span></div>
+          <div class="repo-target"><b>hrm-mobile/</b><span>lib/features/leave/<br>test/leave/</span></div>
+        </div><div class="repo-note"><strong>Không tạo ba space chỉ vì có ba repo.</strong> Chỉ tách <code>frontend-team</code>, <code>backend-team</code>, <code>mobile-team</code> khi đó thật sự là ba team độc lập về ownership, approval và practices.</div></article>
+      </div>
+
+      <div class="section-head" style="margin-top:42px"><p class="kicker">Khi thật sự có nhiều team</p><div><h2>Nhiều space vẫn có thể cùng làm trên một monorepo.</h2><p class="desc">Tách theo ownership tổ chức, không theo cấu trúc folder. Mỗi space giữ state riêng; integration boundary nằm trong code và quy trình delivery chung.</p></div></div>
+      <div class="team-layout" aria-label="Ba team space cùng làm trên HRM monorepo">
+        <article class="space-card"><small>Space 01</small><h3>employee-experience</h3><p>Web/mobile UX, design system và client integration.</p><div class="ownership"><span>apps/web</span><span>apps/mobile</span><span>packages/ui</span></div></article>
+        <article class="space-card"><small>Space 02</small><h3>hr-platform</h3><p>HR domain, backend API, worker và shared contract.</p><div class="ownership"><span>services/api</span><span>packages/domain</span><span>packages/contracts</span></div></article>
+        <article class="space-card"><small>Space 03</small><h3>platform-engineering</h3><p>Infrastructure, CI/CD, observability và production controls.</p><div class="ownership"><span>infrastructure</span><span>pipelines</span><span>monitoring</span></div></article>
+      </div>
+      <div class="shared-repo"><b>Một monorepo là integration surface chung</b><p>AI-DLC chưa tạo dependency graph xuyên space. Các intent liên kết bằng contract trong code, PR/commit, CI, release dependency và human handoff.</p><div class="boundary-flow"><span>hr-platform intent</span><i>→</i><span>packages/contracts</span><i>→</i><span>employee-experience intent</span><i>→</i><span>integration tests</span><i>→</i><span>platform rollout</span></div></div>
+
+      <div class="sharing-grid">
+        <article class="share-card builtin"><h3>Sharing framework hỗ trợ sẵn <span class="tag">Trong một space</span></h3><p>Mọi intent trong active space dùng chung method, curated knowledge và CodeKB của team.</p><div class="share-stack"><div class="share-node"><strong><code>memory/</code></strong> org → team → project → phase; behavioral rules.</div><div class="share-arrow">↓</div><div class="share-node"><strong><code>knowledge/</code></strong> domain/reference material dùng qua nhiều intent.</div><div class="share-arrow">↓</div><div class="share-node"><strong><code>codekb/</code></strong> ảnh chụp hiểu biết code theo repo, dùng lại trong space.</div><div class="share-arrow">↓</div><div class="share-node"><strong><code>intents/*</code></strong> mỗi workflow có state/audit riêng nhưng đọc ba lớp phía trên.</div></div></article>
+        <article class="share-card governance"><h3>Sharing xuyên space <span class="tag custom">Governance tùy biến</span></h3><p>Space mới chỉ copy baseline <code>default/memory/org.md</code> tại lúc tạo; team/project memory, knowledge và CodeKB bắt đầu riêng. Không có global sync built-in.</p><div class="share-stack"><div class="share-node"><strong>Canonical org source</strong> security baseline, API conventions, compliance policy.</div><div class="share-arrow">↓ explicit PR / controlled CI sync</div><div class="share-node"><strong>Curated projection</strong> chỉ phân phối file liên quan vào từng <code>spaces/&lt;team&gt;/memory/org.md</code> hoặc agent-specific knowledge.</div><div class="share-arrow">↓ team ownership</div><div class="share-node"><strong>Local specialization</strong> <code>team.md</code>, <code>project.md</code> và team knowledge tiếp tục độc lập.</div></div><div class="no-auto">Không coi <code>default</code> là parent live: thay đổi sau này ở default không tự lan sang space đã tạo. Tránh symlink DocumentKB; catalog và document identity là per-space.</div></article>
+      </div>
+
+      <div class="governance-example">
+        <article class="tree-card"><h3>Lớp governance mẫu <span class="tag custom">Không built-in</span></h3><pre class="tree" aria-label="Cấu trúc governance chia sẻ xuyên space">techtus-hrm/
+├── <span class="hot">governance/</span>
+│   ├── organization-rules/
+│   │   ├── secure-coding.md
+│   │   ├── git-workflow.md
+│   │   └── testing-baseline.md
+│   └── organization-knowledge/
+│       ├── architecture-principles.md
+│       ├── api-conventions.md
+│       └── data-classification.md
+└── aidlc/spaces/
+    ├── employee-experience/
+    ├── hr-platform/
+    └── platform-engineering/</pre></article>
+        <article class="model-card"><h3>Controlled projection, không phải inheritance</h3><p class="desc">Governance giữ nguồn chuẩn duy nhất; mỗi space chỉ nhận phần phù hợp qua PR hoặc CI có kiểm soát.</p>
+          <div class="governance-pipeline" aria-label="Luồng phân phối governance xuyên space">
+            <div class="governance-step"><small>1 · Canonical source</small><b>Architecture · Security · Platform owners review</b><p>Rules bắt buộc và knowledge dùng chung được version-control tại <code>governance/</code>.</p></div>
+            <div class="share-arrow">↓ explicit PR / controlled CI</div>
+            <div class="governance-step"><small>2 · Mandatory baseline</small><b>Project vào <code>memory/org.md</code> của từng space</b><p>Cùng một chuẩn bảo mật, Git và testing; thay đổi có diff, reviewer và audit trail.</p></div>
+            <div class="share-arrow">↓ curated theo ngữ cảnh</div>
+            <div class="projection-grid">
+              <div class="projection"><b>employee-experience</b>UX, product terminology, API client conventions.</div>
+              <div class="projection"><b>hr-platform</b>HR domain, API conventions, data classification.</div>
+              <div class="projection"><b>platform-engineering</b>Cloud, security controls, operations.</div>
+            </div>
+          </div>
+          <div class="repo-note"><strong>Giữ local ownership:</strong> pipeline không overwrite <code>team.md</code>, <code>project.md</code>, intent state hay knowledge riêng của team. Framework không cung cấp global sync; đây là lớp governance tổ chức tự bổ sung.</div>
+        </article>
+      </div>
+
+      <table class="decision-table" aria-label="Khi nào nên tạo space">
+        <thead><tr><th>Tình huống</th><th>Tạo space mới?</th><th>Cách tổ chức đúng hơn</th></tr></thead>
+        <tbody>
+          <tr><td>Một team làm web + backend + mobile</td><td class="no">Không</td><td>Một <code>default</code> space; feature là intent; code area là Unit.</td></tr>
+          <tr><td>Frontend/backend/mobile chỉ là folder hoặc repo</td><td class="no">Không</td><td>Một intent có thể chạm nhiều folder hoặc ghi nhiều repo trong <code>repos</code>.</td></tr>
+          <tr><td>Feature A, Feature B, bug production</td><td class="no">Không</td><td>Tạo các intent song song trong cùng space.</td></tr>
+          <tr><td>Hai squad có ownership, approvals và practices độc lập</td><td class="yes">Có</td><td>Mỗi stable team một space; contract/CI/handoff nối các intent.</td></tr>
+          <tr><td>Platform hoặc Security chỉ cung cấp standards</td><td class="no">Thường không</td><td>Đặt rule/knowledge đúng agent; chỉ tạo space nếu họ chạy lifecycle riêng.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="hygiene" aria-label="Bốn nguyên tắc tránh knowledge dilution">
+        <article><b>1. Shared thật sự mới để shared</b><p><code>knowledge/aidlc-shared/</code> được mọi agent đọc; phần chuyên môn đặt vào thư mục agent tương ứng.</p></article>
+        <article><b>2. Một file, một chủ đề</b><p>Tách API versioning, error format, authentication; tránh một file company-standards khổng lồ.</p></article>
+        <article><b>3. Scope document theo intent</b><p>DocumentKB mặc định space-wide; dùng <code>knowledge associate --intent</code> cho brief/vendor spec chỉ thuộc một đầu việc.</p></article>
+        <article><b>4. Prune theo nhịp</b><p>Review ở retro và prune định kỳ. Knowledge cũ hoặc mâu thuẫn được đọc literal với trọng lượng ngang nhau.</p></article>
+      </div>
+      <div class="caveat"><strong>Quy tắc chốt:</strong> <code>Team ổn định → Space</code> · <code>Feature/task → Intent</code> · <code>Phần code → Unit</code> · <code>Rule bắt buộc → memory</code> · <code>Thông tin tham khảo → knowledge</code>. Ít space nhưng ranh giới rõ thường tốt hơn nhiều space rồi phải đồng bộ tài liệu bằng tay.</div>
+    </div></section>
+
+    <section id="workspace-internals"><div class="wrap">
+      <div class="section-head"><p class="kicker">07 / Bên trong một space</p><div><h2>Bốn lớp dữ liệu, bốn vai trò khác nhau.</h2><p class="desc">Mỗi intent lấy cách làm từ <strong>memory</strong>, ngữ cảnh nghiệp vụ từ <strong>knowledge</strong>, hiểu biết codebase từ <strong>codekb</strong>, rồi lưu tiến trình riêng trong <strong>intents</strong>.</p></div></div>
+
+      <div class="workspace-concepts">
+        <article class="workspace-concept" data-concept="memory">
+          <div class="concept-structure">
+            <div class="concept-label"><small>01 · The method</small><b>memory/</b></div>
+            <pre class="concept-tree" aria-label="Cấu trúc sample memory">aidlc/spaces/default/memory/
+├── org.md
+├── team.md
+├── project.md
+├── phases/
+│   ├── ideation.md
+│   ├── inception.md
+│   ├── construction.md
+│   └── operation.md
+└── templates/
+    ├── requirements.md
+    └── code-summary.md</pre>
+          </div>
+          <div class="concept-explain">
+            <h3>Memory là cách team yêu cầu AI làm việc.</h3>
+            <p class="concept-purpose">Đây là lớp rule có tính ràng buộc: guardrail tổ chức, practice đã được team xác nhận và quy ước riêng của dự án. Memory trả lời câu hỏi <em>“phải làm theo phương pháp nào?”</em>.</p>
+            <div class="concept-facts">
+              <div class="concept-fact"><small>Dùng để</small><p>Giữ hành vi AI nhất quán: quality gate, testing posture, coding/architecture rule, security rule và shape của artifact.</p></div>
+              <div class="concept-fact"><small>Load khi nào</small><p>Đầu mỗi stage, theo thứ tự cộng dồn <code>org → team → project → phase đang chạy</code>. Template chỉ load khi tạo đúng loại artifact.</p></div>
+            </div>
+            <div class="folder-notes">
+              <div class="folder-note"><code>org.md</code><span>Rule nền áp dụng cho toàn tổ chức hoặc framework.</span></div>
+              <div class="folder-note"><code>team.md</code><span>Practice mà team đã đồng thuận, ví dụ test methodology và review policy.</span></div>
+              <div class="folder-note"><code>project.md</code><span>Ràng buộc riêng của codebase/sản phẩm hiện tại; bổ sung chứ không âm thầm xoá rule cấp trên.</span></div>
+              <div class="folder-note"><code>phases/</code><span>Rule chỉ cần trong một phase, giúp context gọn hơn và đúng thời điểm.</span></div>
+              <div class="folder-note"><code>templates/</code><span>Quy định cấu trúc đầu ra cho một artifact cụ thể, không phải rule luôn luôn load.</span></div>
+            </div>
+            <div class="concept-warning"><strong>Đừng nhầm:</strong> file <code>memory.md</code> bên trong record của một stage là nhật ký thực thi stage đó. Chỉ learning có giá trị lâu dài mới được promote về memory của space.</div>
+          </div>
+        </article>
+
+        <article class="workspace-concept" data-concept="knowledge">
+          <div class="concept-structure">
+            <div class="concept-label"><small>02 · The context</small><b>knowledge/</b></div>
+            <pre class="concept-tree" aria-label="Cấu trúc sample knowledge">aidlc/spaces/default/knowledge/
+├── aidlc-shared/
+│   ├── hrm-domain-glossary.md
+│   └── api-conventions.md
+├── aidlc-product-agent/
+│   └── leave-policy.md
+├── aidlc-architect-agent/
+│   └── bounded-contexts.md
+├── aidlc-developer-agent/
+│   └── nestjs-conventions.md
+├── documents/
+│   └── company-leave-policy.pdf
+└── documentkb/
+    ├── index.json
+    └── &lt;doc-id&gt;/
+        ├── metadata.json
+        └── content.md</pre>
+          </div>
+          <div class="concept-explain">
+            <h3>Knowledge là điều AI cần biết về domain và team.</h3>
+            <p class="concept-purpose">Đây là tài liệu tham khảo, không phải mệnh lệnh: glossary, policy, convention, kiến trúc nền và tài liệu nguồn. Knowledge trả lời câu hỏi <em>“cần biết gì để hiểu đúng bài toán?”</em>.</p>
+            <div class="concept-facts">
+              <div class="concept-fact"><small>Dùng để</small><p>Cấp business/domain context cho agent mà không phải lặp lại trong từng intent; có thể onboard và sync tài liệu vào DocumentKB.</p></div>
+              <div class="concept-fact"><small>Load khi nào</small><p><code>aidlc-shared/</code> được mọi agent đọc; thư mục theo agent chỉ load khi agent đó hoạt động. DocumentKB được truy vấn khi cần, không đổ toàn bộ vào context.</p></div>
+            </div>
+            <div class="folder-notes">
+              <div class="folder-note"><code>aidlc-shared/</code><span>Kiến thức nhỏ, ổn định, cần cho mọi vai trò trong space.</span></div>
+              <div class="folder-note"><code>aidlc-*-agent/</code><span>Tài liệu chuyên môn theo agent; giúp tránh làm loãng context của agent không liên quan.</span></div>
+              <div class="folder-note"><code>documents/</code><span>Bản gốc do team sở hữu: PDF, spec, policy hoặc tài liệu vendor.</span></div>
+              <div class="folder-note"><code>documentkb/</code><span>Catalog/index do tool quản lý để list, show và truy hồi nội dung đã ingest; không nên chỉnh tay như tài liệu nguồn.</span></div>
+            </div>
+            <div class="concept-warning"><strong>Ranh giới:</strong> knowledge cung cấp thông tin; memory áp đặt cách làm. Tài liệu chỉ thuộc một feature nên associate với intent thay vì khiến toàn space phải đọc.</div>
+          </div>
+        </article>
+
+        <article class="workspace-concept" data-concept="codekb">
+          <div class="concept-structure">
+            <div class="concept-label"><small>03 · The code model</small><b>codekb/</b></div>
+            <pre class="concept-tree" aria-label="Cấu trúc sample codekb">aidlc/spaces/default/codekb/
+├── hrm-api/
+│   ├── business-overview.md
+│   ├── architecture.md
+│   ├── code-structure.md
+│   ├── api-documentation.md
+│   ├── component-inventory.md
+│   ├── technology-stack.md
+│   ├── dependencies.md
+│   ├── code-quality-assessment.md
+│   └── reverse-engineering-timestamp.md
+├── hrm-web/
+└── hrm-mobile/</pre>
+          </div>
+          <div class="concept-explain">
+            <h3>CodeKB là bản đồ bền vững của codebase hiện có.</h3>
+            <p class="concept-purpose">Stage Reverse Engineering tạo một bộ Markdown cho từng repository. Nó giúp các stage sau hiểu hệ thống brownfield mà không phải quét lại toàn bộ source code cho mỗi intent.</p>
+            <div class="concept-facts">
+              <div class="concept-fact"><small>Dùng để</small><p>Mô tả business, architecture, code structure, API, component, stack, dependencies và chất lượng hiện trạng; dùng chung cho nhiều intents trong cùng space.</p></div>
+              <div class="concept-fact"><small>Tạo / load khi nào</small><p>Tạo ở stage <code>2.1 Reverse Engineering</code> khi làm brownfield. Requirements, design, code generation và recovery đọc lại khi cần evidence về repo.</p></div>
+            </div>
+            <div class="folder-notes">
+              <div class="folder-note"><code>&lt;repo&gt;/</code><span>Mỗi repository được phân tích có một thư mục riêng; monorepo thường có một root, mô hình ba repo có ba root.</span></div>
+              <div class="folder-note"><code>8 topic files</code><span>Chia model theo góc nhìn để stage chỉ đọc phần liên quan thay vì một report khổng lồ.</span></div>
+              <div class="folder-note"><code>reverse-engineering-timestamp.md</code><span>Lưu thời điểm, scope/fingerprint và trạng thái freshness để xác định <code>CURRENT</code>, <code>STALE</code> hoặc <code>UNKNOWN_SCOPE</code>.</span></div>
+            </div>
+            <div class="concept-warning"><strong>Lưu ý:</strong> CodeKB không chứa code được generate và không thay thế source repository. Full/focused scan có thể cập nhật lại cùng bộ 9 file; trạng thái mới nhất là trạng thái được dùng.</div>
+          </div>
+        </article>
+
+        <article class="workspace-concept" data-concept="intents">
+          <div class="concept-structure">
+            <div class="concept-label"><small>04 · The work records</small><b>intents/</b></div>
+            <pre class="concept-tree" aria-label="Cấu trúc sample intents">aidlc/spaces/default/intents/
+├── active-intent                 (gitignored)
+├── intents.json
+├── audit/                        space-level events
+└── 260818-leave-request/
+    ├── aidlc-state.md
+    ├── audit/
+    │   └── &lt;host&gt;-&lt;clone&gt;.md
+    ├── inception/
+    │   ├── requirements-analysis/
+    │   └── units-generation/
+    ├── construction/
+    │   ├── u1-leave-domain/
+    │   └── u2-leave-api/
+    └── runtime-graph.json        (derived/local)</pre>
+          </div>
+          <div class="concept-explain">
+            <h3>Intent là hồ sơ vòng đời của một thay đổi.</h3>
+            <p class="concept-purpose">Một feature, bugfix, refactor hoặc initiative có một intent riêng. Nó ghi AI-DLC đã chọn tuyến nào, stage nào đã chạy, artifact nào được duyệt và còn tiếp tục từ đâu.</p>
+            <div class="concept-facts">
+              <div class="concept-fact"><small>Dùng để</small><p>Cô lập state, audit và artifacts theo đầu việc; nhiều intents có thể cùng tồn tại, nhưng mỗi phiên/người dùng có một active intent để routing.</p></div>
+              <div class="concept-fact"><small>Tạo / load khi nào</small><p>Được tạo khi bắt đầu một đầu việc AI-DLC mới. Conductor đọc active intent và <code>aidlc-state.md</code> để resume/routing trước khi stage tiếp theo chạy.</p></div>
+            </div>
+            <div class="folder-notes">
+              <div class="folder-note"><code>intents.json</code><span>Registry của space: UUID, slug/dirName, scope, repositories và status của từng intent.</span></div>
+              <div class="folder-note"><code>active-intent</code><span>Con trỏ cục bộ theo người dùng/clone; được gitignore để không tranh chấp khi cộng tác.</span></div>
+              <div class="folder-note"><code>aidlc-state.md</code><span>State dùng để route và resume: phase/stage hiện tại, quyết định scope và dấu vết approval.</span></div>
+              <div class="folder-note"><code>audit/</code><span>Lịch sử event append-only theo clone/host; dùng để tái dựng diễn biến thay vì sửa quá khứ.</span></div>
+              <div class="folder-note"><code>phase/stage dirs</code><span>Chỉ xuất hiện cho stage thực sự chạy; chứa artifact và nhật ký stage theo cấu trúc record.</span></div>
+              <div class="folder-note"><code>runtime-graph.json</code><span>View dẫn xuất cục bộ từ audit + memory để hỗ trợ điều phối; có thể tái tạo.</span></div>
+            </div>
+            <div class="concept-warning"><strong>Code nằm ở đâu?</strong> Code và tests luôn được ghi vào repository thật đã khai báo cho intent, không nằm trong <code>aidlc/</code>. Intent chỉ giữ control plane và bằng chứng của workflow.</div>
+          </div>
+        </article>
+      </div>
+
+      <div class="caveat"><strong>Quan hệ tổng quát:</strong> <code>memory + knowledge + codekb</code> là nền dùng chung trong một space; mỗi <code>intent</code> lấy đúng phần cần thiết từ ba lớp đó và tạo state/artifact độc lập cho đầu việc của mình.</div>
+    </div></section>
+
+    <section id="runtime-components"><div class="wrap">
+      <div class="section-head"><p class="kicker">08 / Hooks · Sensors · Skills</p><div><h2>Tay cầm, phản xạ và đồng hồ đo của workflow.</h2><p class="desc">Ba thiết kế giải quyết ba vấn đề khác nhau: <strong>Skills</strong> cho con người một tác vụ chủ động, <strong>Hooks</strong> phản ứng tự động tại các event của harness, còn <strong>Sensors</strong> tạo evidence kiểm chứng được từ artifact vừa sinh ra.</p></div></div>
+
+      <div class="mechanism-strip" aria-label="Ba thành phần runtime">
+        <article class="mechanism skills"><small>Explicit · user invokes</small><b>Skills — “Tôi muốn làm việc X”</b><p>Tác vụ đóng gói, có mục đích rõ và được gọi chủ động. Ở đây chỉ xét bốn skill được author trong <code>core/skills/</code>.</p></article>
+        <article class="mechanism hooks"><small>Implicit · event fires</small><b>Hooks — “Khi X xảy ra, làm Y”</b><p>Lớp phản xạ tự động của framework: giữ loop, bảo vệ gate, đồng bộ state, ghi audit và kích hoạt sensor.</p></article>
+        <article class="mechanism sensors"><small>Deterministic · evidence</small><b>Sensors — “Output có đạt tín hiệu X?”</b><p>Kiểm tra máy-deterministic theo file vừa ghi; kết quả là evidence advisory để agent và human gate đánh giá.</p></article>
+      </div>
+
+      <div class="runtime-flow" aria-label="Flow tổng hợp Hooks Sensors Skills">
+        <div class="runtime-step" data-tone="skill"><small>Chủ động</small><b>Skill hoặc stage action</b></div><div class="runtime-arrow">→</div>
+        <div class="runtime-step"><small>Thao tác</small><b>Tool / file / lifecycle event</b></div><div class="runtime-arrow">→</div>
+        <div class="runtime-step" data-tone="hook"><small>Tự động</small><b>Hook quan sát hoặc can thiệp</b></div><div class="runtime-arrow">→</div>
+        <div class="runtime-step" data-tone="sensor"><small>Nếu có output</small><b>Sensor chạy check phù hợp</b></div><div class="runtime-arrow">→</div>
+        <div class="runtime-step"><small>Evidence</small><b>Audit · runtime · human gate</b></div>
+      </div>
+
+      <div class="runtime-details">
+        <article class="runtime-detail" data-runtime="hooks">
+          <div class="runtime-structure">
+            <div class="runtime-title"><small>17 event handlers</small><b>core/hooks/</b></div>
+            <pre class="runtime-tree" aria-label="Các nhóm hook trong core hooks">core/hooks/                         17 files
+├── flow-altering                   6
+│   ├── aidlc-continue-workflow.ts
+│   ├── aidlc-deliver-stage-rules.ts
+│   ├── aidlc-plan-approval-guard.ts
+│   ├── aidlc-reviewer-scope.ts
+│   ├── aidlc-review-freeze.ts
+│   └── aidlc-state-transition-guard.ts
+├── observe-and-sync               10
+│   ├── aidlc-record-human-turn.ts
+│   ├── aidlc-write-audit-log.ts
+│   ├── aidlc-run-sensors.ts
+│   ├── aidlc-sync-workflow-state.ts
+│   ├── aidlc-rebuild-stage-graph.ts
+│   ├── aidlc-validate-state.ts
+│   ├── aidlc-log-subagent.ts
+│   ├── aidlc-session-start.ts
+│   ├── aidlc-session-end.ts
+│   └── aidlc-fold-usage.ts
+└── status UI                       1
+    └── aidlc-statusline.ts</pre>
+            <p class="tree-caption">Ba nhánh trên là nhóm khái niệm để dễ đọc; 17 file thật nằm trực tiếp trong <code>core/hooks/</code>.</p>
+          </div>
+          <div class="runtime-explain">
+            <h3>Hooks biến quy ước quan trọng thành phản xạ hệ thống.</h3>
+            <p class="runtime-lead">Hook được đăng ký project-wide trong cấu hình của từng harness và chạy theo event như PreToolUse, PostToolUse, Stop, SessionStart hoặc SessionEnd — không phụ thuộc người dùng đang gọi skill nào.</p>
+            <p class="design-intent"><strong>Ý nghĩa thiết kế:</strong> việc bắt buộc như plan approval, reviewer isolation hay ghi audit không nên phụ thuộc AI “nhớ làm”. Hook đặt enforcement đúng tại ranh giới event nơi hành động thực sự xảy ra.</p>
+            <div class="hook-groups">
+              <div class="hook-group"><small>6 · có thể đổi flow</small><b>Guard &amp; forwarding</b><p>Giữ vòng <code>next → act → report</code>, chèn exact stage rules, chặn code generation chưa duyệt plan, chặn reviewer vượt Unit, freeze artifact sau terminal review và chặn state mutation đi đường tắt.</p></div>
+              <div class="hook-group"><small>10 · không block</small><b>Observe &amp; synchronize</b><p>Ghi human turn/artifact/subagent/session, chạy sensors, sync state, rebuild runtime graph, validate trước compact và fold usage. Chúng tạo hoặc làm mới evidence.</p></div>
+              <div class="hook-group"><small>1 · presentation</small><b>Status line</b><p>Đọc state đã materialize để hiển thị vị trí workflow hiện tại. Nó là view; không tự quyết định stage hay thay đổi lifecycle.</p></div>
+            </div>
+            <div class="hook-sequence"><span>Host event</span><i>→</i><span>Harness adapter</span><i>→</i><span>core hook</span><i>→</i><span>allow / rewrite / block / record</span></div>
+            <div class="runtime-note"><strong>Ranh giới:</strong> hook là cơ chế tự động và deterministic, không phải stage nghiệp vụ. Phần lớn fail-open ngoài một workflow AI-DLC; <code>fold-usage</code> hiện chỉ có producer ở Claude.</div>
+          </div>
+        </article>
+
+        <article class="runtime-detail" data-runtime="sensors">
+          <div class="runtime-structure">
+            <div class="runtime-title"><small>6 manifests + executors</small><b>core/sensors/</b></div>
+            <pre class="runtime-tree" aria-label="Cấu trúc sensor manifests và tools">core/
+├── sensors/                         manifests
+│   ├── aidlc-claim-sources.md
+│   ├── aidlc-required-sections.md
+│   ├── aidlc-upstream-coverage.md
+│   ├── aidlc-traceability.md
+│   ├── aidlc-linter.md
+│   └── aidlc-type-check.md
+└── tools/                            executors
+    ├── aidlc-sensor.ts              dispatcher
+    ├── aidlc-sensor-schema.ts       contract
+    └── aidlc-sensor-&lt;id&gt;.ts         checks</pre>
+            <p class="tree-caption">Manifest mô tả capability: <code>id</code>, command, glob <code>matches</code>, timeout và schema. Stage chọn sensor qua frontmatter <code>sensors:</code>.</p>
+          </div>
+          <div class="runtime-explain">
+            <h3>Sensors là feedback loop có thể đo và lặp lại.</h3>
+            <p class="runtime-lead">Khi Write/Edit tạo output, hook <code>aidlc-run-sensors.ts</code> lấy danh sách <code>sensors_applicable</code> đã compile cho active stage, lọc bằng glob rồi gọi đúng deterministic tool.</p>
+            <p class="design-intent"><strong>Ý nghĩa thiết kế:</strong> rule/memory nói trước “nên làm thế nào”; sensor đo sau “output thực tế có tín hiệu mong muốn không”. Check bằng code tạo cùng một kết quả cho cùng một input, thay vì nhờ LLM tự chấm.</p>
+            <div class="sensor-grid">
+              <div class="sensor-card"><code>claim-sources</code><small>Document provenance</small><p>Kiểm tra claim của Intent Capture có source tag hợp lệ, resolve được tới source register, answer hoặc assumption đã xác nhận.</p></div>
+              <div class="sensor-card"><code>required-sections</code><small>Document shape</small><p>Kiểm tra H2 bắt buộc; có thể lấy shape từ memory template. Với Unit DAG còn kiểm tra YAML block hợp lệ và không cycle.</p></div>
+              <div class="sensor-card"><code>upstream-coverage</code><small>Document coverage</small><p>Đối chiếu deliverables với danh sách artifact mà stage khai báo <code>consumes</code>, phát hiện upstream chưa được tham chiếu.</p></div>
+              <div class="sensor-card"><code>traceability</code><small>Element traceability</small><p>Kiểm tra upstream coverage, downstream targets, orphan và entry không hợp lệ trong <code>traceability.json</code>.</p></div>
+              <div class="sensor-card"><code>linter</code><small>Code quality</small><p>Chạy linter dự án cho file TS/JS khớp glob; bản hiện tại dùng ESLint làm mặc định.</p></div>
+              <div class="sensor-card"><code>type-check</code><small>Code quality</small><p>Chạy type checker cho TS/TSX khớp glob; bản hiện tại dùng <code>tsc</code> làm mặc định.</p></div>
+            </div>
+            <div class="sensor-sequence"><span>Write / Edit</span><i>→</i><span>stage sensors</span><i>→</i><span>glob match + tool</span><i>→</i><span>SENSOR_PASSED / FAILED</span></div>
+            <div class="runtime-note"><strong>Kết quả đi đâu?</strong> Mỗi lần chạy ghi audit pair và detail dưới <code>&lt;record&gt;/.aidlc-sensors/&lt;stage&gt;/</code>. Hiện severity duy nhất là <code>advisory</code>: sensor failure cung cấp evidence nhưng không tự block gate; human/reviewer quyết định xử lý.</div>
+          </div>
+        </article>
+
+        <article class="runtime-detail" data-runtime="skills">
+          <div class="runtime-structure">
+            <div class="runtime-title"><small>4 authored utilities</small><b>core/skills/</b></div>
+            <pre class="runtime-tree" aria-label="Bốn core skills">core/skills/
+├── aidlc-knowledge/
+│   └── SKILL.md
+├── aidlc-session-cost/
+│   └── SKILL.md
+├── aidlc-replay/
+│   └── SKILL.md
+└── aidlc-outcomes-pack/
+    └── SKILL.md</pre>
+            <p class="tree-caption">Đây là đúng bốn skill trong <code>aidlc-workflows/core/skills/</code>. Orchestrator nằm ở <code>harness/&lt;name&gt;/skills/aidlc/</code>; stage/scope runners được generate vào <code>dist/</code>.</p>
+          </div>
+          <div class="runtime-explain">
+            <h3>Core skills là các utility đứng cạnh workflow lifecycle.</h3>
+            <p class="runtime-lead">Chúng là user-invocable interface cho một outcome rõ ràng: quản lý DocumentKB, xem số liệu, kể lại session hoặc đóng gói handover. Chúng không thay thế conductor và không tự route qua 33 stages.</p>
+            <p class="design-intent"><strong>Ý nghĩa thiết kế:</strong> logic sử dụng công cụ được đóng thành skill có contract, input và giới hạn side effect rõ; người dùng gọi đúng “năng lực” mà không cần nhớ chuỗi lệnh nội bộ.</p>
+            <div class="core-skills-grid">
+              <div class="core-skill-card"><code>aidlc-knowledge</code><b>Quản lý DocumentKB theo space</b><p>Onboard, sync, list, show, associate, dissociate và rebind tài liệu. Dùng trước hoặc trong workflow khi agent cần tài liệu team có thể cite.</p><div class="skill-meta"><span>catalog read-write</span><span>không advance state</span><span>document audit</span></div></div>
+              <div class="core-skill-card"><code>aidlc-session-cost</code><b>Xem workflow đang tiêu thụ gì</b><p>Đọc <code>runtime summary</code> để hiển thị duration, stage outcomes, memory entries, sensor firings và learnings. Dùng an toàn giữa workflow hoặc cuối phiên.</p><div class="skill-meta"><span>read-only</span><span>terminal</span><span>không ước lượng token</span></div></div>
+              <div class="core-skill-card"><code>aidlc-replay</code><b>Kể lại quyết định và timeline</b><p>Kết hợp số liệu từ runtime với audit shards và artifacts thành narrative cho stakeholder không tham gia session. Chỉ render ra terminal.</p><div class="skill-meta"><span>read-only</span><span>async review</span><span>no file write</span></div></div>
+              <div class="core-skill-card"><code>aidlc-outcomes-pack</code><b>Tạo gói bàn giao cuối workflow</b><p>Tổng hợp artifact, delivered code và runtime summary thành <code>OUTCOMES.md</code> ở workspace root để team vận hành và tiếp tục phát triển.</p><div class="skill-meta"><span>state read-only</span><span>writes one report</span><span>workflow close</span></div></div>
+            </div>
+            <div class="runtime-note"><strong>Không nhầm với runner skills:</strong> <code>/aidlc</code>, stage runners và scope runners là entry points do harness/generator cung cấp để chạy lifecycle. Bốn core skills trên là utility dùng dữ liệu quanh lifecycle và giữ ranh giới side effect riêng.</div>
+          </div>
+        </article>
+      </div>
+
+      <div class="caveat"><strong>Mental model:</strong> gọi <code>Skill</code> khi bạn chủ động muốn một outcome · dựa vào <code>Hook</code> khi enforcement phải tự xảy ra đúng event · dùng <code>Sensor</code> khi cần tín hiệu đo được, tái lập được về chất lượng output.</div>
+    </div></section>
+  </main>
+
+  <footer><div class="wrap footer-row"><span>AI-DLC Workflows V2 · phase/stage explainer</span><span>Generated from branch <code>v2</code> · framework <code>2.6.16</code></span></div></footer>
+
+  <script>
+    const ALL_SCOPES = ['enterprise','feature','mvp','poc','bugfix','refactor','infra','security-patch','workshop'];
+    const P = {
+      init:'Initialization', idea:'Ideation', incept:'Inception', construct:'Construction', operate:'Operation'
+    };
+    const stages = {
+      'workspace-scaffold':{n:'0.1',title:'Workspace Scaffold',phase:P.init,execution:'ALWAYS',scopes:ALL_SCOPES,requires:[],agent:'orchestrator',support:[],mode:'inline',reviewer:'',purpose:'Tạo record cho intent, thư mục của các phase nằm trong scope, verification/ và knowledge/ dùng chung.',trigger:'Stage đầu tiên sau khi session/intent bắt đầu; chạy idempotent trong intent-create.',output:'Cây record tối thiểu để state, audit và artifacts có nơi tồn tại.',human:'Không có approval gate. Repo owner chỉ cần can thiệp nếu vị trí workspace hoặc quyền ghi không đúng.',rule:'Luôn chạy · auto-proceed',file:'initialization/workspace-scaffold.md'},
+      'workspace-detection':{n:'0.2',title:'Workspace Detection',phase:P.init,execution:'ALWAYS',scopes:ALL_SCOPES,requires:['workspace-scaffold'],agent:'orchestrator',support:[],mode:'inline',reviewer:'',purpose:'Quét filesystem để phân loại greenfield/brownfield và nhận diện language, framework, build/test stack.',trigger:'Sau scaffold; luôn chạy trong aidlc-utility init.',output:'Workspace classification + technology stack đưa vào state và routing.',human:'Không có gate. Tech Lead/Repo owner kiểm tra khi classification sai; xử lý cảnh báo submodule nếu có.',rule:'Luôn chạy · greenfield/brownfield router',file:'initialization/workspace-detection.md'},
+      'state-init':{n:'0.3',title:'State Init',phase:P.init,execution:'ALWAYS',scopes:ALL_SCOPES,requires:['workspace-detection'],agent:'orchestrator',support:[],mode:'inline',reviewer:'',purpose:'Sinh aidlc-state.md đầy đủ từ compiled graph, scope grid và kết quả detection.',trigger:'Sau workspace detection, cho mọi scope.',output:'Source of truth về stage RUN/SKIP, progress, active agent và route kế tiếp.',human:'Không có gate. Workflow owner có thể sửa state/force-init khi routing cần hiệu chỉnh có chủ đích.',rule:'Luôn chạy · --init thì dừng READY',file:'initialization/state-init.md'},
+      'intent-capture':{n:'1.1',title:'Intent Capture',phase:P.idea,execution:'ALWAYS',scopes:['enterprise','feature','mvp','poc'],requires:[],agent:'aidlc-product-agent',support:['aidlc-architect-agent'],mode:'inline',reviewer:'aidlc-product-lead-agent · advisory',purpose:'Biến yêu cầu thô thành intent statement, stakeholder map và success framing.',trigger:'Stage Ideation đầu tiên khi scope có discovery sản phẩm.',output:'Intent và stakeholder contract làm gốc cho research, feasibility và requirements.',human:'Sponsor/Product Owner — xác nhận problem, value, stakeholder, outcome và giới hạn ý định.',rule:'Trong scope thì luôn chạy · summary confirmation + approval',file:'ideation/intent-capture.md'},
+      'market-research':{n:'1.2',title:'Market Research',phase:P.idea,execution:'CONDITIONAL',scopes:['enterprise','feature'],requires:['intent-capture'],agent:'aidlc-product-agent',support:[],mode:'inline',reviewer:'',purpose:'Đánh giá alternatives, market positioning và build-vs-buy.',trigger:'Khi initiative có thị trường bên ngoài hoặc cần quyết định build-vs-buy; skip cho internal tool/refactor/bugfix.',output:'Competitive analysis, market trends và build-vs-buy recommendation.',human:'Product Manager/Business strategist — kiểm chứng dữ liệu thị trường và chấp nhận strategic assumptions.',rule:'Conditional · summary confirmation + approval',file:'ideation/market-research.md'},
+      'feasibility':{n:'1.3',title:'Feasibility',phase:P.idea,execution:'CONDITIONAL',scopes:['enterprise','feature','mvp'],requires:['intent-capture','market-research'],agent:'aidlc-architect-agent',support:['aidlc-aws-platform-agent','aidlc-compliance-agent'],mode:'inline',reviewer:'',purpose:'Kiểm tra khả thi kỹ thuật, integration, regulation, constraints và major risks.',trigger:'Khi có technical uncertainty, integration constraint hoặc regulatory requirement.',output:'Feasibility assessment, constraint register và RAID log.',human:'Solution Architect + Security/Compliance owner — chấp nhận risk, constraint và phương án giảm thiểu.',rule:'Conditional · summary confirmation + approval',file:'ideation/feasibility.md'},
+      'scope-definition':{n:'1.4',title:'Scope Definition',phase:P.idea,execution:'ALWAYS',scopes:['enterprise','feature','mvp'],requires:['intent-capture','feasibility'],agent:'aidlc-product-agent',support:['aidlc-delivery-agent'],mode:'inline',reviewer:'',purpose:'Chốt in-scope/out-of-scope, priority và intent backlog.',trigger:'Sau intent và feasibility đang hoạt động trên tuyến.',output:'Scope document + prioritized backlog; ranh giới để tránh scope drift.',human:'Product Owner + Delivery owner — quyết định ưu tiên, MVP boundary, out-of-scope và acceptance.',rule:'Trong scope thì luôn chạy · summary confirmation + approval',file:'ideation/scope-definition.md'},
+      'team-formation':{n:'1.5',title:'Team Formation',phase:P.idea,execution:'CONDITIONAL',scopes:['enterprise','feature'],requires:['scope-definition'],agent:'aidlc-delivery-agent',support:[],mode:'inline',reviewer:'',purpose:'Đánh giá capacity, skill gaps, ownership và mô hình phối hợp/mob.',trigger:'Khi composition, capacity hoặc mob planning có ý nghĩa; skip cho solo/small team.',output:'Team assessment, skill matrix và mob composition.',human:'Engineering Manager/Delivery Manager — cam kết capacity, ownership và skill coverage.',rule:'Conditional · summary confirmation + approval',file:'ideation/team-formation.md'},
+      'rough-mockups':{n:'1.6',title:'Rough Mockups',phase:P.idea,execution:'CONDITIONAL',scopes:['enterprise','feature','mvp'],requires:['scope-definition','team-formation'],agent:'aidlc-design-agent',support:['aidlc-product-agent'],mode:'inline',reviewer:'aidlc-product-lead-agent · advisory',purpose:'Làm rõ user flow và interaction ở fidelity thấp; backend có thể dùng system interaction diagrams.',trigger:'Khi initiative có UI; skip cho non-UI/API-only/infrastructure-only.',output:'Wireframes và user-flow để kiểm tra hướng trải nghiệm trước khi đặc tả sâu.',human:'UX/Product Designer + Product Owner — xác nhận luồng, nội dung, usability và phạm vi UI.',rule:'Conditional · summary confirmation + approval',file:'ideation/rough-mockups.md'},
+      'approval-handoff':{n:'1.7',title:'Approval & Handoff',phase:P.idea,execution:'ALWAYS',scopes:['enterprise','feature'],requires:['intent-capture','feasibility','scope-definition','team-formation','rough-mockups'],agent:'aidlc-delivery-agent',support:['aidlc-product-agent'],mode:'inline',reviewer:'',purpose:'Tổng hợp Ideation thành initiative brief và quyết định có đầu tư sang Inception hay không.',trigger:'Capstone của Ideation đầy đủ.',output:'Initiative brief + decision log, dùng làm approved context cho requirements.',human:'Sponsor/Product Owner, Tech Lead và Delivery owner — go/no-go, budget/risk/scope handoff.',rule:'Trong scope thì luôn chạy · explicit approval handoff',file:'ideation/approval-handoff.md'},
+      'reverse-engineering':{n:'2.1',title:'Reverse Engineering',phase:P.incept,execution:'CONDITIONAL',scopes:['enterprise','feature','mvp','poc','bugfix','refactor','security-patch','workshop'],requires:['state-init'],agent:'aidlc-developer-agent',support:['aidlc-architect-agent'],mode:'pipeline',reviewer:'',purpose:'Tạo Code Knowledge Base về business, architecture, code, APIs, components, stack, dependencies và quality.',trigger:'Chỉ cho brownfield; có thể reuse store CURRENT sau lựa chọn của con người.',output:'9 artifacts trong codekb/<repo>/ dùng lại qua nhiều intents.',human:'Tech Lead/Senior Developer — xác nhận độ đúng của codebase model và quyết định reuse hay rescan.',rule:'Brownfield only · greenfield SKIP · approval',file:'inception/reverse-engineering.md'},
+      'practices-discovery':{n:'2.2',title:'Practices Discovery',phase:P.incept,execution:'CONDITIONAL',scopes:['enterprise','feature','mvp','infra','workshop'],requires:['state-init','reverse-engineering'],agent:'aidlc-pipeline-deploy-agent',support:['aidlc-quality-agent','aidlc-developer-agent','aidlc-devsecops-agent'],mode:'subagent',reviewer:'',purpose:'Khám phá coding, quality, pipeline và security practices; Testing Posture phải ghi rõ Methodology và Ordering rồi mới có thể được affirm.',trigger:'Rerun để lấy freshness; brownfield dựa trên evidence, greenfield hỏi có cấu trúc.',output:'Team practices, discovered rules và evidence/contributions; nội dung affirmed được promote vào team.md và project.md.',human:'Engineering Manager/Tech Lead + QA/DevSecOps — affirm methodology/order kiểm thử và các practice trước khi chúng thành standing memory.',rule:'Conditional · summary confirmation + affirmation gate',file:'inception/practices-discovery.md'},
+      'requirements-analysis':{n:'2.3',title:'Requirements Analysis',phase:P.incept,execution:'ALWAYS',scopes:ALL_SCOPES,requires:['approval-handoff','reverse-engineering'],agent:'aidlc-product-agent',support:[],mode:'inline',reviewer:'aidlc-product-lead-agent · advisory',purpose:'Chuyển intent và code evidence thành functional/non-functional requirements có acceptance rõ.',trigger:'Luôn chạy; depth thay đổi theo scope và complexity.',output:'requirements.md — contract trung tâm cho design, code và test.',human:'Product Owner/Business Analyst + Domain expert — xác nhận correctness, completeness, priority và acceptance.',rule:'Luôn chạy · active predecessors only · approval',file:'inception/requirements-analysis.md'},
+      'user-stories':{n:'2.4',title:'User Stories',phase:P.incept,execution:'CONDITIONAL',scopes:['enterprise','feature','mvp','workshop'],requires:['requirements-analysis'],agent:'aidlc-product-agent',support:['aidlc-design-agent','aidlc-developer-agent','aidlc-quality-agent'],mode:'mob',reviewer:'aidlc-product-lead-agent · advisory',purpose:'Biến requirements thành stories/personas và traceability qua nhiều góc nhìn.',trigger:'Khi có user-facing feature, nhiều persona, business logic phức tạp hoặc cross-team work.',output:'Stories, personas và assessment làm cầu nối product → design/test.',human:'Product Owner + UX + QA/Domain expert — kiểm tra value slice, acceptance và edge cases.',rule:'Conditional · mob topology + approval',file:'inception/user-stories.md'},
+      'refined-mockups':{n:'2.5',title:'Refined Mockups',phase:P.incept,execution:'CONDITIONAL',scopes:['enterprise','feature','mvp','workshop'],requires:['user-stories'],agent:'aidlc-design-agent',support:['aidlc-product-agent'],mode:'inline',reviewer:'aidlc-product-lead-agent · advisory',purpose:'Nâng rough mockup thành interaction spec, design-system mapping và accessibility checklist.',trigger:'Khi có user-facing UI và rough mockups/stories cần refinement.',output:'Mockups và interaction contract đủ chi tiết cho domain/functional design.',human:'UX/UI + Accessibility specialist + Product Owner — duyệt interaction, states và WCAG.',rule:'Conditional · summary confirmation + approval',file:'inception/refined-mockups.md'},
+      'domain-design':{n:'2.6',title:'Domain Design',phase:P.incept,execution:'CONDITIONAL',scopes:['enterprise','feature','mvp','workshop'],requires:['requirements-analysis','refined-mockups'],agent:'aidlc-architect-agent',support:['aidlc-aws-platform-agent','aidlc-design-agent'],mode:'inline',reviewer:'aidlc-architecture-reviewer-agent · advisory',purpose:'Xác định logical components, boundaries và Architecture Decision Records.',trigger:'Khi cần component/building block mới; skip nếu chỉ sửa component hiện hữu.',output:'Component catalogue, architecture diagram, ADRs và traceability.',human:'Solution/Domain Architect + Domain expert — chịu trách nhiệm boundaries, ADR và integration risk.',rule:'Conditional · active predecessors only · approval',file:'inception/domain-design.md'},
+      'units-generation':{n:'2.7',title:'Units Generation',phase:P.incept,execution:'ALWAYS',scopes:['enterprise','feature','mvp','workshop'],requires:['domain-design'],agent:'aidlc-architect-agent',support:['aidlc-delivery-agent'],mode:'inline',reviewer:'aidlc-architecture-reviewer-agent · advisory',purpose:'Chia solution thành Units of Work và dependency DAG để Construction chạy theo Bolt.',trigger:'Khi scope có delivery planning; 2.7 và 2.9 luôn đi cùng nhau.',output:'Unit catalogue, dependency DAG, story map và traceability.',human:'Architect/Tech Lead + Delivery owner — bắt buộc duyệt plan phân chia Unit rồi duyệt kết quả.',rule:'Luôn trong scope · extra Plan Approval + stage approval',file:'inception/units-generation.md'},
+      'contract-design':{n:'2.8',title:'Contract Design',phase:P.incept,execution:'CONDITIONAL',scopes:['enterprise','feature','mvp','workshop'],requires:['units-generation'],agent:'aidlc-architect-agent',support:['aidlc-aws-platform-agent'],mode:'inline',reviewer:'aidlc-architecture-reviewer-agent · advisory',purpose:'Khóa API/event/shared-schema giữa Units hoặc với consumer bên ngoài.',trigger:'Khi có hơn một Unit cần tích hợp hoặc public/external API; skip cho Unit tự chứa.',output:'Contract summary với OpenAPI/AsyncAPI/shared schema blocks.',human:'API/Integration Architect + consumer/service owners — duyệt compatibility, versioning và ownership.',rule:'Conditional · summary confirmation + approval',file:'inception/contract-design.md'},
+      'delivery-planning':{n:'2.9',title:'Delivery Planning',phase:P.incept,execution:'ALWAYS',scopes:['enterprise','feature','mvp','workshop'],requires:['units-generation'],agent:'aidlc-delivery-agent',support:['aidlc-architect-agent'],mode:'inline',reviewer:'',purpose:'Chuyển Unit DAG thành Bolt plan, sequencing, allocation, risk và external dependencies.',trigger:'Capstone của Inception khi Units Generation nằm trong scope.',output:'Bolt plan điều khiển Construction và phần Operation liên quan.',human:'Delivery Manager + Tech Lead — duyệt sequence, walking skeleton, capacity và delivery risks.',rule:'Luôn trong scope · summary confirmation + approval',file:'inception/delivery-planning.md'},
+      'functional-design':{n:'3.1',title:'Functional Design',phase:P.construct,execution:'CONDITIONAL',scopes:['enterprise','feature','mvp','refactor','workshop'],requires:['units-generation','contract-design'],agent:'aidlc-architect-agent',support:['aidlc-developer-agent'],mode:'inline',reviewer:'aidlc-architecture-reviewer-agent · adversarial',purpose:'Thiết kế entities, business rules, workflows/state machines cho từng Unit.',trigger:'Khi có data model, business logic hoặc rule mới/phức tạp.',output:'Functional spec và source-of-truth entities/rules cho code generation.',human:'Tech Lead/Domain Architect + Domain expert — duyệt model, rules và hành vi cần bảo toàn.',rule:'Conditional per Unit · summary confirmation + approval',file:'construction/functional-design.md'},
+      'nfr-requirements':{n:'3.2',title:'NFR Requirements',phase:P.construct,execution:'CONDITIONAL',scopes:['enterprise','feature','mvp','infra','security-patch','workshop'],requires:['units-generation','functional-design'],agent:'aidlc-architect-agent',support:['aidlc-devsecops-agent','aidlc-compliance-agent','aidlc-quality-agent'],mode:'inline',reviewer:'aidlc-architecture-reviewer-agent · adversarial',purpose:'Đặt target đo được cho performance, security, scalability, reliability, observability và stack.',trigger:'Khi có NFR/tech-stack decision; security patch dùng để khóa security constraint.',output:'NFR contracts và tech-stack decisions dùng cho design/test/operation.',human:'Architect + Security/Compliance + SRE/QA — duyệt targets, controls và mức risk chấp nhận.',rule:'Conditional per Unit · active predecessors only · approval',file:'construction/nfr-requirements.md'},
+      'nfr-design':{n:'3.3',title:'NFR Design',phase:P.construct,execution:'CONDITIONAL',scopes:['enterprise','feature','mvp','infra','workshop'],requires:['units-generation','nfr-requirements'],agent:'aidlc-architect-agent',support:['aidlc-aws-platform-agent'],mode:'inline',reviewer:'aidlc-architecture-reviewer-agent · adversarial',purpose:'Chuyển NFR targets thành patterns và logical components có thể triển khai.',trigger:'Khi NFR Requirements đã chạy và cần thiết kế đáp ứng.',output:'Performance/security/scalability/reliability/observability design.',human:'Architect + SRE/Security/Platform — duyệt khả năng đạt NFR và trade-off chi phí/phức tạp.',rule:'Conditional per Unit · chỉ khi NFR Requirements chạy',file:'construction/nfr-design.md'},
+      'infrastructure-design':{n:'3.4',title:'Infrastructure Design',phase:P.construct,execution:'CONDITIONAL',scopes:['enterprise','feature','mvp','infra','workshop'],requires:['units-generation','nfr-design'],agent:'aidlc-aws-platform-agent',support:['aidlc-devsecops-agent','aidlc-compliance-agent'],mode:'inline',reviewer:'aidlc-architecture-reviewer-agent · adversarial',purpose:'Ánh xạ cloud services, deployment architecture, monitoring và CI/CD shape.',trigger:'Khi cần cloud resources/deployment architecture hoặc infrastructure thay đổi.',output:'Infrastructure specification, monitoring design và CI/CD design.',human:'Cloud/Platform Architect + Security/Compliance — duyệt account/network/data/control/cost model.',rule:'Conditional per Unit · summary confirmation + approval',file:'construction/infrastructure-design.md'},
+      'code-generation':{n:'3.5',title:'Code Generation',phase:P.construct,execution:'ALWAYS',scopes:['enterprise','feature','mvp','poc','bugfix','refactor','security-patch','workshop'],requires:['units-generation','functional-design','nfr-requirements','nfr-design','infrastructure-design'],agent:'aidlc-developer-agent',support:[],mode:'subagent',reviewer:'aidlc-architecture-reviewer-agent · adversarial',purpose:'Resolve Testing Contract rồi lập kế hoạch và viết code/tests theo methodology/order đã được affirm cho từng Unit.',trigger:'Mỗi Unit/Bolt có code; plan kết hợp Testing Posture, test strategy và scope floor. Mâu thuẫn posture phải halt-and-ask.',output:'Code trong repo + code-generation plan có Testing Contract, unit-test instructions, approval fingerprint, summary và traceability.',human:'Developer/Tech Lead + QA — duyệt đúng plan/test contract đã fingerprint; mọi thay đổi liên quan sẽ reopen Plan Approval.',rule:'Luôn per Unit · fingerprinted hard Plan Approval · Bolt completion gate',file:'construction/code-generation.md'},
+      'build-and-test':{n:'3.6',title:'Build & Test',phase:P.construct,execution:'ALWAYS',scopes:['enterprise','feature','mvp','poc','bugfix','refactor','security-patch','workshop'],requires:['code-generation'],agent:'aidlc-quality-agent',support:['aidlc-devsecops-agent'],mode:'inline',reviewer:'',purpose:'Tích hợp mọi Unit, chạy build/test/security/performance phù hợp và kiểm tra traceability xuyên Unit.',trigger:'Một lần sau khi tất cả per-unit stages/Bolts hoàn tất.',output:'Test results, build/test summary và cross-unit traceability.',human:'QA/Quality owner + Tech Lead/Security — quyết định release confidence và chấp nhận residual failures.',rule:'Luôn sau code · final batch approval',file:'construction/build-and-test.md'},
+      'ci-pipeline':{n:'3.7',title:'CI Pipeline',phase:P.construct,execution:'CONDITIONAL',scopes:['enterprise','feature','mvp','infra','workshop'],requires:['build-and-test'],agent:'aidlc-pipeline-deploy-agent',support:[],mode:'inline',reviewer:'',purpose:'Tạo hoặc nâng cấp CI và quality gates tự động.',trigger:'Khi CI chưa có hoặc cần thay đổi đáng kể; skip nếu pipeline hiện hữu đã đủ.',output:'CI config và quality-gate contract cho deployment pipeline.',human:'DevOps/Platform + QA/Security — duyệt branch policy, secrets, gates và artifact promotion.',rule:'Conditional · summary confirmation + approval',file:'construction/ci-pipeline.md'},
+      'deployment-pipeline':{n:'4.1',title:'Deployment Pipeline',phase:P.operate,execution:'CONDITIONAL',scopes:['enterprise','feature','infra','security-patch','workshop'],requires:['ci-pipeline','infrastructure-design'],agent:'aidlc-pipeline-deploy-agent',support:[],mode:'inline',reviewer:'',purpose:'Thiết kế CD, deployment strategy, approval flow và rollback.',trigger:'Khi CD cần tạo hoặc sửa đáng kể; security patch giữ stage này để patch tới production.',output:'CD config, deployment strategy và rollback runbook.',human:'Release/DevOps owner + Security — duyệt promotion, production approval và rollback authority.',rule:'Conditional · active predecessors only · approval',file:'operation/deployment-pipeline.md'},
+      'environment-provisioning':{n:'4.2',title:'Environment Provisioning',phase:P.operate,execution:'CONDITIONAL',scopes:['enterprise','feature','infra','workshop'],requires:['infrastructure-design','deployment-pipeline'],agent:'aidlc-aws-platform-agent',support:['aidlc-devsecops-agent','aidlc-compliance-agent'],mode:'inline',reviewer:'',purpose:'Provision hoặc validate AWS environments theo infrastructure/CD contracts.',trigger:'Khi environment cần provision hoặc validation.',output:'Environment inventory và validation report.',human:'Cloud Platform owner + Security/Compliance — duyệt account, IAM, network, data và evidence.',rule:'Conditional · summary confirmation + approval',file:'operation/environment-provisioning.md'},
+      'deployment-execution':{n:'4.3',title:'Deployment Execution',phase:P.operate,execution:'CONDITIONAL',scopes:['enterprise','feature','infra','security-patch','workshop'],requires:['deployment-pipeline','environment-provisioning'],agent:'aidlc-pipeline-deploy-agent',support:['aidlc-developer-agent'],mode:'inline',reviewer:'',purpose:'Thực thi deployment, smoke test và health check.',trigger:'Khi pipeline và environment cần thiết đã sẵn sàng; active predecessors only.',output:'Deployment log, smoke-test results và health-check report.',human:'Release Manager/Service Owner — production go/no-go, maintenance window và rollback decision.',rule:'Conditional · production approval',file:'operation/deployment-execution.md'},
+      'observability-setup':{n:'4.4',title:'Observability Setup',phase:P.operate,execution:'CONDITIONAL',scopes:['enterprise','feature','infra','workshop'],requires:['nfr-design','infrastructure-design','deployment-execution'],agent:'aidlc-operations-agent',support:[],mode:'inline',reviewer:'',purpose:'Cấu hình dashboards, alarms, SLO, logging, tracing và anomaly detection.',trigger:'Khi monitoring/tracing/alarms cần thiết lập hoặc thay đổi.',output:'Operational visibility contract để phát hiện và điều tra hành vi thật.',human:'SRE/Service Owner — duyệt SLI/SLO, alert quality, on-call signal và data retention.',rule:'Conditional · deployed system + active design inputs',file:'operation/observability-setup.md'},
+      'incident-response':{n:'4.5',title:'Incident Response',phase:P.operate,execution:'CONDITIONAL',scopes:['enterprise','feature','workshop'],requires:['observability-setup'],agent:'aidlc-operations-agent',support:[],mode:'inline',reviewer:'',purpose:'Thiết kế runbooks, incident plan và escalation matrix.',trigger:'Khi dịch vụ cần operational runbooks và incident response procedures.',output:'Cách tổ chức phát hiện, chỉ huy, xử lý và escalates sự cố.',human:'Incident Commander/SRE + Security/Business owner — duyệt severity, escalation và communication.',rule:'Conditional · approval',file:'operation/incident-response.md'},
+      'performance-validation':{n:'4.6',title:'Performance Validation',phase:P.operate,execution:'CONDITIONAL',scopes:['enterprise','feature','workshop'],requires:['nfr-requirements','nfr-design','observability-setup'],agent:'aidlc-quality-agent',support:[],mode:'inline',reviewer:'',purpose:'Đo hệ thống dưới tải thật/đại diện và đối chiếu NFR targets.',trigger:'Khi performance targets cần xác nhận dưới load.',output:'Load-test plan/results và NFR validation matrix.',human:'Performance QA/SRE/Architect — duyệt workload model, kết quả và capacity headroom.',rule:'Conditional · requires active NFR + observability',file:'operation/performance-validation.md'},
+      'feedback-optimization':{n:'4.7',title:'Feedback & Optimization',phase:P.operate,execution:'CONDITIONAL',scopes:['enterprise','feature','workshop'],requires:['observability-setup','deployment-execution','incident-response','performance-validation'],agent:'aidlc-operations-agent',support:['aidlc-aws-platform-agent'],mode:'inline',reviewer:'',purpose:'Tổng hợp SLO, cost, drift và production feedback thành vòng tối ưu tiếp theo.',trigger:'Khi cần monitoring/optimization liên tục sau deployment.',output:'SLO report, cost/drift analysis và feedback loop quay lại backlog/intent.',human:'Service Owner + Product Owner/SRE/FinOps — ưu tiên optimization và mở intent cải tiến mới.',rule:'Conditional · phase capstone · approval',file:'operation/feedback-optimization.md'}
+    };
+
+    const scopeSelect = document.getElementById('scopeSelect');
+    const projectType = document.getElementById('projectType');
+    const hideSkipped = document.getElementById('hideSkipped');
+    const showAllEdges = document.getElementById('showAllEdges');
+    const nodes = [...document.querySelectorAll('.stage-node')];
+    const mapCanvas = document.getElementById('mapCanvas');
+    const edgeLayer = document.getElementById('edgeLayer');
+    let selected = 'workspace-scaffold';
+
+    function routeActive(stage) {
+      if (!stage.scopes.includes(scopeSelect.value)) return false;
+      if (stage === stages['reverse-engineering'] && projectType.value === 'greenfield') return false;
+      return true;
+    }
+
+    function updateRoute() {
+      let run = 0;
+      nodes.forEach(node => {
+        const stage = stages[node.dataset.stage];
+        const active = routeActive(stage);
+        node.classList.toggle('route-active', active);
+        node.classList.toggle('route-skip', !active);
+        node.classList.toggle('hidden-stage', !active && hideSkipped.checked);
+        node.dataset.route = active ? 'run' : 'skip';
+        if (active) run++;
+      });
+      document.getElementById('runCount').textContent = `${run} RUN`;
+      document.getElementById('skipCount').textContent = `${nodes.length - run} SKIP`;
+      renderDetail(selected);
+      requestAnimationFrame(drawEdges);
+    }
+
+    function renderDetail(slug) {
+      selected = slug;
+      const s = stages[slug];
+      nodes.forEach(n => n.classList.toggle('selected', n.dataset.stage === slug));
+      document.getElementById('detailId').textContent = s.n;
+      document.getElementById('detailPhase').textContent = s.phase;
+      document.getElementById('detailTitle').textContent = s.title;
+      document.getElementById('detailPurpose').textContent = s.purpose;
+      document.getElementById('detailTrigger').textContent = s.trigger;
+      document.getElementById('detailOutput').textContent = s.output;
+      document.getElementById('detailAgent').textContent = `${s.agent}${s.support.length ? ` · support: ${s.support.join(', ')}` : ''} · ${s.mode}`;
+      document.getElementById('detailRule').textContent = `${s.rule} · tuyến hiện tại: ${routeActive(s) ? 'RUN' : 'SKIP'}`;
+      document.getElementById('detailHuman').textContent = s.human;
+      const deps = document.getElementById('detailDeps');
+      deps.replaceChildren();
+      if (!s.requires.length) {
+        const span = document.createElement('span'); span.className = 'dep-chip none'; span.textContent = 'Không có predecessor'; deps.append(span);
+      } else s.requires.forEach(dep => { const span = document.createElement('span'); span.className = 'dep-chip'; span.textContent = dep; deps.append(span); });
+      const source = document.getElementById('detailSource');
+      source.href = `./aidlc-workflows/core/aidlc-common/stages/${s.file}`;
+      source.textContent = `Mở ${s.file.split('/').pop()} ↗`;
+      requestAnimationFrame(drawEdges);
+    }
+
+    function drawEdges() {
+      const rect = mapCanvas.getBoundingClientRect();
+      const width = mapCanvas.scrollWidth;
+      const height = mapCanvas.scrollHeight;
+      edgeLayer.setAttribute('viewBox', `0 0 ${width} ${height}`);
+      edgeLayer.setAttribute('width', width);
+      edgeLayer.setAttribute('height', height);
+      edgeLayer.style.width = `${width}px`;
+      edgeLayer.style.height = `${height}px`;
+      edgeLayer.replaceChildren();
+      const ns = 'http://www.w3.org/2000/svg';
+      const defs = document.createElementNS(ns,'defs');
+      [['arrowActive','#176b63'],['arrowMuted','#aaa49b']].forEach(([id,color]) => {
+        const marker = document.createElementNS(ns,'marker'); marker.setAttribute('id',id); marker.setAttribute('viewBox','0 0 10 10'); marker.setAttribute('refX','8'); marker.setAttribute('refY','5'); marker.setAttribute('markerWidth','5'); marker.setAttribute('markerHeight','5'); marker.setAttribute('orient','auto-start-reverse');
+        const path = document.createElementNS(ns,'path'); path.setAttribute('d','M 0 0 L 10 5 L 0 10 z'); path.setAttribute('fill',color); marker.append(path); defs.append(marker);
+      }); edgeLayer.append(defs);
+      Object.entries(stages).forEach(([targetSlug,target]) => {
+        target.requires.forEach(sourceSlug => {
+          const sourceNode = document.querySelector(`[data-stage="${sourceSlug}"]`);
+          const targetNode = document.querySelector(`[data-stage="${targetSlug}"]`);
+          if (!sourceNode || !targetNode || sourceNode.classList.contains('hidden-stage') || targetNode.classList.contains('hidden-stage')) return;
+          const sr = sourceNode.getBoundingClientRect(), tr = targetNode.getBoundingClientRect();
+          const x1 = sr.left - rect.left + sr.width / 2, y1 = sr.bottom - rect.top;
+          const x2 = tr.left - rect.left + tr.width / 2, y2 = tr.top - rect.top;
+          const path = document.createElementNS(ns,'path');
+          const bend = Math.max(28, Math.abs(y2-y1)*.34);
+          path.setAttribute('d',`M ${x1} ${y1} C ${x1} ${y1+bend}, ${x2} ${y2-bend}, ${x2} ${y2}`);
+          const bothActive = sourceNode.dataset.route === 'run' && targetNode.dataset.route === 'run';
+          const related = sourceSlug === selected || targetSlug === selected;
+          path.setAttribute('class',`edge ${bothActive ? 'active' : 'inactive'} ${related ? 'related' : ''}`);
+          path.setAttribute('marker-end',`url(#${bothActive ? 'arrowActive' : 'arrowMuted'})`);
+          if (!showAllEdges.checked && !related) path.style.display = 'none';
+          edgeLayer.append(path);
+        });
+      });
+    }
+
+    nodes.forEach(node => node.addEventListener('click', () => renderDetail(node.dataset.stage)));
+    [scopeSelect,projectType,hideSkipped].forEach(control => control.addEventListener('change', updateRoute));
+    showAllEdges.addEventListener('change', drawEdges);
+    document.getElementById('mapShell').addEventListener('scroll', () => requestAnimationFrame(drawEdges), {passive:true});
+    window.addEventListener('resize', () => requestAnimationFrame(drawEdges));
+    updateRoute();
+  </script>
+</body>
+</html>

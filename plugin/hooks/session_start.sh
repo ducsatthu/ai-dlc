@@ -2,8 +2,16 @@
 # AI-DLC SessionStart hook: nạp binding rules + báo inbox tồn đọng.
 # Chỉ hoạt động khi project đã init (.ai-dlc/ tồn tại) — nếu chưa, im lặng.
 ROOT="$(pwd)"
+# 6.2.0: một đội nhiều repo đặt .ai-dlc/ ở thư mục cha — tìm từ cwd đi lên tối đa 2 cấp.
+_cur="$ROOT"; _found=""
+for _i in 0 1 2; do
+  if [ -d "$_cur/.ai-dlc/context-memory" ]; then _found="$_cur"; break; fi
+  _parent="$(dirname "$_cur")"; [ "$_parent" = "$_cur" ] && break; _cur="$_parent"
+done
+[ -n "$_found" ] && ROOT="$_found"
 AIDLC="$ROOT/.ai-dlc"
 [ -d "$AIDLC" ] || exit 0
+[ "$ROOT" != "$(pwd)" ] && echo "(.ai-dlc/ của space này nằm ở $ROOT — path trong workspace-map tương đối với đó)"
 
 echo "# AI-DLC (plugin ai-dlc) — project đã init"
 echo ""
@@ -17,6 +25,13 @@ echo "6. Giao việc cho agent bằng file handoffs/HOF-NNNN.md, KHÔNG nhồi b
 echo "7. Đọc ít, tra đúng chỗ: dùng context-memory/session/INDEX.md; KHÔNG nạp toàn văn intent-plan/unit-plan/as-is (§10)."
 echo ""
 echo "VÀO LẠI DỰ ÁN: chạy /ai-dlc:dlc-resume — dựng bảng vị trí từ handoffs, in briefing gọn, tiếp tục đúng chỗ dừng."
+
+# codekb (6.2.0): bản đồ code dùng lại — nhắc trạng thái tươi
+for fr in "$AIDLC"/codekb/*/freshness.md; do
+  [ -f "$fr" ] || continue
+  RP=$(grep -m1 '^repo:' "$fr" | sed 's/repo: *//'); ST=$(grep -m1 '^status:' "$fr" | sed 's/status: *//; s/ *#.*//')
+  echo "codekb/$RP: $ST — dlc-discover phải kiểm lại với HEAD trước khi reuse (ghi mục 0 của source-ledger)."
+done
 
 # Vị trí đang treo (HOF chưa đóng)
 HOFS=$(grep -l '^status: accepted' "$AIDLC"/context-memory/handoffs/HOF-*.md 2>/dev/null | head -10)

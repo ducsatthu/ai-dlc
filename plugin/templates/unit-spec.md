@@ -12,6 +12,9 @@ release_note:           # cách đưa ra nếu cần cờ/route riêng
 released_with:          # BẮT BUỘC khi releasable: no — ra chung với UOW nào. Không khai được = pseudo-unit
 session_fit:            # "3 màn + 2 endpoint, đọc 4 nguồn (S12,S13), vùng code quen" — phải có CON SỐ
 depends_on: []
+areas: []               # code area của workspace-map mà Unit này ghi vào (vd [api, web]) — 6.2.0; gate guard
+                        # và doctor đối chiếu. Mặc định cắt DỌC (một Unit chạm nhiều area, ra được thứ để bấm);
+                        # cắt theo area chỉ khi Bolt đầu đã chốt contract.md và khai released_with.
 sources: [S1, S2]
 stories: 0
 nfrs: 0

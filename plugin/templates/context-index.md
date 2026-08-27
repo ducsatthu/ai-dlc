@@ -19,6 +19,8 @@ updated_by: /ai-dlc:dlc-resume
 | Nguồn nào đã đọc thật, phát hiện gì | `intents/INT-NNN/as-is/source-ledger.md` | 2. Sổ cái |
 | Vùng nào chưa có nguồn phủ | `intents/INT-NNN/as-is/source-ledger.md` | 4. |
 | Hệ thống hiện đang chạy thế nào | `intents/INT-NNN/as-is/static-model.md` · `dynamic-model.md` | — |
+| Bản đồ code dùng lại giữa các intent (còn tươi không) | `codekb/<repo>/freshness.md` → `static-model.md` | frontmatter `status` · `git_head` |
+| Code area nào ở đâu, Unit ghi vào đâu | `workspace-map.md` · `units/UOW-NN/spec.md` | `areas` |
 | Câu hỏi chờ người nghiệp vụ | `intents/INT-NNN/open-questions-business.md` | bảng điều phối mục 0 |
 | Câu hỏi chờ người kỹ thuật (câu CHẶN Unit) | `intents/INT-NNN/open-questions-tech.md` | bảng điều phối mục 0 |
 | Unit nào có gì, nặng bao nhiêu | `intents/INT-NNN/unit-plan.md` | 3. Bảng Unit |

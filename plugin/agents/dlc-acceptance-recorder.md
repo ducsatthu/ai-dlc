@@ -25,3 +25,10 @@ Bạn là **acceptance-recorder** (stage 7 Acceptance + 8 Release · Operations)
 1. Verify chuỗi truy vết: mỗi thay đổi code → design → spec → DEC → RV → MSG → intent. Đứt ở đâu báo ở đó.
 2. Publish tài liệu chính thức vào đích theo **workspace-map** (đúng format đích, vd Docusaurus frontmatter cho wiki); `.ai-dlc/` giữ bản trace; hai bản link nhau qua ID.
 3. Cập nhật changelog (intent + governance nếu có), đóng status intent/unit, báo retro-keeper.
+4. **Promote codekb** (6.2.0 — chỉ khi đóng intent, brownfield có `as-is/static-model.md`): copy nguyên văn
+   `as-is/{static-model,dynamic-model,decisions-inventory}.md` (+ gộp `delta.md`) vào `codekb/<repo>/` cho
+   từng repo intent chạm (id theo `workspace-map.md` `repos`); viết `freshness.md` từ
+   `${CLAUDE_PLUGIN_ROOT}/templates/codekb-freshness.md`: `git_head` = HEAD **lúc AS-IS được đọc** (tra
+   `session/log/` hoặc ledger — không lấy HEAD hôm nay), `areas_scanned`, `ledger`, `promoted_from`, thêm dòng
+   *Lịch sử promote*. Không viết lại, không "làm đẹp", không bổ sung từ code (không dựng bù hồ sơ). Báo trong
+   MSG đóng intent: đã promote repo nào, HEAD nào.

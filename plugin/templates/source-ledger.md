@@ -17,6 +17,15 @@ conflicts: 0
 > Sổ cái nguồn: mỗi nguồn trong Source Reading Plan phải kết thúc ở một trạng thái **cuối**.
 > Còn dòng `planned` → CẤM mở Gate B (protocol §4.8). Đây là bằng chứng "đã đọc thật", không phải danh sách ý định.
 
+## 0. Bản đồ code có sẵn (`codekb/`, gói 6.2.0)
+
+| Repo | `freshness.md` nói gì | HEAD lúc promote → HEAD nay | File đổi trong area intent chạm | Quyết định |
+|---|---|---|---|---|
+| <repo-id> | CURRENT / STALE / UNKNOWN_SCOPE / chưa có | `<sha7>` → `<sha7>` | 0 / N (liệt kê ≤ 5) | reuse · delta · rescan |
+
+Reuse ⇒ mỗi file codekb dùng là một dòng `read` ở mục 2, evidence = `codekb/<repo>/freshness.md CURRENT @<sha7>`.
+Delta ⇒ thêm `as-is/delta.md`, dòng ledger ghi rõ nguồn từ codekb hay từ delta. Không có codekb ⇒ ghi "chưa có".
+
 ## 1. Tổng kết coverage
 
 | Trạng thái | Số | Nghĩa |

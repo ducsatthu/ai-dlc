@@ -1,5 +1,45 @@
 # Changelog — ai-dlc plugin
 
+## 6.2.0 (2026-08-27) — Workspace map v2 (repos · areas) + codekb dùng lại giữa các intent
+
+**Nguồn: quyết định chủ gói** trên `docs/workspace-knowledge-model-from-team-atlas.md` (đưa phần team tự
+nghĩ trong `docs/explore-aidlc-phases-v2.html` vào gói) — không phải LL qua Gate G; nợ LL như 5.0.0/6.0.0.
+**Không đổi luật gate**, additive: map v1 vẫn đọc được, intent đang chạy không phải làm gì.
+
+### Một `.ai-dlc/` = một space (protocol §3)
+- Space = một đội ổn định, một bộ luật, một tower. Space **không** là frontend/backend — đó là *code area*.
+  Một đội nhiều repo ⇒ `.ai-dlc/` ở thư mục cha; hai đội có người duyệt riêng ⇒ hai `.ai-dlc/`. Không có
+  `spaces/`. `dlc-init` hỏi **đúng một câu** ("đội nào duyệt vùng code này?") thay vì hỏi FE/BE hay mấy repo.
+- `gate_guard.py` + `session_start.sh` tìm `.ai-dlc/context-memory/` từ cwd đi lên tối đa 2 cấp (đa repo
+  mức "cho phép", chưa test kỹ — quyết định #5). Path trong map tương đối với thư mục chứa `.ai-dlc/`.
+
+### `workspace-map.md` v2
+- Thêm `repos:` (id + path) và `areas:` (tên tự do, mỗi area `repo` · `path` · `tests`); giữ `code:`/`tests:`
+  để 6.x đọc. `gate_guard.py` lấy code roots từ `areas.*.path` **lẫn** `code.*`; bỏ `.` (cả workspace).
+  `tower_generate.scan_activity` bắt cả hai dạng, bỏ `.`.
+- `spec.md` thêm `areas: []`; `unit-plan.md` thêm cột *Areas* và luật **cắt dọc là mặc định** — cắt theo
+  area (`u1-domain → u2-api → u3-web`) chỉ khi `contract.md` đã chốt và mọi mảnh khai `released_with:`.
+  Lý do: Unit theo area không `releasable` ⇒ Lead không có gì để nhìn tới Unit thứ 3 (white paper v2 §IV).
+- Doctor 6a: `areas.*.path` không tồn tại → FIX · Unit khai area không có trong map → FIX · Bolt ghi file ngoài
+  `areas` → WARN · map còn v1 → WARN.
+
+### `codekb/<repo>/` — bản đồ code bền vững (protocol §3, §4.8)
+- Ca gốc: PILOT INT-002 và INT-003 dựng lại AS-IS trên cùng một backend. Nay khi intent **đóng** (stage 8),
+  acceptance-recorder promote **nguyên văn** `as-is/{static,dynamic,decisions-inventory}.md` vào
+  `codekb/<repo>/` + `freshness.md` (`git_head` lúc AS-IS được đọc · `areas_scanned` · `ledger`). Không viết
+  lại, không dựng bù.
+- Intent kế: `dlc-discover` 1b so `git_head` với HEAD trên path các area intent chạm → `CURRENT` reuse ·
+  `STALE` quét delta (`as-is/delta.md`) · `UNKNOWN_SCOPE` quét như chưa có. **Vẫn qua No-unread-source**:
+  reuse = dòng `read` trong ledger với evidence `freshness.md CURRENT @<sha7>`; quyết định ghi ở **mục 0**
+  của `source-ledger.md` để người duyệt Gate B thấy. Dùng codekb không ledger = đọc thầm ⇒ doctor FIX.
+- Source-planner đặt `codekb/<repo>/` làm dòng đầu bảng 2.1; `session_start.sh` in trạng thái freshness;
+  `INDEX.md` thêm hai dòng tra cứu. Template mới `templates/codekb-freshness.md`.
+
+### Quyết định chủ gói ghi kèm (cho 7.0.0, chưa làm ở bản này)
+- `intent.kind` 6 tuyến (bugfix bỏ stage 3–5) — đổi luật, để 7.0.0. `governance/raci.md` — dự án nhỏ cho
+  người làm ký thay; doctor WARN khi Gate R mục bảo mật do Lead ký mà Unit chạm auth/PII. Plugin org cho
+  governance projection — chưa có ý định, protocol chỉ ghi cơ chế.
+
 ## 6.1.1 (2026-08-24) — tower khai đúng version gói
 
 - `tower_generate.py` đọc version từ `.claude-plugin/plugin.json` thay vì chuỗi hardcode —

@@ -13,6 +13,12 @@ Việc của bạn là **thực hiện đúng kế hoạch đó và chứng minh
 
 ## Việc của bạn
 
+0. **Codekb trước** (6.2.0): orchestrator đưa kết quả kiểm freshness (`CURRENT` / `STALE` + danh sách file
+   đổi / `UNKNOWN_SCOPE` / chưa có). Điền **mục 0** của ledger. `CURRENT` ⇒ reuse: mỗi file
+   `codekb/<repo>/*.md` dùng là một dòng `read`, evidence `codekb/<repo>/freshness.md CURRENT @<sha7>`, và
+   `static-model.md` mới **trỏ tới** codekb thay vì chép lại. `STALE` ⇒ đọc **đúng các file đổi** (delta) →
+   `as-is/delta.md`, dòng ledger ghi rõ nguồn từ codekb hay từ delta. Không có codekb ⇒ làm như dưới.
+   Cấm: dùng codekb mà không có dòng ledger; reuse `STALE` không delta.
 1. Mở `intent-plan.md` phần 2.1, tạo `as-is/source-ledger.md` từ
    `${CLAUDE_PLUGIN_ROOT}/templates/source-ledger.md` với **đúng số dòng như bảng kế hoạch**.
 2. Đọc theo thứ tự đã chốt ở 2.2 (mặc định: wiki/docs SSOT → quyết định đã chốt → tracker/plans →
