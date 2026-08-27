@@ -3,6 +3,8 @@
 > Trạng thái: **ĐỀ XUẤT — chờ chủ gói chọn phương án** · Ngày: 2026-08-21
 > Tài liệu chuẩn: `docs/whitepaper-ai-dlc-vi.md` (v2). Bản này chỉ trả lời: *gói phải đổi gì, theo lộ trình nào, và dự án đang chạy giữa chừng xử lý ra sao.*
 > Bản kế hoạch gốc 2026-08-11 (7 gate, Review Board 17 agent) lưu tại `archive/plugin-plan-v1.md` — phần kiến trúc gói (override 3 lớp, workspace map, inbox bridge, vòng contribute, semver) **vẫn đúng** và không nhắc lại ở đây.
+> **Bổ sung 2026-08-26:** `aws-aidlc-workflows-v2-vs-ai-dlc.md` đối chiếu với AWS `aidlc-workflows` nhánh `v2` — đề xuất mượn 8 cơ chế máy (mục 5 file đó) vào 7.0.0, trong đó #1–#3 (receipt review · state do tool ghi · HUMAN_TURN) làm được **trước** khi chọn A/B/C; và thêm 4 câu chốt (mục 7 file đó) vào danh sách §5 dưới.
+> **Bổ sung 2026-08-27:** `anthropic-ai-native-sdlc-playbook-vs-ai-dlc.md` đối chiếu playbook Anthropic (2026-08-21) — **xác nhận** §1 (hook hỏi người chỉ ở prod; "an approval prompt during the build puts a person back on the critical path"), không phản bác điểm nào của v2. Mượn 10 cơ chế (mục 4 file đó): #1–#5 làm **ngay trên 6.x** không đổi luật gate (đề xuất 6.2.0: red-line guard song song `gate_guard` · evals cho gói từ LL · khoá file test khi fix + `dlc-verifier` · kiểm trôi plan + mục Proof · `repeat_of` → ứng viên LL); #6–#10 vào 7.0.0 cùng phương án B. Thêm 5 câu chốt (mục 6 file đó) vào §5 dưới.
 
 ---
 
