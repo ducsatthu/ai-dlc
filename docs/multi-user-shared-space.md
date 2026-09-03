@@ -1,6 +1,6 @@
 # Nhiều người dùng chung một `.ai-dlc/` — sáu vai, ba loại thẻ, thang bậc 0 → 2
 
-> Trạng thái: **PHÁC THẢO — đã chốt số repo + engine A (spike qua), còn treo "im lặng = mặc định"; sẵn sàng đưa đội** · Ngày: 2026-09-03
+> Trạng thái: **ĐÃ CHỐT cả ba câu treo (số repo · engine A · im lặng = mặc định) — sẵn sàng đưa đội; lát 7.0.0 đầu tiên (`tower_approve.ts`) đã chạy thử** · Ngày: 2026-09-03
 > Câu hỏi gốc: *gói chạy ổn với một người; làm sao cả đội dùng chung trên một dự án, và dùng thế nào để dự án thành công (release được cho khách), không phải để "ai cũng dùng plugin".*
 > Bốn quyết định chủ gói chốt trong brainstorm: (1) đội đầu tiên = PM · Người dịch/APO · Team Lead · 2 Dev · Tester, tất cả dùng git · (2) mục tiêu **bậc 2 trở lên** · (3) thành công đo bằng **release một tính năng cho khách** · (4) **commit là quyết định** — markdown trong git trên một nhánh chính thức là nguồn sự thật, nhưng phải nhanh.
 > Liên quan: `plugin-transition-plan.md` (7.0.0, chờ chọn A/B/C — file này thực chất là lý do để chọn), `team-target-workflow-questions.md` (câu G3 ai là Lead · F3/F4 docs commit đâu, một space), `workspace-knowledge-model-from-team-atlas.md` (mục 6 `governance/raci.md`), `anthropic-ai-native-sdlc-playbook-vs-ai-dlc.md` (khoá file test khi fix · verifier tươi context).
@@ -172,12 +172,12 @@ Hai KPI vận hành theo dõi suốt pilot: **trung vị giờ thẻ → commit*
 | # | Câu | Trạng thái | Đề xuất / kết quả |
 |---|---|---|---|
 | 1 | Đội có mấy repo code? | **ĐÃ CHỐT 2026-09-03**: workspace = repo riêng (template `project-starter-template-ai`), code là `sources/*` hoặc repo kéo về; linh động | Control plane = workspace repo, không cần repo thêm (mục 2.1) |
-| 2 | PM và APO có chấp nhận **"im lặng quá hạn = mặc định"** cho câu hỏi và test case (không áp cho gate)? | còn | Có, hạn **1 ngày làm việc**, tower hiện rõ "đã dùng mặc định" |
+| 2 | PM và APO có chấp nhận **"im lặng quá hạn = mặc định"** cho câu hỏi và test case (không áp cho gate)? | **ĐÃ CHỐT 2026-09-03** | Chấp nhận. Quá hạn mà chưa chốt ⇒ **AI quyết thay** nhưng ghi rõ thành giả định: *phương án tốt nhất theo AI* + *lý do: im lặng quá hạn* (+ ai lẽ ra phải trả lời, hạn, cách rút lại). Tower hiện rõ thẻ "đã dùng mặc định" để rút lại được |
 | 3 | **Engine**: gói `ai-dlc` là lớp trên AWS v2 (A), thay engine (B), hay hai engine (C)? | **ĐÃ CHỐT A** | Spike xong: được, cần vá hook đường dẫn tương đối (`spikes/`) |
 
 ## 8 · Việc kế tiếp, theo thứ tự
 
-0. ~~Chốt câu 3 (engine)~~ **A đã chốt, spike đã qua.** Bước 5 thành: overlay patch hook vào template → tower-approve script (pull · HUMAN_TURN kèm Actor · `report` · commit · push) → tower đọc state AWS v2 + ba loại thẻ → Tester/Gate R vào `memory/team.md` + plugin.
+0. ~~Chốt câu 3 (engine)~~ **A đã chốt, spike đã qua.** Bước 5 thành: ~~overlay patch hook vào template~~ (**xong** — commit `966082b` trên template, `.claude` trước, `.codex` chưa) → ~~tower-approve script~~ (**xong** — `plugin/scripts/tower_approve.ts`, chạy thử trên clone PM: pull · HUMAN_TURN kèm `Actor`/`Source: tower` · `report` · commit tác giả người bấm · push; clone khác pull về `next` đi tiếp, doctor sạch) → tower đọc state AWS v2 + ba loại thẻ → Tester/Gate R vào `memory/team.md` + plugin.
 1. **Chủ gói** chốt câu 2 mục 7 (5 phút).
 2. **Đưa đội** file này + `team-target-workflow-questions.md` trong một buổi 30 phút: mục tiêu là đội **đồng ý bảng vai (mục 1) và Gate R (mục 6)** — không bàn kỹ thuật.
 3. **Chọn intent pilot** cùng đội: một tính năng nhỏ, có khách nhận, đủ để đi hết Gate R trong 2–3 tuần. Viết Gate R sáu dòng vào `intent-plan.md` **trước** khi làm gì khác.

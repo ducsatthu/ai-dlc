@@ -62,3 +62,18 @@ Intent `260903-spike-approve` (scope `feature`, 33 stage), gate thử: `intent-c
 - Gate ở stage **per-unit** Construction (`for_each: unit-of-work`, reviewer per unit, swarm/worktree) — cùng guard nhưng đường dẫn `construction/<unit>/…`; patch dùng `relative` nên kỳ vọng qua, chưa chạy.
 - Hai người approve hai gate khác nhau cùng lúc rồi cùng push (conflict `aidlc-state.md`).
 - Harness Codex (`.codex/hooks`) — cùng hook, chưa chạy.
+
+## 6 · Bổ sung cùng ngày — `plugin/scripts/tower_approve.ts` chạy thử
+
+Script bun trên máy người duyệt, đúng bốn bước ở mục 0 (+ kiểm gate `[?]` trước, kiểm `[x]` sau, retry push một lần sau `pull --rebase`). Thử trên clone mới `pmD` (git user "PM D") tại commit gate đang mở:
+
+| Bước | Kết quả |
+|---|---|
+| `--dry-run` | `{"ok":true,"dryRun":true,…,"actor":"PM D <pmd@example.com>"}` — không ghi gì |
+| chạy thật | `{"ok":true,"stage":"intent-capture","result":"approved","state":"x","commit":"cc06dd3","pushed":true}` |
+| audit shard của D | `HUMAN_TURN` có **`Actor: PM D <…>` · `Source: tower` · `Stage`**; `GATE_APPROVED · User Input: Approve — nội dung intent đúng phạm vi — PM D <…>` |
+| git | `cc06dd3 PM D <pmd@example.com> decision(260903-spike-approve/intent-capture): approved — PM D` |
+| chạy lại | `Stage intent-capture đang ở [x], không phải [?] … không có gì để quyết` — chặn duyệt hai lần |
+| clone khác pull | state `[x]`, `next` → `market-research`, doctor `49 passed, 0 failed` |
+
+Điểm còn thiếu cho bản dùng thật: đối chiếu git user với RACI **trước** khi cho chạy (hiện chỉ bắt buộc có identity), và một bước "Actor có trong `memory/team.md`" — engine không kiểm nên script phải kiểm.
