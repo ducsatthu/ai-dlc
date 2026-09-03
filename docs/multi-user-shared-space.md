@@ -1,6 +1,6 @@
 # Nhiều người dùng chung một `.ai-dlc/` — sáu vai, ba loại thẻ, thang bậc 0 → 2
 
-> Trạng thái: **PHÁC THẢO sau brainstorm — chờ chủ gói chốt hai câu treo rồi đưa đội** · Ngày: 2026-09-03
+> Trạng thái: **PHÁC THẢO — đã chốt số repo + engine A (spike qua), còn treo "im lặng = mặc định"; sẵn sàng đưa đội** · Ngày: 2026-09-03
 > Câu hỏi gốc: *gói chạy ổn với một người; làm sao cả đội dùng chung trên một dự án, và dùng thế nào để dự án thành công (release được cho khách), không phải để "ai cũng dùng plugin".*
 > Bốn quyết định chủ gói chốt trong brainstorm: (1) đội đầu tiên = PM · Người dịch/APO · Team Lead · 2 Dev · Tester, tất cả dùng git · (2) mục tiêu **bậc 2 trở lên** · (3) thành công đo bằng **release một tính năng cho khách** · (4) **commit là quyết định** — markdown trong git trên một nhánh chính thức là nguồn sự thật, nhưng phải nhanh.
 > Liên quan: `plugin-transition-plan.md` (7.0.0, chờ chọn A/B/C — file này thực chất là lý do để chọn), `team-target-workflow-questions.md` (câu G3 ai là Lead · F3/F4 docs commit đâu, một space), `workspace-knowledge-model-from-team-atlas.md` (mục 6 `governance/raci.md`), `anthropic-ai-native-sdlc-playbook-vs-ai-dlc.md` (khoá file test khi fix · verifier tươi context).
@@ -76,6 +76,8 @@ tower, im lặng = mặc định cho câu hỏi/test case, Tester với bảng g
 | Được | Giữ máy móc AWS (sensor, worktree, swarm, audit per clone) — 8 cơ chế từng muốn mượn nay có sẵn; gói tập trung vào phần AWS thiếu: **người không lệnh** | Đúng white paper v2 Human-Lead (ít gate) | Không phải chọn |
 | Mất | Chấp nhận gate mỗi stage của AWS (ngược white paper v2) trừ khi dùng Lite profile + `--jump`; 6.x/7.0.0 của gói phải viết lại phần đọc state | Mất toàn bộ máy móc AWS; team làm lại template | Hai nguồn sự thật — đúng cái mục 2 bảng trên đang gỡ; **không khuyến nghị** |
 | Khớp quyết định "bậc 2, nhanh, commit = quyết định" | Khớp: worktree/swarm/clone-id có sẵn, chỉ thiếu cửa cho người không lệnh | Khớp nhưng phải xây lại bậc 2 từ đầu (7.0.0) | Không |
+
+**ĐÃ CHỐT A (2026-09-03).** Spike điều kiện đã chạy — `spikes/aws-v2-cross-clone-approval.md`: PM duyệt từ clone khác **được engine chấp nhận** (state tiến, doctor sạch); blocker = hook ghi `File` tuyệt đối → bản vá 4 dòng `spikes/aws-v2-write-audit-relative-path.patch`; điểm yếu = presence guard toàn workflow không kiểm *ai* → tower giữ luật đúng người qua RACI + git author. Hệ quả: mục 5 bỏ phần "đổi format bản ghi" — engine đã có shard per clone/worktree/swarm; 7.0.0 = tower đọc `aidlc-state.md` + audit, ba loại thẻ ghi qua `report`. Đoạn dưới giữ làm bối cảnh.
 
 **Khuyến nghị A**, với điều kiện: người duyệt AWS v2 hiện phải ở trong phiên Claude/Codex — gói phải
 chứng minh được rằng một commit do tower tạo (ngoài phiên) được engine chấp nhận là gate-commit hợp lệ,
@@ -171,11 +173,11 @@ Hai KPI vận hành theo dõi suốt pilot: **trung vị giờ thẻ → commit*
 |---|---|---|---|
 | 1 | Đội có mấy repo code? | **ĐÃ CHỐT 2026-09-03**: workspace = repo riêng (template `project-starter-template-ai`), code là `sources/*` hoặc repo kéo về; linh động | Control plane = workspace repo, không cần repo thêm (mục 2.1) |
 | 2 | PM và APO có chấp nhận **"im lặng quá hạn = mặc định"** cho câu hỏi và test case (không áp cho gate)? | còn | Có, hạn **1 ngày làm việc**, tower hiện rõ "đã dùng mặc định" |
-| 3 | **Engine**: gói `ai-dlc` là lớp trên AWS v2 (A), thay engine (B), hay hai engine (C)? | **mới, quyết mọi việc mục 8** | A — kèm spike "commit ngoài phiên có được engine nhận là gate-commit không" |
+| 3 | **Engine**: gói `ai-dlc` là lớp trên AWS v2 (A), thay engine (B), hay hai engine (C)? | **ĐÃ CHỐT A** | Spike xong: được, cần vá hook đường dẫn tương đối (`spikes/`) |
 
 ## 8 · Việc kế tiếp, theo thứ tự
 
-0. **Chủ gói chốt câu 3 (engine)** — trước khi làm gì khác; chọn A thì bước 5 đổi thành: spike gate-commit ngoài phiên → tower đọc state AWS v2 → ba loại thẻ ghi vào `aidlc/` → Tester/Gate R vào `memory/team.md` + plugin.
+0. ~~Chốt câu 3 (engine)~~ **A đã chốt, spike đã qua.** Bước 5 thành: overlay patch hook vào template → tower-approve script (pull · HUMAN_TURN kèm Actor · `report` · commit · push) → tower đọc state AWS v2 + ba loại thẻ → Tester/Gate R vào `memory/team.md` + plugin.
 1. **Chủ gói** chốt câu 2 mục 7 (5 phút).
 2. **Đưa đội** file này + `team-target-workflow-questions.md` trong một buổi 30 phút: mục tiêu là đội **đồng ý bảng vai (mục 1) và Gate R (mục 6)** — không bàn kỹ thuật.
 3. **Chọn intent pilot** cùng đội: một tính năng nhỏ, có khách nhận, đủ để đi hết Gate R trong 2–3 tuần. Viết Gate R sáu dòng vào `intent-plan.md` **trước** khi làm gì khác.

@@ -10,6 +10,8 @@
 
 > **Bổ sung 2026-09-03:** `multi-user-shared-space.md` — brainstorm với chủ gói về **nhiều người dùng chung** một `.ai-dlc/` (đội PM · APO · Team Lead · 2 Dev · Tester). Bốn quyết định đã chốt: mục tiêu bậc 2 (nhiều người chạy bolt) · thành công = release cho khách · **commit là quyết định** trên nhánh chính control plane · phải nhanh. Bậc 0–1 làm trên 6.3.0 (additive: `by:`, nút tower = commit, thẻ *trả lời*/*kiểm*); **bậc 2 chạm format bản ghi ⇒ là lý do bump 7.0.0** (ID theo intent + initials người tạo, file tổng hợp chỉ sinh, nhánh/worktree per Unit). File đó khuyến nghị **B** vì không nên đổi luật gate và đổi format cùng một lần khi pilot đang chạy. Thêm 2 câu chốt (mục 7 file đó) vào §5 dưới.
 
+> **Bổ sung 2026-09-03 (b) — ĐỔI ĐỀ BÀI:** chủ gói chốt **phương án A của `multi-user-shared-space.md`**: gói `ai-dlc` trở thành **lớp chính sách + tower trên engine AWS `aidlc-workflows` v2** đã vendor trong template team (`project-starter-template-ai`, upstream 2.5.75). Spike `spikes/aws-v2-cross-clone-approval.md` chứng minh người duyệt từ clone khác được engine nhận (cần overlay patch hook đường dẫn tương đối). Hệ quả: §1 A/B/C dưới đây (viết lại protocol theo v2) **không còn là câu hỏi** — 7.0.0 = tower đọc `aidlc/spaces/*/intents/*/aidlc-state.md` + audit, ba loại thẻ ghi qua `aidlc-orchestrate.ts report`, luật của gói (Tester, im lặng = mặc định, Gate R 6 dòng, LL) vào `memory/team.md` + plugin `sources/aidlc-integration/plugins/`. §2–§4 dưới giữ làm tham chiếu lịch sử; kế hoạch mới sẽ viết ở file riêng.
+
 ---
 
 ## 1 · Ba phương án lộ trình — cần chọn một

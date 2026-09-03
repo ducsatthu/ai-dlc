@@ -1,0 +1,31 @@
+diff --git a/.claude/hooks/aidlc-write-audit-log.ts b/.claude/hooks/aidlc-write-audit-log.ts
+index 5f25e62..e7a09d8 100644
+--- a/.claude/hooks/aidlc-write-audit-log.ts
++++ b/.claude/hooks/aidlc-write-audit-log.ts
+@@ -7,7 +7,7 @@
+ // active workflow in this cwd) to preserve the existing "only log when
+ // relevant" behaviour.
+ import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+-import { join } from "node:path";
++import { join, isAbsolute, relative } from "node:path";
+ import { appendAuditEntry } from "../tools/aidlc-audit.ts";
+ import {
+   auditFilePath,
+@@ -56,6 +56,8 @@ try {
+ const tool = parsed.tool_name ?? "";
+ const file: string = parsed.tool_input?.file_path ?? "";
+ const auditFileValue = file.replace(/\\/g, "/");
++// OVERLAY (multi-clone): record the path RELATIVE to the project dir so write receipts validate on every clone; guards resolve it via resolvePath(projectDir, file).
++const auditFileRelative = (isAbsolute(file) ? relative(projectDir, file) : file).replace(/\\/g, "/");
+ const fileNorm = auditFileValue; // forward-slash form for all path matching below
+ 
+ // Only log writes to the active intent's RECORD tree, plus the space's codekb
+@@ -162,7 +164,7 @@ if (tool === "Edit") {
+ try {
+   appendAuditEntry(eventType, {
+     Tool: tool,
+-    File: auditFileValue,
++    File: auditFileRelative,
+     Context: context,
+   }, projectDir);
+   hookDebug(projectDir, "write-audit-log", "emitted", { eventType, file: auditFileValue, context });
