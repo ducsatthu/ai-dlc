@@ -1,5 +1,28 @@
 # Changelog — ai-dlc plugin
 
+## Unreleased — Phương án A: gói là lớp chính sách + tower TRÊN engine AWS `aidlc-workflows` v2
+
+**Nguồn: quyết định chủ gói 2026-09-03** (`docs/multi-user-shared-space.md` mục 2.1b + spike
+`docs/spikes/aws-v2-cross-clone-approval.md`) — không phải LL qua Gate G; nợ LL như 5.0.0/6.0.0/6.2.0.
+**Không sửa template của đội** (`project-starter-template-ai`): mọi thứ gói cần nằm trong plugin.
+**Không đổi luật gate của gói** — hai thứ mới chỉ chạy khi cwd là workspace AWS v2, nơi khác fail-open.
+
+- `references/aws-v2-workspace.md` — bản đồ workspace AWS v2 gói đọc/ghi: layout control plane + sibling
+  repo, `aidlc/spaces/<space>/intents/<id>/` (checkbox `[?]` = gate mở, shard audit per clone), event audit,
+  6 guard trước gate, gói đặt gì ở đâu. Luật: đường dẫn gói ghi vào audit **luôn tương đối** với workspace.
+- `hooks/aws_v2_write_receipt.ts` (PostToolUse `Write|Edit|MultiEdit|NotebookEdit`, cần `bun`, tự bỏ qua
+  nếu không có) — ghi thêm một receipt `ARTIFACT_CREATED|UPDATED` với `File` **tương đối** (+ `Receipt:
+  ai-dlc:relative`) qua đúng seam `appendAuditEntry` của workspace. Ca gốc: hook gốc ghi `File` tuyệt đối
+  ⇒ guard "ghi lại sau xác nhận tóm tắt" không bao giờ khớp trên clone khác ⇒ PM không duyệt được từ máy
+  mình (spike kết luận #2). Đã thử: sống chung với hook gốc, bỏ qua file ngoài record/codekb, không tự tạo
+  ledger, fail-open ngoài workspace. Tắt: `AI_DLC_AWS_RECEIPT=off`.
+- `scripts/tower_approve.ts` — một nút tower = một quyết định gate: `git pull --rebase` → kiểm `[?]` →
+  `HUMAN_TURN` kèm `Actor`/`Source: tower` → `aidlc-orchestrate.ts report --user-input "<lời> — <tên>"` →
+  kiểm `[x]` → commit tác giả = người bấm → push (retry 1 lần). Engine không kiểm *ai* (presence guard toàn
+  workflow, spike kết luận #3) nên định danh là việc của script; **còn thiếu** đối chiếu RACI trước khi chạy.
+- Chốt cùng ngày: im lặng quá hạn ⇒ AI quyết thay, ghi ASM "phương án tốt nhất theo AI · lý do im lặng
+  quá hạn" (chỉ câu hỏi/test case, gate không có mặc định).
+
 ## 6.2.0 (2026-08-27) — Workspace map v2 (repos · areas) + codekb dùng lại giữa các intent
 
 **Nguồn: quyết định chủ gói** trên `docs/workspace-knowledge-model-from-team-atlas.md` (đưa phần team tự

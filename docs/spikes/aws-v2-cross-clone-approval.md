@@ -51,7 +51,7 @@ Intent `260903-spike-approve` (scope `feature`, 33 stage), gate thử: `intent-c
 
 ## 4 · Việc rút ra cho gói `ai-dlc` (phương án A)
 
-1. **Overlay bắt buộc**: áp `aws-v2-write-audit-relative-path.patch` vào `.claude/hooks/aidlc-write-audit-log.ts` (và bản `.codex/`) của template; ghi vào `sources/aidlc-integration/` như overlay đi cùng lock; gửi upstream `awslabs/aidlc-workflows` (một dòng, guard đã sẵn sàng nhận tương đối).
+1. ~~Overlay vào template~~ → **chủ gói quyết 2026-09-03: không sửa template.** Thay bằng hook của gói `plugin/hooks/aws_v2_write_receipt.ts` (PostToolUse, chạy kèm hook gốc, ghi thêm một receipt `File` tương đối có `Receipt: ai-dlc:relative`; đã thử: receipt đúng, sống chung với hook gốc, bỏ qua file ngoài record, fail-open ngoài workspace AWS). `aws-v2-write-audit-relative-path.patch` giữ làm **đề xuất upstream** `awslabs/aidlc-workflows`.
 2. **Tower-approve script** (`bun`, chạy trên máy người bấm): `git pull --rebase` → kiểm gate còn `[?]` → ghi `HUMAN_TURN` qua `appendAuditEntry` **kèm trường `Actor: <tên> <email>`** (hook hiện ghi `{}`) → `report --result approved|rejected --user-input "<lựa chọn> — <tên>"` → commit + push; push bị từ chối ⇒ pull lại và kiểm gate còn mở rồi mới thử lại.
 3. **Định danh là việc của tower, không phải engine**: tower đối chiếu git user với `governance/raci.md` (hoặc `memory/team.md`) **trước** khi hiện nút; engine không kiểm ai. Kết luận #3 phải ghi rõ trong tài liệu đội: *engine không chặn C dùng lượt người của B* — tower là nơi duy nhất giữ luật "đúng người".
 4. **Xác nhận tóm tắt** (`Preview → Confirm` của team) là lượt người **thứ hai** trước gate, và khoá hash file: trong mô hình A nó thuộc **Team Lead trong phiên** (dev side); nếu muốn PM xác nhận từ tower thì cùng cơ chế với approve (decision → answer), nhưng file câu hỏi không được đổi sau đó.
@@ -65,7 +65,7 @@ Intent `260903-spike-approve` (scope `feature`, 33 stage), gate thử: `intent-c
 
 ## 6 · Bổ sung cùng ngày — `plugin/scripts/tower_approve.ts` chạy thử
 
-Script bun trên máy người duyệt, đúng bốn bước ở mục 0 (+ kiểm gate `[?]` trước, kiểm `[x]` sau, retry push một lần sau `pull --rebase`). Thử trên clone mới `pmD` (git user "PM D") tại commit gate đang mở:
+Script bun trên máy người duyệt, đúng bốn bước ở mục 0 (+ kiểm gate `[?]` trước, kiểm `[x]` sau, retry push một lần sau `pull --rebase`). (Ghi chú: commit thử nghiệm trên template thật đã được reset cùng ngày theo quyết định không sửa template.) Thử trên clone mới `pmD` (git user "PM D") tại commit gate đang mở:
 
 | Bước | Kết quả |
 |---|---|

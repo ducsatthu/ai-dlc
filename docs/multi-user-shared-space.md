@@ -177,7 +177,7 @@ Hai KPI vận hành theo dõi suốt pilot: **trung vị giờ thẻ → commit*
 
 ## 8 · Việc kế tiếp, theo thứ tự
 
-0. ~~Chốt câu 3 (engine)~~ **A đã chốt, spike đã qua.** Bước 5 thành: ~~overlay patch hook vào template~~ (**xong** — commit `966082b` trên template, `.claude` trước, `.codex` chưa) → ~~tower-approve script~~ (**xong** — `plugin/scripts/tower_approve.ts`, chạy thử trên clone PM: pull · HUMAN_TURN kèm `Actor`/`Source: tower` · `report` · commit tác giả người bấm · push; clone khác pull về `next` đi tiếp, doctor sạch) → tower đọc state AWS v2 + ba loại thẻ → Tester/Gate R vào `memory/team.md` + plugin.
+0. ~~Chốt câu 3 (engine)~~ **A đã chốt, spike đã qua.** Bước 5 thành: ~~overlay patch hook vào template~~ (**đổi hướng cùng ngày: KHÔNG sửa template** — chủ gói quyết; commit thử trên template đã reset; thay bằng hook của gói `plugin/hooks/aws_v2_write_receipt.ts` chạy kèm hook gốc, ghi thêm receipt `File` tương đối; cấu trúc workspace AWS v2 đưa vào `plugin/references/aws-v2-workspace.md`) → ~~tower-approve script~~ (**xong** — `plugin/scripts/tower_approve.ts`, chạy thử trên clone PM: pull · HUMAN_TURN kèm `Actor`/`Source: tower` · `report` · commit tác giả người bấm · push; clone khác pull về `next` đi tiếp, doctor sạch) → tower đọc state AWS v2 + ba loại thẻ → Tester/Gate R vào `memory/team.md` + plugin.
 1. **Chủ gói** chốt câu 2 mục 7 (5 phút).
 2. **Đưa đội** file này + `team-target-workflow-questions.md` trong một buổi 30 phút: mục tiêu là đội **đồng ý bảng vai (mục 1) và Gate R (mục 6)** — không bàn kỹ thuật.
 3. **Chọn intent pilot** cùng đội: một tính năng nhỏ, có khách nhận, đủ để đi hết Gate R trong 2–3 tuần. Viết Gate R sáu dòng vào `intent-plan.md` **trước** khi làm gì khác.
