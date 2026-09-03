@@ -41,14 +41,47 @@ Nguyên tắc giữ xuyên suốt: **người không cần lệnh thì không ba
 | ID tuần tự không đụng | `HOF-0042`, `DEC-0053` | A và B cùng tạo `HOF-0042` trên hai nhánh | ID **theo intent + chữ cái đầu người tạo** (`HOF-0042-dt`); mỗi bản ghi = một file (đã vậy); file tổng hợp **chỉ sinh ra** |
 | "Tôi" là một người | tower 6.1.0 *Cần tôi quyết* | PO, Lead, Dev cùng thấy một danh sách | `governance/raci.md` điền tên thật · trường `by:` lấy từ git user · tower lọc thẻ theo vai của người xem |
 
-### 2.1 `.ai-dlc/` nằm đâu — phụ thuộc số repo code (câu treo #1)
+### 2.1 `.ai-dlc/` nằm đâu — ĐÃ CHỐT 2026-09-03: **workspace repo của team là control plane**
 
-| Đội có | Đặt `.ai-dlc/` ở | Commit thẳng được không | Ghi chú |
+Chủ gói chỉ `project-starter-template-ai` (template khởi tạo dự án của team, commit gần nhất "aidlc v2"). Cấu trúc:
+**một workspace = một git repo riêng**, chứa control plane + tài liệu + cấu hình agent; code nằm ở
+`sources/<deliverable>/` (backend · frontend · mobile · infra · docs-site — linh động, không cố định), **hoặc**
+là repo git riêng được "kéo về" làm thư mục con của workspace. Đây chính là phương án "repo control plane
+riêng" mà bảng cũ khuyến nghị — team đã dựng sẵn, không cần chọn nữa.
+
+| Thứ | Trong template | Ý nghĩa cho nhiều người |
+|---|---|---|
+| Workspace repo | `aidlc/` (state) · `docs/` (AS-IS đã kiểm chứng) · `.claude/ .codex/ .agents/` (harness) · `sources/` | Mọi người clone **một** repo là có control plane + luật; commit thẳng vào đây = quyết định |
+| Repo code kéo về | mọi thư mục con có `.git` được engine **tự phát hiện** là sibling repo; `repos.json` (`org` + `repos[name,url,branch]`) + `workspace-sync` clone bộ repo đúng trên máy mới, sinh khối `.gitignore` quản lý và file VSCode multi-root | Repo code giữ nguyên luật PR/CI của khách; workspace không chứa code của chúng trong git |
+| Audit shard **theo clone** | `intents/<id>/audit/<host>-<clone-id>.md`, `aidlc/.aidlc-clone-id` mỗi máy một mã | Đúng ý "ID không đụng nhau" — engine đã làm bằng máy: mỗi máy ghi file riêng, không conflict |
+| Worktree per Unit + swarm | `aidlc-worktree.ts` (create/merge/discard) · `aidlc-swarm.ts` (`--units a,b,c --repo <name>`) | Bậc 2 "nhiều Unit song song" đã có hạ tầng git |
+| Phê duyệt | ghi bởi engine (`HUMAN_TURN` + gate-commit trong audit), **không** phải comment PR; PR ở Draft tới khi qua Build and Test | Trùng nguyên tắc "commit là quyết định", nhưng người duyệt phải ở **trong phiên Claude/Codex** — PM/APO/Tester "0 lệnh" chưa có cửa |
+| Ignore | `active-intent`, `runtime-graph.json`, `.aidlc-sessions/`, `.aidlc-clone-id` | State bền commit, con trỏ phiên không commit — cùng cách chia với mục 2 bảng trên |
+
+Hệ quả cho gói `ai-dlc`: **không cần tự nghĩ cơ chế workspace nữa** — layout, sibling repo, clone-id, worktree
+đã có trong template. Cái template **chưa có** và file này bổ sung: bốn vai không lệnh, ba loại thẻ trên
+tower, im lặng = mặc định cho câu hỏi/test case, Tester với bảng góc nhìn, Gate R sáu dòng, KPI tốc độ.
+
+### 2.1b Engine trong template là AWS `aidlc-workflows` v2 — câu G1 đã được trả lời *de facto*
+
+`sources/aidlc-integration/upstream-lock.json` pin `awslabs/aidlc-workflows` **2.5.75**; template vendor
+40 skill `aidlc-*`, engine bun, hook trên mọi tool, `aidlc/spaces/default/` — **không phải gói `ai-dlc`**
+(`.ai-dlc/`). Hai engine không cùng sở hữu một workspace được. `team-target-workflow-vs-ai-dlc.md` mục 6 đã
+đặt "engine = gói / AWS v2 / plugin mới" là câu quyết mọi câu còn lại; template cho thấy team đang đi
+**AWS v2**. Ba cách đặt gói `ai-dlc` cạnh nó:
+
+| | A · `ai-dlc` = lớp chính sách + tower **trên** state AWS v2 | B · `ai-dlc` thay engine trong template | C · Hai engine, hai thư mục |
 |---|---|---|---|
-| **Một monorepo** | trong repo, thư mục gốc | Có, nếu bảo vệ nhánh cho phép path `.ai-dlc/**` không cần PR — GitHub rulesets làm được, GitLab push rules khó hơn | Đơn giản nhất; rủi ro: luật PR của repo code vô tình chặn commit quyết định |
-| **Nhiều repo** | **repo control plane riêng** ở thư mục cha (`<team>-ai-dlc/`), repo code là thư mục con/sibling | Có — repo này **không bảo vệ nhánh** | Đúng luật 6.2.0 "một đội nhiều repo ⇒ `.ai-dlc/` ở cha"; hook tìm lên 2 cấp đã có. Khuyến nghị mặc định |
+| Cách làm | Tower đọc `aidlc/spaces/*/intents/*/aidlc-state.md` + audit; ba loại thẻ ghi commit vào `aidlc/`; luật của gói (Tester, im lặng = mặc định, Gate R 6 dòng, LL) thành `memory/team.md` + plugin trong `sources/aidlc-integration/plugins/` (template đã có khái niệm plugin harness-neutral: `project-docs-sync`) | Bỏ `aidlc/` + 40 skill, đặt `.ai-dlc/` + 16 skill của gói vào template | `aidlc/` cho engine, `.ai-dlc/` cho tower/hồ sơ người |
+| Được | Giữ máy móc AWS (sensor, worktree, swarm, audit per clone) — 8 cơ chế từng muốn mượn nay có sẵn; gói tập trung vào phần AWS thiếu: **người không lệnh** | Đúng white paper v2 Human-Lead (ít gate) | Không phải chọn |
+| Mất | Chấp nhận gate mỗi stage của AWS (ngược white paper v2) trừ khi dùng Lite profile + `--jump`; 6.x/7.0.0 của gói phải viết lại phần đọc state | Mất toàn bộ máy móc AWS; team làm lại template | Hai nguồn sự thật — đúng cái mục 2 bảng trên đang gỡ; **không khuyến nghị** |
+| Khớp quyết định "bậc 2, nhanh, commit = quyết định" | Khớp: worktree/swarm/clone-id có sẵn, chỉ thiếu cửa cho người không lệnh | Khớp nhưng phải xây lại bậc 2 từ đầu (7.0.0) | Không |
 
-Repo control plane riêng còn có lợi thứ hai: repo code giữ nguyên luật PR/CI của khách, không phải xin đổi.
+**Khuyến nghị A**, với điều kiện: người duyệt AWS v2 hiện phải ở trong phiên Claude/Codex — gói phải
+chứng minh được rằng một commit do tower tạo (ngoài phiên) được engine chấp nhận là gate-commit hợp lệ,
+hoặc tower gọi `aidlc-orchestrate.ts report` thay người. Đây là spike đầu tiên, làm trước mọi thứ khác.
+Chọn A đồng nghĩa `plugin-transition-plan.md` đổi đề bài: 7.0.0 không còn là "viết lại protocol theo v2"
+mà là "gói thành lớp trên AWS v2".
 
 ### 2.2 Cài gói cùng phiên bản
 
@@ -132,18 +165,18 @@ Hai KPI vận hành theo dõi suốt pilot: **trung vị giờ thẻ → commit*
 
 ---
 
-## 7 · Hai câu treo — chủ gói chốt trước khi đưa đội
+## 7 · Câu treo — một đã chốt, một mới, một còn
 
-| # | Câu | Quyết cái gì | Đề xuất |
+| # | Câu | Trạng thái | Đề xuất / kết quả |
 |---|---|---|---|
-| 1 | Đội có **mấy repo code**? | Mục 2.1: `.ai-dlc/` trong monorepo hay repo control plane riêng | Repo riêng, kể cả monorepo — tránh đụng luật PR của repo code |
-| 2 | PM và APO có chấp nhận **"im lặng quá hạn = mặc định"** cho câu hỏi và test case (không áp cho gate)? | Núm tốc độ lớn nhất; cũng là chỗ dễ phản cảm với người quen mô hình phê duyệt | Có, với hạn **1 ngày làm việc** và tower hiện rõ "đã dùng mặc định" trên thẻ để rút lại được |
-
----
+| 1 | Đội có mấy repo code? | **ĐÃ CHỐT 2026-09-03**: workspace = repo riêng (template `project-starter-template-ai`), code là `sources/*` hoặc repo kéo về; linh động | Control plane = workspace repo, không cần repo thêm (mục 2.1) |
+| 2 | PM và APO có chấp nhận **"im lặng quá hạn = mặc định"** cho câu hỏi và test case (không áp cho gate)? | còn | Có, hạn **1 ngày làm việc**, tower hiện rõ "đã dùng mặc định" |
+| 3 | **Engine**: gói `ai-dlc` là lớp trên AWS v2 (A), thay engine (B), hay hai engine (C)? | **mới, quyết mọi việc mục 8** | A — kèm spike "commit ngoài phiên có được engine nhận là gate-commit không" |
 
 ## 8 · Việc kế tiếp, theo thứ tự
 
-1. **Chủ gói** chốt hai câu mục 7 (5 phút).
+0. **Chủ gói chốt câu 3 (engine)** — trước khi làm gì khác; chọn A thì bước 5 đổi thành: spike gate-commit ngoài phiên → tower đọc state AWS v2 → ba loại thẻ ghi vào `aidlc/` → Tester/Gate R vào `memory/team.md` + plugin.
+1. **Chủ gói** chốt câu 2 mục 7 (5 phút).
 2. **Đưa đội** file này + `team-target-workflow-questions.md` trong một buổi 30 phút: mục tiêu là đội **đồng ý bảng vai (mục 1) và Gate R (mục 6)** — không bàn kỹ thuật.
 3. **Chọn intent pilot** cùng đội: một tính năng nhỏ, có khách nhận, đủ để đi hết Gate R trong 2–3 tuần. Viết Gate R sáu dòng vào `intent-plan.md` **trước** khi làm gì khác.
 4. **Chốt phương án 7.0.0** trong `plugin-transition-plan.md` (đề xuất B) — file này cung cấp lý do.
