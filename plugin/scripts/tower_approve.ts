@@ -16,6 +16,9 @@
 //   2. git pull --rebase (trừ --no-pull) — quyết định phải dựa trên state mới nhất
 //   3. --intent ⇒ `aidlc intent switch` (cursor active-intent là per-clone, gitignored)
 //   4. đọc aidlc-state.md: stage phải đang `[?]` (awaiting-approval)
+//   4b. RACI: `.ai-dlc/governance/raci.md` trong workspace — git email phải nằm trong cột "quyết" của dòng
+//       khớp stage (khớp chính xác, rồi glob `*`); KHÔNG có file ⇒ cho qua kèm cảnh báo `raci: missing`
+//       (bậc 1 adoption); có file mà không có tên ⇒ từ chối. Engine không kiểm ai — đây là chỗ duy nhất kiểm.
 //   5. ghi HUMAN_TURN {Actor, Source: tower, Stage} qua đúng seam của hook (appendAuditEntry)
 //   6. `aidlc-orchestrate.ts report --stage --result --user-input "<input> — <name> <email>"`
 //   7. kiểm state sau: approved ⇒ `[x]`; rejected ⇒ không còn `[?]`
@@ -116,6 +119,38 @@ function checkboxState(stateContent: string, slug: string): string | null {
   return m ? m[1] : null;
 }
 
+// --- RACI: ai được quyết gate nào (.ai-dlc/governance/raci.md, template plugin/templates/raci.md) ---
+// Bảng markdown: | gate | quyết | kiểm |  — gate = slug stage hoặc glob (`*`, `units-*`); quyết/kiểm =
+// danh sách email hoặc tên, cách nhau bởi dấu phẩy. Dòng đầu khớp thắng; `*` là dòng mặc định.
+type RaciRow = { gate: string; decide: string[]; check: string[] };
+export function parseRaci(md: string): RaciRow[] {
+  const rows: RaciRow[] = [];
+  for (const line of md.split("\n")) {
+    const m = line.match(/^\|\s*([^|]+?)\s*\|\s*([^|]*?)\s*\|(?:\s*([^|]*?)\s*\|)?\s*$/);
+    if (!m) continue;
+    const gate = m[1].trim();
+    if (!gate || /^-+$/.test(gate) || /^gate$/i.test(gate)) continue;
+    const split = (v: string) => v.split(",").map((x) => x.trim()).filter((x) => x && x !== "—" && x !== "-");
+    rows.push({ gate, decide: split(m[2] ?? ""), check: split(m[3] ?? "") });
+  }
+  return rows;
+}
+function globMatch(pattern: string, slug: string): boolean {
+  const re = new RegExp("^" + pattern.split("*").map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join(".*") + "$");
+  return re.test(slug);
+}
+export function raciCheck(pd: string, stage: string, who: { name: string; email: string }): { status: "ok" | "missing"; row?: RaciRow } {
+  const path = join(pd, ".ai-dlc", "governance", "raci.md");
+  if (!existsSync(path)) return { status: "missing" };
+  const rows = parseRaci(readFileSync(path, "utf-8"));
+  const row = rows.find((r) => r.gate === stage) ?? rows.find((r) => r.gate !== stage && globMatch(r.gate, stage));
+  if (!row) die(`RACI (${path}) không có dòng cho stage ${stage} và không có dòng mặc định \`*\``);
+  const me = [who.email.toLowerCase(), who.name.toLowerCase()];
+  const ok = row.decide.some((p) => me.includes(p.toLowerCase()));
+  if (!ok) die(`RACI: ${who.name} <${who.email}> không nằm trong cột "quyết" của gate ${row.gate} (được phép: ${row.decide.join(", ") || "—"}) — engine không kiểm ai, nên tower từ chối tại đây`);
+  return { status: "ok", row };
+}
+
 async function main(): Promise<void> {
   const f = parseFlags(process.argv.slice(2));
   if (!f.stage || !f.result || !f.input) { usage(); die("Thiếu --stage / --result / --input"); }
@@ -138,9 +173,10 @@ async function main(): Promise<void> {
   if (before === null) die(`Stage ${f.stage} không có trong ${statePath}`);
   if (before !== "?") die(`Stage ${f.stage} đang ở [${before}], không phải [?] awaiting-approval — không có gì để quyết (đã có người khác quyết? pull lại và xem tower)`);
 
+  const raci = raciCheck(pd, f.stage, who);
   const userInput = `${f.input.trim()} — ${actor}`;
   if (f.dryRun) {
-    console.log(JSON.stringify({ ok: true, dryRun: true, projectDir: pd, intent: intentId, stage: f.stage, result: f.result, actor, userInput }));
+    console.log(JSON.stringify({ ok: true, dryRun: true, projectDir: pd, intent: intentId, stage: f.stage, result: f.result, actor, raci: raci.status, userInput }));
     return;
   }
 
@@ -178,7 +214,7 @@ async function main(): Promise<void> {
     pushed = true;
   }
   const sha = run("git", ["rev-parse", "--short", "HEAD"], pd).out;
-  console.log(JSON.stringify({ ok: true, intent: intentId, stage: f.stage, result: f.result, actor, state: after, commit: sha, pushed }));
+  console.log(JSON.stringify({ ok: true, intent: intentId, stage: f.stage, result: f.result, actor, raci: raci.status, state: after, commit: sha, pushed }));
 }
 
-await main();
+if (import.meta.main) await main();

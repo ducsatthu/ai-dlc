@@ -20,6 +20,17 @@
   `HUMAN_TURN` kèm `Actor`/`Source: tower` → `aidlc-orchestrate.ts report --user-input "<lời> — <tên>"` →
   kiểm `[x]` → commit tác giả = người bấm → push (retry 1 lần). Engine không kiểm *ai* (presence guard toàn
   workflow, spike kết luận #3) nên định danh là việc của script; **còn thiếu** đối chiếu RACI trước khi chạy.
+- `scripts/tower_aws_v2.py` (stdlib) — tower cho workspace AWS v2: đọc `aidlc/spaces/*/intents/*/aidlc-state.md`
+  + `audit/*.md`, đối chiếu RACI, sinh ba loại thẻ theo **vai của người đang xem** (git user của clone): *Cần tôi
+  quyết* (stage `[?]`, nút Duyệt/Trả lại ⇒ `tower_approve.ts`, lời người bắt buộc) · *Cần tôi trả lời*
+  (DECISION_RECORDED chưa có answer — hiện chưa ghi thay, chỉ báo + "nếu im lặng") · *Cần tôi kiểm* (cột "kiểm"
+  RACI). Tầng 0 chỉ có thẻ; intent/sự kiện/KPI **trung vị giờ mở gate → quyết** trong *Tra cứu ▾*. `--serve`:
+  GET /state · /doc (chỉ .md dưới workspace) · POST /pull · POST /decision; token như tower cũ. Đã thử: thẻ đúng
+  vai, duyệt từ UI thành commit + push, KPI tính được từ audit.
+- `templates/raci.md` + RACI trong `tower_approve.ts`: `.ai-dlc/governance/raci.md` (`| gate | quyết | kiểm |`,
+  glob, `*` mặc định) — thiếu file ⇒ cho qua kèm `raci: missing` (bậc 1); có file mà không có tên ⇒ từ chối.
+  Đã thử 4 ca. `.ai-dlc/` trong workspace AWS v2 = chỗ governance của gói (engine đã loại `.ai-dlc` khỏi sibling
+  discovery); nên gitignore `.ai-dlc/tower/`.
 - Chốt cùng ngày: im lặng quá hạn ⇒ AI quyết thay, ghi ASM "phương án tốt nhất theo AI · lý do im lặng
   quá hạn" (chỉ câu hỏi/test case, gate không có mặc định).
 

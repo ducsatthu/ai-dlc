@@ -79,8 +79,9 @@ Lifecycle chỉ qua `aidlc-orchestrate.ts next|report|park` — gọi thẳng `a
 | Thứ | Ở gói | Chạy khi |
 |---|---|---|
 | Hook receipt tương đối | `hooks/aws_v2_write_receipt.ts` (`PostToolUse Write|Edit|MultiEdit|NotebookEdit`) | mọi lần dev ghi artifact trong phiên Claude — fail-open nếu không phải workspace AWS v2 |
-| Nút quyết định | `scripts/tower_approve.ts --stage --result --input` | máy người duyệt, ngoài phiên |
-| Tower | (7.0.0) đọc `aidlc-state.md` + `audit/*.md` → ba loại thẻ | máy bất kỳ sau `git pull` |
+| Nút quyết định | `scripts/tower_approve.ts --stage --result --input` — kiểm RACI `.ai-dlc/governance/raci.md` trước | máy người duyệt, ngoài phiên |
+| Tower | `scripts/tower_aws_v2.py [--serve]` đọc `aidlc-state.md` + `audit/*.md` → ba loại thẻ theo vai người xem; sinh `.ai-dlc/tower/` (gitignore) | máy bất kỳ; nút *Kéo mới* = `git pull --rebase` |
+| Governance của gói | `<workspace>/.ai-dlc/governance/raci.md` (template `templates/raci.md`; sau này test-viewpoints, sizing, LL) — engine AWS đã loại `.ai-dlc` khỏi sibling discovery | đội commit |
 | Luật của gói (Tester, im lặng = mặc định, Gate R 6 dòng, LL) | (7.0.0) sinh vào `aidlc/spaces/<space>/memory/team.md` `## Mandated` + plugin `sources/aidlc-integration/plugins/` | khi đội bật |
 
 Đường dẫn ghi vào audit/state của gói: **luôn tương đối với workspace**, không bao giờ tuyệt đối (ca gốc: kết luận #2 spike).
