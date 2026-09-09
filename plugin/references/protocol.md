@@ -140,6 +140,13 @@ frontend/backend — đó là *code area* (`workspace-map.md` `areas:`). Một �
 mục cha, hook/script tìm từ cwd đi lên tối đa 2 cấp; hai đội có người duyệt riêng ⇒ hai `.ai-dlc/`.
 Không có `spaces/`. Code và test luôn nằm trong repo thật — `.ai-dlc/` chỉ giữ control plane và bằng chứng.
 
+**Vị trí state cấu hình được (7.0.0 — `references/layout-config.md`)**: cây dưới đây là *mặc định*, không phải
+luật cứng. Dự án đặc thù khai `ai-dlc.config.json` (hoặc fence ```` ```ai-dlc ```` trong `CLAUDE.md`/`AGENTS.md`,
+hoặc env `AI_DLC_*`) để đổi `state` (thư mục thay `.ai-dlc/`), `root`, `governance`, `tower.out/port`, hay
+`engine: aws-v2` + `space` cho workspace chạy engine AWS `aidlc-workflows` v2 có sẵn `aidlc/spaces/<space>/`.
+Mọi hook/script của gói hỏi `scripts/layout.py` / `layout.ts` — không script nào tự đoán `.ai-dlc/` nữa;
+skill viết `.ai-dlc/…` cho dễ đọc, agent lấy đường dẫn thật từ banner `session_start` hoặc `layout.py --explain`.
+
 ```
 .ai-dlc/
 ├── workspace-map.md            # v2: repos · areas (code area = thư mục thật) · docs — NGUỒN DUY NHẤT để resolve path

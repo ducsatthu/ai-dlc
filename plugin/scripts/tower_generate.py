@@ -25,8 +25,15 @@ import re
 import shutil
 import sys
 
+def _layout(start):
+    """7.0.0: scripts/layout.py là nơi duy nhất trả lời state ở đâu (config file · fence CLAUDE.md · env · tự dò)."""
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from layout import resolve
+    return resolve(start)
+
+
 def resolve_root(start):
-    """Tìm gốc dự án AI-DLC thật. TRƯỚC 4.0.0 script nhận bừa cwd làm gốc và tạo `.ai-dlc/tower/`
+    """(giữ làm fallback khi layout.py lỗi) Tìm gốc dự án AI-DLC thật. TRƯỚC 4.0.0 script nhận bừa cwd làm gốc và tạo `.ai-dlc/tower/`
     ở bất cứ đâu — chạy nhầm từ `app-fe/` hay từ trong `.ai-dlc/context-memory/` là đẻ ra một
     thư mục `.ai-dlc` rác với dashboard rỗng, trông y như một dự án thật. Nay:
       1. đường dẫn nằm TRONG một cây `.ai-dlc` → nhảy ngược ra gốc của cây đó;
@@ -46,14 +53,29 @@ def resolve_root(start):
         cur = nxt
 
 
-ROOT, ASKED = resolve_root(sys.argv[1] if len(sys.argv) > 1 else os.getcwd())
+ASKED = sys.argv[1] if len(sys.argv) > 1 else os.getcwd()
+try:
+    LAYOUT = _layout(ASKED)
+except Exception:
+    LAYOUT = None
+if LAYOUT and LAYOUT["engine"] == "aws-v2":
+    # Workspace AWS aidlc v2 (phương án A): tower của gói là tower_aws_v2.py — chuyển tiếp, không tạo .ai-dlc/context-memory
+    print("engine aws-v2 tại %s — dùng tower_aws_v2.py" % LAYOUT["root"], file=sys.stderr)
+    os.execv(sys.executable, [sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "tower_aws_v2.py"),
+                              "--project-dir", LAYOUT["root"]] + sys.argv[2:])
+if LAYOUT and LAYOUT["engine"] == "ai-dlc":
+    ROOT, ASKED = LAYOUT["root"], os.path.abspath(ASKED)
+elif LAYOUT and LAYOUT["engine"] == "off":
+    sys.exit("AI-DLC tắt (engine: off trong config) tại %s — không sinh tower." % LAYOUT["root"])
+else:
+    ROOT, ASKED = resolve_root(ASKED)
 if ROOT is None:
     sys.exit("Không tìm thấy dự án AI-DLC nào từ '%s' (thiếu `.ai-dlc/context-memory/`).\n"
              "Không tạo gì cả — chạy `/ai-dlc:dlc-init` nếu đây là dự án mới, hoặc truyền đúng gốc:\n"
              "  python3 tower_generate.py <đường-dẫn-gốc-dự-án>" % ASKED)
 if os.path.abspath(ROOT) != os.path.abspath(ASKED):
     print("gốc dự án: %s (bạn đưa vào '%s')" % (ROOT, ASKED), file=sys.stderr)
-A = os.path.join(ROOT, ".ai-dlc")
+A = LAYOUT["state"] if LAYOUT and LAYOUT["engine"] == "ai-dlc" else os.path.join(ROOT, ".ai-dlc")
 CM = os.path.join(A, "context-memory")
 UI_SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "tower-ui")
 # Version thật của gói đang chạy — đọc từ plugin.json cạnh script, không hardcode
@@ -64,7 +86,7 @@ try:
         PLUGIN_VERSION = json.load(_pf).get("version", "?")
 except Exception:  # noqa: BLE001
     PLUGIN_VERSION = "?"
-OUT = os.path.join(A, "tower")
+OUT = LAYOUT["tower"]["out"] if LAYOUT and LAYOUT["engine"] == "ai-dlc" else os.path.join(A, "tower")
 
 MAX_DOC_BYTES = 400_000  # trần an toàn cho một tài liệu nhúng vào data.js
 

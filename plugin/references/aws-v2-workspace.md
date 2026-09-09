@@ -18,7 +18,7 @@
 ```
 
 - **Sibling repo**: mọi thư mục con trực tiếp có `.git` (trừ `aidlc/ .git/ .ai-dlc/ node_modules/` và thư mục harness) được `discoverSiblingRepos` coi là repo code. `repos.json` (`{org, repos:[{name,url,branch}]}`) + `aidlc-workspace-sync.ts` clone đúng bộ trên máy mới, sinh khối `.gitignore` quản lý + file VSCode multi-root. Disk thắng manifest lúc chạy.
-- Gói `ai-dlc` tìm workspace bằng: `AIDLC_PROJECT_DIR` → `CLAUDE_PROJECT_DIR` → cwd đi lên ≤ 6 cấp, điều kiện `aidlc/spaces/` **và** `.claude/tools/aidlc-audit.ts`.
+- Gói `ai-dlc` tìm workspace bằng `scripts/layout.py` / `layout.ts` (`references/layout-config.md`): env `AI_DLC_*` → `ai-dlc.config.json` → fence ```` ```ai-dlc ```` trong `CLAUDE.md`/`AGENTS.md` → tự dò cwd đi lên ≤ 6 cấp với điều kiện `aidlc/spaces/` **và** `.claude/tools/aidlc-audit.ts`. Dự án đặt state chỗ khác (`state: docs/aidlc`) hay có nhiều space (`space: web`, hoặc cursor `aidlc/active-space`) khai ở đó; `governance`/`tower.out` cũng đổi được.
 
 ## 2 · `aidlc/` — state engine
 

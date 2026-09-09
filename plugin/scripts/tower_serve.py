@@ -38,12 +38,30 @@ def resolve_root(start):
         cur = nxt
 
 
-ROOT, ASKED = resolve_root(sys.argv[1] if len(sys.argv) > 1 else os.getcwd())
+ASKED = sys.argv[1] if len(sys.argv) > 1 else os.getcwd()
+try:
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from layout import resolve as _resolve_layout
+    LAYOUT = _resolve_layout(ASKED)
+except Exception:
+    LAYOUT = None
+if LAYOUT and LAYOUT["engine"] == "aws-v2":
+    # 7.0.0: workspace AWS aidlc v2 ⇒ tower ba loại thẻ của gói (tower_aws_v2.py --serve), cùng lệnh /ai-dlc:dlc-tower serve
+    port = sys.argv[2] if len(sys.argv) > 2 else str(LAYOUT["tower"]["port"])
+    print("engine aws-v2 tại %s — chuyển sang tower_aws_v2.py --serve --port %s" % (LAYOUT["root"], port), file=sys.stderr)
+    os.execv(sys.executable, [sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "tower_aws_v2.py"),
+                              "--project-dir", LAYOUT["root"], "--serve", "--port", port, "--out", LAYOUT["tower"]["out"]])
+if LAYOUT and LAYOUT["engine"] == "ai-dlc":
+    ROOT, ASKED = LAYOUT["root"], os.path.abspath(ASKED)
+elif LAYOUT and LAYOUT["engine"] == "off":
+    sys.exit("AI-DLC tắt (engine: off trong config) tại %s." % LAYOUT["root"])
+else:
+    ROOT, ASKED = resolve_root(ASKED)
 if ROOT is None:
     sys.exit("Không tìm thấy dự án AI-DLC nào từ '%s' (thiếu `.ai-dlc/context-memory/`).\n"
              "Không tạo gì cả — chạy `/ai-dlc:dlc-init` trước, hoặc truyền đúng gốc dự án." % ASKED)
-PORT = int(sys.argv[2]) if len(sys.argv) > 2 else 8642
-A = os.path.join(ROOT, ".ai-dlc")
+PORT = int(sys.argv[2]) if len(sys.argv) > 2 else int((LAYOUT or {}).get("tower", {}).get("port") or 8642)
+A = LAYOUT["state"] if LAYOUT and LAYOUT["engine"] == "ai-dlc" else os.path.join(ROOT, ".ai-dlc")
 INBOX = os.path.join(A, "inbox")
 CM = os.path.join(A, "context-memory")
 os.makedirs(INBOX, exist_ok=True)

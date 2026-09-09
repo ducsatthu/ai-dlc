@@ -26,22 +26,23 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
+import { resolveLayout, type Layout } from "./layout.ts";
 
 type Result = "approved" | "rejected";
 type Flags = {
   stage?: string; result?: Result; input?: string; intent?: string; space: string;
-  projectDir?: string; pull: boolean; push: boolean; dryRun: boolean;
+  projectDir?: string; pull: boolean; push: boolean; dryRun: boolean; spaceExplicit: boolean;
 };
 
 function parseFlags(argv: string[]): Flags {
-  const f: Flags = { space: "default", pull: true, push: true, dryRun: false };
+  const f: Flags = { space: "default", pull: true, push: true, dryRun: false, spaceExplicit: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]; const v = argv[i + 1];
     if (a === "--stage") { f.stage = v; i++; }
     else if (a === "--result") { f.result = v as Result; i++; }
     else if (a === "--input") { f.input = v; i++; }
     else if (a === "--intent") { f.intent = v; i++; }
-    else if (a === "--space") { f.space = v; i++; }
+    else if (a === "--space") { f.space = v; f.spaceExplicit = true; i++; }
     else if (a === "--project-dir") { f.projectDir = v; i++; }
     else if (a === "--no-pull") f.pull = false;
     else if (a === "--no-push") f.push = false;
@@ -71,7 +72,14 @@ function run(cmd: string, args: string[], cwd: string, allowFail = false): { cod
   return res;
 }
 
+let LAYOUT: Layout | null = null;
+
 function findProjectDir(explicit?: string): string {
+  // 7.0.0: layout.ts trả lời (config file · fence CLAUDE.md · env · tự dò) — fallback luật cũ
+  try {
+    const lay = resolveLayout(explicit || process.cwd());
+    if (lay.engine === "aws-v2") { LAYOUT = lay; return lay.root; }
+  } catch { /* fallback */ }
   if (explicit) {
     const d = resolve(explicit);
     if (!existsSync(join(d, "aidlc", "spaces"))) die(`Không thấy aidlc/spaces dưới ${d}`);
@@ -140,7 +148,7 @@ function globMatch(pattern: string, slug: string): boolean {
   return re.test(slug);
 }
 export function raciCheck(pd: string, stage: string, who: { name: string; email: string }): { status: "ok" | "missing"; row?: RaciRow } {
-  const path = join(pd, ".ai-dlc", "governance", "raci.md");
+  const path = join(LAYOUT?.governance ?? join(pd, ".ai-dlc", "governance"), "raci.md");
   if (!existsSync(path)) return { status: "missing" };
   const rows = parseRaci(readFileSync(path, "utf-8"));
   const row = rows.find((r) => r.gate === stage) ?? rows.find((r) => r.gate !== stage && globMatch(r.gate, stage));
@@ -158,6 +166,7 @@ async function main(): Promise<void> {
   if (!f.input.trim()) die("--input trống — quyết định phải có lời của người");
 
   const pd = findProjectDir(f.projectDir);
+  if (!f.spaceExplicit && LAYOUT?.space) f.space = LAYOUT.space;
   const who = gitIdentity(pd);
   const actor = `${who.name} <${who.email}>`;
   const tools = join(pd, ".claude", "tools");

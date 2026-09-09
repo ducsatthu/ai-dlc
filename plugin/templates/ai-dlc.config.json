@@ -1,0 +1,10 @@
+{
+  "_doc": "Layout config của gói ai-dlc — đặt tại gốc workspace (hoặc .ai-dlc/config.json). Mọi key tuỳ chọn; xoá key = tự dò. Giải thích: references/layout-config.md. Thay cho file này có thể dùng fence ```ai-dlc trong CLAUDE.md/AGENTS.md.",
+  "engine": "auto",
+  "root": ".",
+  "state": null,
+  "space": "auto",
+  "governance": null,
+  "tower": { "out": null, "port": null, "mode": "auto" },
+  "search_up": 6
+}

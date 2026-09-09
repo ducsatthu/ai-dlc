@@ -33,6 +33,21 @@
   discovery); nên gitignore `.ai-dlc/tower/`.
 - Chốt cùng ngày: im lặng quá hạn ⇒ AI quyết thay, ghi ASM "phương án tốt nhất theo AI · lý do im lặng
   quá hạn" (chỉ câu hỏi/test case, gate không có mặc định).
+- **Layout cấu hình được (2026-09-09, quyết định chủ gói: "đủ linh động với bất kỳ cấu trúc folder nào; config
+  từ file hoặc CLAUDE.md")** — `scripts/layout.py` + `scripts/layout.ts` (cùng luật, kiểm chéo `--json` trên 14
+  ca) là resolver duy nhất: env `AI_DLC_*` → `ai-dlc.config.json` / `.ai-dlc/config.json` → fence ```` ```ai-dlc ````
+  trong `CLAUDE.md`/`AGENTS.md` (JSON hoặc `key: value`) → tự dò (`.ai-dlc/context-memory` ⇒ ai-dlc; `aidlc/spaces`
+  + `.claude/tools` ⇒ aws-v2). Key: `engine` (auto|ai-dlc|aws-v2|off) · `root` · `state` · `space` (auto = cursor
+  → space duy nhất → default) · `governance` · `tower{out,port,mode}` · `search_up`. Đã nối: `session_start.sh`
+  (banner riêng cho aws-v2, im lặng khi off) · `gate_guard.py` (chỉ chặn ở engine ai-dlc, state tuỳ biến vẫn
+  chặn đúng) · `aws_v2_write_receipt.ts` · `tower_generate.py`/`tower_serve.py` (**tự chuyển sang
+  `tower_aws_v2.py` khi engine aws-v2** — một lệnh `/ai-dlc:dlc-tower serve` cho cả hai; port/out theo config)
+  · `tower_aws_v2.py` (raci từ `governance`, `mode: off`) · `tower_approve.ts` (space mặc định + raci từ config)
+  · `session_brief.py`. Hành vi dự án hiện có **không đổi** (tự dò = luật cũ). Template `templates/ai-dlc.config.json`,
+  tài liệu `references/layout-config.md`. Đã thử: 14 ca resolver py=ts; gate_guard chặn đúng với `state: docs/state`;
+  tower 6.x sinh vào state tuỳ biến, không đẻ `.ai-dlc/` rác; tower_serve trên template đội → tower AWS v2 trả
+  `/state` 200, template 0 thay đổi; tower_approve dry-run qua fence (raci ok / từ chối người ngoài / missing khi
+  không config / env từ thư mục con / `--space` tường minh thắng); receipt hook từ thư mục con qua fence.
 
 ## 6.2.0 (2026-08-27) — Workspace map v2 (repos · areas) + codekb dùng lại giữa các intent
 

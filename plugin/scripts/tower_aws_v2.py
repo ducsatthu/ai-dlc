@@ -22,7 +22,20 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 APPROVE = os.path.join(HERE, "tower_approve.ts")
 
 # ---------- workspace ----------
+LAYOUT = None
+
 def find_ws(explicit=None):
+    """7.0.0: hỏi layout.py trước (config file · fence CLAUDE.md · env · tự dò); fallback luật cũ."""
+    global LAYOUT
+    try:
+        sys.path.insert(0, HERE)
+        from layout import resolve
+        lay = resolve(explicit or os.environ.get("AIDLC_PROJECT_DIR") or os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd())
+        if lay["engine"] == "aws-v2":
+            LAYOUT = lay
+            return lay["root"]
+    except Exception:
+        pass
     cands = [explicit, os.environ.get("AIDLC_PROJECT_DIR"), os.environ.get("CLAUDE_PROJECT_DIR")]
     d = os.getcwd()
     for _ in range(7):
@@ -143,10 +156,10 @@ def hours_between(a, b):
 # ---------- build ----------
 def build_state(ws):
     me = {"name": git(ws, "config", "user.name") or "?", "email": git(ws, "config", "user.email") or "?"}
-    raci_path = os.path.join(ws, ".ai-dlc", "governance", "raci.md")
+    raci_path = os.path.join(LAYOUT["governance"] if LAYOUT else os.path.join(ws, ".ai-dlc", "governance"), "raci.md")
     raci = parse_raci(open(raci_path, encoding="utf-8").read()) if os.path.isfile(raci_path) else None
     decide, answer, check, intents, events_recent, durations = [], [], [], [], [], []
-    spaces_dir = os.path.join(ws, "aidlc", "spaces")
+    spaces_dir = os.path.join(LAYOUT["state"] if LAYOUT else os.path.join(ws, "aidlc"), "spaces")
     for space in sorted(os.listdir(spaces_dir)):
         idir = os.path.join(spaces_dir, space, "intents")
         if not os.path.isdir(idir):
@@ -396,14 +409,18 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--project-dir")
     ap.add_argument("--serve", action="store_true")
-    ap.add_argument("--port", type=int, default=8643)
+    ap.add_argument("--port", type=int, default=None)
     ap.add_argument("--out")
     a = ap.parse_args()
     ws = find_ws(a.project_dir)
     if not ws:
         print("Không phải workspace AWS aidlc v2 (cần aidlc/spaces + .claude/tools/aidlc-orchestrate.ts) — dùng --project-dir", file=sys.stderr)
         sys.exit(1)
-    out = a.out or os.path.join(ws, ".ai-dlc", "tower")
+    out = a.out or (LAYOUT["tower"]["out"] if LAYOUT else os.path.join(ws, ".ai-dlc", "tower"))
+    port = a.port or (LAYOUT["tower"]["port"] if LAYOUT else 8643)
+    if LAYOUT and LAYOUT["tower"]["mode"] == "off":
+        print("tower.mode: off trong config — không sinh tower.", file=sys.stderr)
+        sys.exit(0)
     os.makedirs(out, exist_ok=True)
     state = build_state(ws)
     with open(os.path.join(out, "state.json"), "w", encoding="utf-8") as f:
@@ -416,8 +433,8 @@ def main():
     if not a.serve:
         return
     token = secrets.token_urlsafe(12)
-    srv = HTTPServer(("127.0.0.1", a.port), make_handler(ws, token))
-    print(f"AI-DLC Tower (AWS v2): http://127.0.0.1:{a.port}/?token={token}", flush=True)
+    srv = HTTPServer(("127.0.0.1", port), make_handler(ws, token))
+    print(f"AI-DLC Tower (AWS v2): http://127.0.0.1:{port}/?token={token}", flush=True)
     srv.serve_forever()
 
 if __name__ == "__main__":

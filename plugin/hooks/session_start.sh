@@ -2,16 +2,37 @@
 # AI-DLC SessionStart hook: nạp binding rules + báo inbox tồn đọng.
 # Chỉ hoạt động khi project đã init (.ai-dlc/ tồn tại) — nếu chưa, im lặng.
 ROOT="$(pwd)"
-# 6.2.0: một đội nhiều repo đặt .ai-dlc/ ở thư mục cha — tìm từ cwd đi lên tối đa 2 cấp.
-_cur="$ROOT"; _found=""
-for _i in 0 1 2; do
-  if [ -d "$_cur/.ai-dlc/context-memory" ]; then _found="$_cur"; break; fi
-  _parent="$(dirname "$_cur")"; [ "$_parent" = "$_cur" ] && break; _cur="$_parent"
-done
-[ -n "$_found" ] && ROOT="$_found"
-AIDLC="$ROOT/.ai-dlc"
+# 7.0.0: state ở đâu / engine nào do scripts/layout.py trả lời (env · ai-dlc.config.json · fence ```ai-dlc trong
+# CLAUDE.md/AGENTS.md · tự dò). Không có python3 ⇒ luật cũ 6.2.0: tìm .ai-dlc/context-memory từ cwd đi lên 2 cấp.
+_LAYOUT="$(dirname "$0")/../scripts/layout.py"
+AI_DLC_L_ENGINE=""; AI_DLC_L_ROOT=""; AI_DLC_L_STATE=""; AI_DLC_L_SPACE=""; AI_DLC_L_GOVERNANCE=""; AI_DLC_L_TOWER_PORT=""; AI_DLC_L_SOURCE=""
+if command -v python3 >/dev/null 2>&1 && [ -f "$_LAYOUT" ]; then
+  eval "$(python3 "$_LAYOUT" --env 2>/dev/null)"
+fi
+case "$AI_DLC_L_ENGINE" in
+  off) exit 0 ;;
+  aws-v2)
+    echo "# AI-DLC (plugin ai-dlc) — workspace AWS aidlc-workflows v2 tại $AI_DLC_L_ROOT (space: $AI_DLC_L_SPACE; cấu hình: $AI_DLC_L_SOURCE)"
+    echo "Gói là LỚP CHÍNH SÁCH + TOWER trên engine AWS v2 (\${CLAUDE_PLUGIN_ROOT}/references/aws-v2-workspace.md):"
+    echo "- Lifecycle do engine AWS giữ (/aidlc, aidlc-orchestrate.ts) — gói KHÔNG tạo .ai-dlc/context-memory ở đây."
+    echo "- Luật gói (RACI, test-viewpoints, im lặng = mặc định): $AI_DLC_L_GOVERNANCE/"
+    echo "- Tower: python3 \${CLAUDE_PLUGIN_ROOT}/scripts/tower_aws_v2.py --serve (hoặc /ai-dlc:dlc-tower serve, port $AI_DLC_L_TOWER_PORT)."
+    echo "- Người duyệt ngoài phiên: bun \${CLAUDE_PLUGIN_ROOT}/scripts/tower_approve.ts --stage <slug> --result approved|rejected --input \"...\""
+    exit 0 ;;
+  ai-dlc)
+    ROOT="$AI_DLC_L_ROOT"; AIDLC="$AI_DLC_L_STATE" ;;
+  *)
+    _cur="$ROOT"; _found=""
+    for _i in 0 1 2; do
+      if [ -d "$_cur/.ai-dlc/context-memory" ]; then _found="$_cur"; break; fi
+      _parent="$(dirname "$_cur")"; [ "$_parent" = "$_cur" ] && break; _cur="$_parent"
+    done
+    [ -n "$_found" ] && ROOT="$_found"
+    AIDLC="$ROOT/.ai-dlc" ;;
+esac
 [ -d "$AIDLC" ] || exit 0
-[ "$ROOT" != "$(pwd)" ] && echo "(.ai-dlc/ của space này nằm ở $ROOT — path trong workspace-map tương đối với đó)"
+[ "$ROOT" != "$(pwd)" ] && echo "(state của space này nằm ở $AIDLC — path trong workspace-map tương đối với $ROOT)"
+[ -n "$AI_DLC_L_SOURCE" ] && [ "$AI_DLC_L_SOURCE" != "none" ] && echo "(cấu hình layout: $AI_DLC_L_SOURCE)"
 
 echo "# AI-DLC (plugin ai-dlc) — project đã init"
 echo ""

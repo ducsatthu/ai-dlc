@@ -23,18 +23,28 @@ def block(msg):
     sys.exit(2)
 
 def find_root(start, max_up=2):
-    """Thư mục chứa `.ai-dlc/context-memory/`: cwd, rồi cha, rồi ông (tối đa 2 cấp)."""
+    """7.0.0: hỏi scripts/layout.py (config file / fence CLAUDE.md / env / tự dò). Engine không phải
+    `ai-dlc` (aws-v2 có hook riêng, `off`, `none`) ⇒ None ⇒ cho qua. Import lỗi ⇒ luật cũ: đi lên 2 cấp."""
+    try:
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts"))
+        from layout import resolve as _resolve
+        lay = _resolve(start)
+        if lay["engine"] != "ai-dlc":
+            return None
+        return lay["root"], lay["state"]
+    except Exception:
+        pass
     cur = os.path.abspath(start)
     for _ in range(max_up + 1):
         if os.path.isdir(os.path.join(cur, ".ai-dlc", "context-memory")):
-            return cur
+            return cur, os.path.join(cur, ".ai-dlc")
         parent = os.path.dirname(cur)
         if parent == cur:
             break
         cur = parent
     # tương thích 6.1: `.ai-dlc/` ngay tại cwd dù chưa có context-memory
     if os.path.isdir(os.path.join(os.path.abspath(start), ".ai-dlc")):
-        return os.path.abspath(start)
+        return os.path.abspath(start), os.path.join(os.path.abspath(start), ".ai-dlc")
     return None
 
 def code_roots_from_map(wm_path, root):
@@ -82,10 +92,10 @@ try:
     fp = tool_input.get("file_path") or ""
     if not fp:
         allow()
-    root = find_root(data.get("cwd") or os.getcwd())
-    if not root:
+    found = find_root(data.get("cwd") or os.getcwd())
+    if not found:
         allow()
-    aidlc = os.path.join(root, ".ai-dlc")
+    root, aidlc = found
     fp_abs = os.path.abspath(fp)
     aidlc_abs = os.path.abspath(aidlc)
     gov = os.path.join(aidlc_abs, "context-memory", "governance")

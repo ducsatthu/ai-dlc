@@ -14,6 +14,7 @@
 // import lỗi ⇒ exit 0 không in gì. Tắt: AI_DLC_AWS_RECEIPT=off.
 import { existsSync, statSync } from "node:fs";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { resolveLayout } from "../scripts/layout.ts";
 
 async function main(): Promise<number> {
   if (process.env.AI_DLC_AWS_RECEIPT === "off") return 0;
@@ -66,6 +67,12 @@ async function main(): Promise<number> {
 // Workspace AWS v2 = thư mục có aidlc/spaces + .claude/tools/aidlc-audit.ts. Ưu tiên
 // AIDLC_PROJECT_DIR, rồi CLAUDE_PROJECT_DIR, rồi cwd của hook đi lên tối đa 6 cấp.
 function findProjectDir(hookCwd?: string): string | null {
+  // 7.0.0: layout.ts (config file · fence CLAUDE.md · env · tự dò) — engine khác aws-v2 ⇒ không phải việc của hook này
+  try {
+    const lay = resolveLayout(process.env.AIDLC_PROJECT_DIR || process.env.CLAUDE_PROJECT_DIR || hookCwd || process.cwd());
+    if (lay.engine === "aws-v2") return lay.root;
+    if (lay.engine === "ai-dlc" || lay.engine === "off") return null;
+  } catch { /* fallback */ }
   const isWs = (d: string) => existsSync(join(d, "aidlc", "spaces")) && existsSync(join(d, ".claude", "tools", "aidlc-audit.ts"));
   for (const env of [process.env.AIDLC_PROJECT_DIR, process.env.CLAUDE_PROJECT_DIR]) {
     if (env && isWs(resolve(env))) return resolve(env);

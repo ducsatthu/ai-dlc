@@ -26,6 +26,21 @@ ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
 FLAGS = {a for a in sys.argv[1:] if a.startswith("--")}
 ROOT = os.path.abspath(ARGS[0] if ARGS else os.getcwd())
 A = os.path.join(ROOT, ".ai-dlc")
+try:  # 7.0.0: state ở đâu do scripts/layout.py trả lời (config file · fence CLAUDE.md · env · tự dò)
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from layout import resolve as _resolve_layout
+    _LAY = _resolve_layout(ROOT)
+    if _LAY["engine"] == "aws-v2":
+        print("Workspace AWS aidlc v2 tại %s (space %s) — brief của gói là tower: "
+              "python3 %s/tower_aws_v2.py --project-dir %s" % (_LAY["root"], _LAY["space"],
+                                                               os.path.dirname(os.path.abspath(__file__)), _LAY["root"]))
+        sys.exit(0)
+    if _LAY["engine"] == "ai-dlc":
+        ROOT, A = _LAY["root"], _LAY["state"]
+except SystemExit:
+    raise
+except Exception:
+    pass
 CM = os.path.join(A, "context-memory")
 HOF = os.path.join(CM, "handoffs")
 SESS = os.path.join(CM, "session")
