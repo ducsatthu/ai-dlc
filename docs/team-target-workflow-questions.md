@@ -1,6 +1,6 @@
 # Câu hỏi làm rõ với team về workflow đích (Intent · Plan · Execution · Verify)
 
-> Gửi: team vẽ `docs/techtus-aidlc-workflow-viewer.html` (2026-08-27) · Từ: chủ gói `ai-dlc` · Ngày: 2026-08-27
+> Gửi: team vẽ `docs/team-aidlc-workflow-viewer.html` (2026-08-27) · Từ: chủ gói `ai-dlc` · Ngày: 2026-08-27
 > Bản đối chiếu đầy đủ: `docs/team-target-workflow-vs-ai-dlc.md`. File này chỉ gom **câu hỏi** — mỗi câu có *quan sát trên hình* (số bước), *vì sao phải hỏi*, và *đề xuất* để team phản biện. Trả lời ngắn vào ô **Trả lời** là đủ; câu nào team thấy hình đã đúng thì ghi "giữ" kèm một dòng lý do.
 >
 > Trước hết, ba điều tôi thấy **đúng và muốn giữ**: rút còn 3 gate người (thay vì 7 của gói hiện tại) · Gate 3 là *tự dùng thử trên hệ thống* chứ không phải đọc diff · **Preview → Confirm → Publish** cho mọi lần ghi ra Backlog. Các câu dưới là để làm workflow này chạy được thật, không phải để kéo về mô hình cũ.

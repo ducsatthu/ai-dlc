@@ -1,7 +1,7 @@
 # Workflow đích của team (Intent · Plan · Execution · Verify) đối chiếu với gói `ai-dlc`
 
 > Trạng thái: **PHÂN TÍCH + ĐỀ XUẤT — chờ chủ gói chọn** · Ngày: 2026-08-27
-> Nguồn: `docs/techtus-aidlc-workflow-viewer.html` (Excalidraw 8703×6369, team vẽ 2026-08-27 sáng) — 4 pha × 5 lane (Product Design (BA) & APM · AI agents Claude Code & Codex · Engineer · Backlog · Sources/Git) · 16 bước · 20 mũi tên có số · cây thư mục `/workspace`.
+> Nguồn: `docs/team-aidlc-workflow-viewer.html` (Excalidraw 8703×6369, team vẽ 2026-08-27 sáng) — 4 pha × 5 lane (Product Design (BA) & APM · AI agents Claude Code & Codex · Engineer · Backlog · Sources/Git) · 16 bước · 20 mũi tên có số · cây thư mục `/workspace`.
 > Ba bản đối chiếu trước: AWS engine (`aws-aidlc-workflows-v2-vs-ai-dlc.md`), playbook Anthropic (`anthropic-ai-native-sdlc-playbook-vs-ai-dlc.md`), Phase Atlas của team (`workspace-knowledge-model-from-team-atlas.md`, đã chốt 6/6, ra 6.2.0). File này trả lời: *team định chạy thế nào · gói hiện chạy được bao nhiêu phần · phải thêm gì để chạy đúng — và chỗ nào workflow đích nên sửa trước khi đóng vào gói.*
 
 ---
