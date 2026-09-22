@@ -1,5 +1,7 @@
 # Kế hoạch chuyển gói `ai-dlc` 6.0.0 → 7.0.0 theo white paper v2 (Human-Lead)
 
+> **2026-09-22 — §1–§4 file này là LỊCH SỬ.** Kế hoạch 7.0.0 hiện hành theo phương án A (gói = lớp chính sách + tower trên engine AWS v2): `plugin-7-policy-layer-plan.md`. Giữ file này để truy vết vì sao từng phương án bị loại.
+
 > Trạng thái: **ĐỀ XUẤT — chờ chủ gói chọn phương án** · Ngày: 2026-08-21
 > Tài liệu chuẩn: `docs/whitepaper-ai-dlc-vi.md` (v2). Bản này chỉ trả lời: *gói phải đổi gì, theo lộ trình nào, và dự án đang chạy giữa chừng xử lý ra sao.*
 > Bản kế hoạch gốc 2026-08-11 (7 gate, Review Board 17 agent) lưu tại `archive/plugin-plan-v1.md` — phần kiến trúc gói (override 3 lớp, workspace map, inbox bridge, vòng contribute, semver) **vẫn đúng** và không nhắc lại ở đây.
