@@ -23,7 +23,7 @@ def block(msg):
     sys.exit(2)
 
 def find_root(start, max_up=2):
-    """7.0.0: hỏi scripts/layout.py (config file / fence CLAUDE.md / env / tự dò). Engine không phải
+    """6.3.0: hỏi scripts/layout.py (config file / fence CLAUDE.md / env / tự dò). Engine không phải
     `ai-dlc` (aws-v2 có hook riêng, `off`, `none`) ⇒ None ⇒ cho qua. Import lỗi ⇒ luật cũ: đi lên 2 cấp."""
     try:
         sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts"))

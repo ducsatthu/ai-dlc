@@ -1,11 +1,20 @@
 # Changelog — ai-dlc plugin
 
-## Unreleased — Phương án A: gói là lớp chính sách + tower TRÊN engine AWS `aidlc-workflows` v2
+> **Nợ LL tổng (tính tới 6.3.0):** 5.0.0 (bỏ trần 5h) · 6.0.0 (gỡ Review Board) · 6.2.0 (map v2 + codekb) ·
+> 6.3.0 (lớp chính sách trên AWS v2 + layout resolver) đều đi bằng **quyết định chủ gói**, chưa bản nào có LL
+> qua Gate G. 4.1.0 nợ `LL-004` (retro INT-003). Trả bằng: retro INT-003 của PILOT (engine ai-dlc) và retro
+> intent pilot đầu tiên của đội (engine aws-v2). Kế hoạch trả và lát kế tiếp: `docs/plugin-7-policy-layer-plan.md` §6.
+
+## 6.3.0 (2026-09-23) — Phương án A: gói là lớp chính sách + tower TRÊN engine AWS `aidlc-workflows` v2
 
 **Nguồn: quyết định chủ gói 2026-09-03** (`docs/multi-user-shared-space.md` mục 2.1b + spike
-`docs/spikes/aws-v2-cross-clone-approval.md`) — không phải LL qua Gate G; nợ LL như 5.0.0/6.0.0/6.2.0.
+`docs/spikes/aws-v2-cross-clone-approval.md`) — không phải LL qua Gate G (xem nợ tổng ở đầu file).
 **Không sửa template của đội** (`project-starter-template-ai`): mọi thứ gói cần nằm trong plugin.
-**Không đổi luật gate của gói** — hai thứ mới chỉ chạy khi cwd là workspace AWS v2, nơi khác fail-open.
+**Không đổi luật gate của gói** — mọi thứ mới chỉ chạy khi cwd là workspace AWS v2, nơi khác fail-open;
+dự án `.ai-dlc/` hiện có **không phải làm gì** (`MIGRATION.md`). Minor vì thêm hook + script, không đổi
+format/layout. Phần layout resolver từng dán nhãn "7.0.0" trong code — nay là 6.3.0; 7.0.0 dành cho lát
+kế theo `docs/plugin-7-policy-layer-plan.md` (đóng băng engine ai-dlc, doctor/status/resume trên aws-v2,
+luật v2 mức WARN).
 
 - `references/aws-v2-workspace.md` — bản đồ workspace AWS v2 gói đọc/ghi: layout control plane + sibling
   repo, `aidlc/spaces/<space>/intents/<id>/` (checkbox `[?]` = gate mở, shard audit per clone), event audit,

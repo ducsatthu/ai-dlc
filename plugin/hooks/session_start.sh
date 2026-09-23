@@ -2,7 +2,7 @@
 # AI-DLC SessionStart hook: nạp binding rules + báo inbox tồn đọng.
 # Chỉ hoạt động khi project đã init (.ai-dlc/ tồn tại) — nếu chưa, im lặng.
 ROOT="$(pwd)"
-# 7.0.0: state ở đâu / engine nào do scripts/layout.py trả lời (env · ai-dlc.config.json · fence ```ai-dlc trong
+# 6.3.0: state ở đâu / engine nào do scripts/layout.py trả lời (env · ai-dlc.config.json · fence ```ai-dlc trong
 # CLAUDE.md/AGENTS.md · tự dò). Không có python3 ⇒ luật cũ 6.2.0: tìm .ai-dlc/context-memory từ cwd đi lên 2 cấp.
 _LAYOUT="$(dirname "$0")/../scripts/layout.py"
 AI_DLC_L_ENGINE=""; AI_DLC_L_ROOT=""; AI_DLC_L_STATE=""; AI_DLC_L_SPACE=""; AI_DLC_L_GOVERNANCE=""; AI_DLC_L_TOWER_PORT=""; AI_DLC_L_SOURCE=""

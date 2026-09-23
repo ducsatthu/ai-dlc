@@ -1,6 +1,6 @@
-# Layout config — state của dự án nằm ở đâu, engine nào, tower kiểu gì (7.0.0)
+# Layout config — state của dự án nằm ở đâu, engine nào, tower kiểu gì (6.3.0)
 
-> Tới 6.2.0 mỗi hook/script tự dò `.ai-dlc/context-memory/` theo luật riêng (đi lên 2 cấp, đi lên vô hạn, đi lên 6 cấp cho `aidlc/spaces`…). Dự án đặc thù — template có sẵn `aidlc/spaces/<space>/`, đội đặt state ở thư mục khác, nhiều space trong một repo — không cấu hình được. Từ 7.0.0 **một resolver duy nhất** trả lời câu này: `scripts/layout.py` (python, stdlib) và `scripts/layout.ts` (bun) — cùng luật, cùng kết quả, kiểm chéo bằng `--json`. Mọi hook/script của gói gọi nó; không script nào tự đoán đường dẫn nữa.
+> Tới 6.2.0 mỗi hook/script tự dò `.ai-dlc/context-memory/` theo luật riêng (đi lên 2 cấp, đi lên vô hạn, đi lên 6 cấp cho `aidlc/spaces`…). Dự án đặc thù — template có sẵn `aidlc/spaces/<space>/`, đội đặt state ở thư mục khác, nhiều space trong một repo — không cấu hình được. Từ 6.3.0 **một resolver duy nhất** trả lời câu này: `scripts/layout.py` (python, stdlib) và `scripts/layout.ts` (bun) — cùng luật, cùng kết quả, kiểm chéo bằng `--json`. Mọi hook/script của gói gọi nó; không script nào tự đoán đường dẫn nữa.
 > Quyết định chủ gói 2026-09-09: *"ai-dlc đủ linh động để config và hoạt động được với bất kỳ cấu trúc folder nào; tower dùng được tuỳ hiện trạng; config từ file hoặc CLAUDE.md khi cần."*
 
 ## 1 · Thứ tự nguồn cấu hình (nguồn trước THẮNG, chỉ key có mặt mới đè)

@@ -1,5 +1,25 @@
 # MIGRATION — ai-dlc
 
+## 6.2.0 → 6.3.0 — lớp chính sách trên engine AWS v2 + layout resolver (additive, không đổi luật gate)
+
+**Dự án `.ai-dlc/` hiện có: không phải làm gì.** Mọi thứ mới (`hooks/aws_v2_write_receipt.ts`,
+`scripts/tower_approve.ts`, `scripts/tower_aws_v2.py`, RACI) chỉ chạy khi `scripts/layout.py` dò ra engine
+`aws-v2` (workspace có `aidlc/spaces/` + `.claude/tools/aidlc-audit.ts`); nơi khác fail-open. Tự dò của
+resolver = luật cũ (`.ai-dlc/context-memory/` từ cwd đi lên), nên hook/tower/brief cho ra cùng kết quả.
+
+Chỉ cần làm khi:
+- **Dự án đặt state chỗ khác hoặc nhiều space**: khai `ai-dlc.config.json` (template `templates/ai-dlc.config.json`)
+  hoặc fence ```` ```ai-dlc ```` trong `CLAUDE.md` — `references/layout-config.md`. Kiểm bằng
+  `python3 scripts/layout.py --explain`.
+- **Workspace AWS v2 của đội**: chạy `/ai-dlc:dlc-init` (chỉ tạo `.ai-dlc/governance/raci.md`, không tạo
+  `context-memory/`), thêm `.ai-dlc/tower/` vào `.gitignore`, cần `bun` cho hook receipt và `tower_approve.ts`.
+  Không có `bun` ⇒ hook tự bỏ qua (audit chỉ còn receipt tuyệt đối của hook gốc — PM duyệt từ clone khác sẽ kẹt,
+  xem spike).
+- **Tắt hook receipt**: `AI_DLC_AWS_RECEIPT=off`. **Tắt cả gói trên một thư mục**: `engine: off`.
+
+Nhìn trước 7.0.0 (`docs/plugin-7-policy-layer-plan.md` §5): engine `ai-dlc` sẽ ở chế độ bảo trì cho dự án
+đang chạy; dự án mới trên engine aws-v2. Dự án còn `.ai-dlc/context-memory/` không phải chuyển gì.
+
 ## 6.1.x → 6.2.0 — workspace map v2 + codekb (additive, không đổi luật gate)
 
 **Không bắt buộc làm gì.** Map v1 (`code:`/`tests:`) vẫn được `gate_guard`, tower và skill đọc. Intent đang

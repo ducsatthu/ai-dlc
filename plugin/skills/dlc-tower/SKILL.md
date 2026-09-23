@@ -3,7 +3,7 @@ name: dlc-tower
 description: Control Tower — generate dashboard từ .ai-dlc/ và serve local (LIVE: tự cập nhật khi agent ghi file, nút Approve/Yêu cầu chỉnh sửa/Reject ghi vào inbox).
 ---
 
-0. (7.0.0) Vị trí state và loại tower do `scripts/layout.py` quyết (`references/layout-config.md`): dự án chạy engine
+0. (6.3.0) Vị trí state và loại tower do `scripts/layout.py` quyết (`references/layout-config.md`): dự án chạy engine
    AWS `aidlc-workflows` v2 (`aidlc/spaces/`) thì hai lệnh dưới **tự chuyển sang** `tower_aws_v2.py` (ba loại thẻ,
    POST /decision → `tower_approve.ts`) — không cần lệnh khác. Không chắc gói đang hiểu dự án thế nào:
    `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/layout.py --explain`. Output/port lấy từ config (`tower.out`, `tower.port`).

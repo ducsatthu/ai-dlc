@@ -5,7 +5,7 @@ description: Khởi tạo AI-DLC cho project hiện tại — seed .ai-dlc/ (con
 
 Đọc `${CLAUDE_PLUGIN_ROOT}/references/protocol.md` trước. Các bước:
 
-0. (7.0.0) Chạy `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/layout.py --explain` trước. Engine `aws-v2` (workspace có
+0. (6.3.0) Chạy `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/layout.py --explain` trước. Engine `aws-v2` (workspace có
    `aidlc/spaces/` — template của đội) ⇒ **KHÔNG tạo `.ai-dlc/context-memory`**; chỉ tạo `<governance>/raci.md` từ
    `templates/raci.md` nếu thiếu và nhắc gitignore `.ai-dlc/tower/`, rồi dừng. Engine `off` ⇒ dừng. Dự án muốn state
    ở chỗ khác `.ai-dlc/` (ví dụ `docs/state`) ⇒ hỏi user rồi ghi `ai-dlc.config.json` (`templates/ai-dlc.config.json`)

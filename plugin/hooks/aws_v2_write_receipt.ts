@@ -67,7 +67,7 @@ async function main(): Promise<number> {
 // Workspace AWS v2 = thư mục có aidlc/spaces + .claude/tools/aidlc-audit.ts. Ưu tiên
 // AIDLC_PROJECT_DIR, rồi CLAUDE_PROJECT_DIR, rồi cwd của hook đi lên tối đa 6 cấp.
 function findProjectDir(hookCwd?: string): string | null {
-  // 7.0.0: layout.ts (config file · fence CLAUDE.md · env · tự dò) — engine khác aws-v2 ⇒ không phải việc của hook này
+  // 6.3.0: layout.ts (config file · fence CLAUDE.md · env · tự dò) — engine khác aws-v2 ⇒ không phải việc của hook này
   try {
     const lay = resolveLayout(process.env.AIDLC_PROJECT_DIR || process.env.CLAUDE_PROJECT_DIR || hookCwd || process.cwd());
     if (lay.engine === "aws-v2") return lay.root;
