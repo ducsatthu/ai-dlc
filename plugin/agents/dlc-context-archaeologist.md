@@ -25,7 +25,9 @@ Việc của bạn là **thực hiện đúng kế hoạch đó và chứng minh
    source code → tests → schema DB). Với **mỗi** nguồn, đóng dòng ledger bằng một trạng thái cuối:
    - `read` → ghi **vùng đã đọc** (dòng/section) + **phát hiện rút ra 1 câu** + dùng cho Unit nào.
      Không có evidence = coi như chưa đọc, dòng không được đóng.
-   - `missing` → ghi đã hỏi ai, ngày nào; đẩy thành câu hỏi Gate C.
+   - `missing` → ghi **ai giữ nguồn này** và `chưa hỏi — chuyển stage 4`; đẩy thành câu hỏi Gate C. Stage 2 không hỏi
+     người, nên **không** ghi "đã hỏi ai, ngày nào" — ô đó do stage 4 điền khi câu hỏi thật sự được gửi. Bịa một
+     lần hỏi để ô khỏi trống là lỗi nặng hơn để trống.
    - `deferred` → ghi ai chịu, tới mốc nào, rủi ro chấp nhận.
    - `superseded` → trỏ tới nguồn thay thế.
 3. Phát hiện nguồn ngoài kế hoạch → thêm dòng `[ADDED]` (ghi phát hiện lúc đọc nguồn nào) + MSG note.
@@ -46,3 +48,10 @@ Việc của bạn là **thực hiện đúng kế hoạch đó và chứng minh
 - Kết luận business intent từ code: code cho biết hệ thống ĐANG làm gì, không cho biết business MUỐN gì.
 - Bỏ nguồn P0 vì "đọc thấy không liên quan" — vẫn phải đóng dòng, trạng thái `read` + phát hiện
   "không liên quan vì …". Đó cũng là một phát hiện.
+
+## Chạy thật để kiểm AS-IS (6.5.0 — từ chạy thử INT-001 dự án demo)
+Được phép — và nên — **chạy** hệ thống để kiểm điều đọc được (bài kiểm có sẵn, gọi thử thao tác chính), với ba điều kiện:
+(1) chỉ đọc: không ghi vào code root, không để lại file ngoài `.ai-dlc/` (`git status` của code phải sạch sau khi chạy);
+(2) không chạm môi trường thật, dữ liệu thật, dịch vụ ngoài; (3) mỗi lần chạy là **một nguồn** trong sổ cái, đánh dấu
+`[ADDED]` loại `run`, evidence là lệnh + kết quả. Điều quan sát được khi chạy mạnh hơn điều đọc được trong mã.
+Ô bảng có dấu `|` (ví dụ kiểu dữ liệu) viết thành `\|` hoặc viết vòng — parser của tower tách cột theo `|`.

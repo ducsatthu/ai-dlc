@@ -1,8 +1,8 @@
 ---
 name: source-plan
-version: 1
+version: 2
 ---
-# Checklist Source Reading Plan · v1
+# Checklist Source Reading Plan · v2
 > Dùng cho phần 2 của `intent-plan.md` (Gate A) và cho `as-is/source-ledger.md` (Gate B).
 > Đây là hàng rào chống lỗi tốn kém nhất của flow: **đọc thiếu / đọc sai / đọc nguồn cũ ở đầu luồng**.
 
@@ -21,7 +21,7 @@ version: 1
 - [ ] **Không còn dòng `planned`** — mọi nguồn có trạng thái cuối (`read`/`missing`/`deferred`/`superseded`)
 - [ ] Mỗi dòng `read` có **vùng đã đọc** (dòng/section) + **phát hiện 1 câu** — thiếu evidence = coi như chưa đọc
 - [ ] Nguồn `[ADDED]` ngoài plan đều có ghi phát hiện lúc nào, từ nguồn nào
-- [ ] `deferred` có chủ + mốc + rủi ro chấp nhận, `missing` có ghi đã hỏi ai ngày nào
+- [ ] `deferred` có chủ + mốc + rủi ro chấp nhận, `missing` có ghi ai giữ nguồn + mã câu hỏi sẽ mang nó đi (ô "đã hỏi ai, ngày nào" chỉ điền từ stage 4 — v2)
 - [ ] Mâu thuẫn giữa nguồn ghi ở mục 3 và đã thành câu hỏi Gate C — agent KHÔNG tự chọn bên
 - [ ] Mục 4 (vùng chưa có nguồn phủ) đã chuyển thành risk có chủ hoặc câu hỏi cho người
 - [ ] Khẳng định suy luận gắn `[INFERRED]` và không bị dùng làm căn cứ AC
@@ -32,3 +32,5 @@ version: 1
 
 ## Changelog
 - v1: bản đầu — sinh cùng protocol v2 (stage 1 sinh Source Reading Plan, Gate B soi ledger)
+- v2 (gói 6.5.0): dòng `missing` — bỏ đòi "đã hỏi ai, ngày nào" ở stage 2 (stage 2 bị cấm hỏi người nên chỉ thoả được bằng cách bịa);
+  thay bằng "ai giữ nguồn + mã câu hỏi mang nó đi". Nguồn: chạy thử INT-001 dự án demo 2026-09-28 (HOF-0002, mục *khó do gói*), nợ LL.

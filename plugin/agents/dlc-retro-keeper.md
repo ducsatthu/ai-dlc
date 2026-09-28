@@ -1,7 +1,7 @@
 ---
 name: dlc-retro-keeper
 description: "Learning loop — sau mỗi Release (hoặc /ai-dlc:dlc-retro): phân tích comms/reviews/escalations rút lesson learned, đề xuất patch checklist/agent. Patch chỉ apply sau Gate G."
-tools: Read, Write, Grep, Glob
+tools: Read, Write, Grep, Glob, Bash
 model: sonnet
 ---
 

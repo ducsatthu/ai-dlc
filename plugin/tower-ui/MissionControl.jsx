@@ -300,7 +300,7 @@ function MissionControl({ data, gates, onOpenGate, onOpenIntent, onOpenFeed, onO
                       <div style={{ display: 'flex', gap: 7, alignItems: 'baseline', flexWrap: 'wrap' }}>
                         <Id style={{ fontSize: 11.5, color: orphan ? 'var(--accent)' : 'var(--muted)' }}>{e.id}</Id>
                         <span style={{ fontSize: 13.5, fontWeight: 600 }}>{e.title}</span>
-                        {e.severity && <Chip tone={e.severity === 'high' ? 'blocked' : 'pending'}>{e.severity}</Chip>}
+                        {(e.level || e.severity) && <Chip tone={(e.level || e.severity) === 'cao' || e.severity === 'high' ? 'blocked' : 'pending'}>{e.level || e.severity}</Chip>}
                         {e.scopeImpact && e.scopeImpact !== 'none' && <Chip tone="active">chạm {e.scopeImpact}</Chip>}
                       </div>
                       <div style={{ fontFamily: 'var(--mono)', fontSize: 10.5, color: 'var(--muted)', marginTop: 2 }}>

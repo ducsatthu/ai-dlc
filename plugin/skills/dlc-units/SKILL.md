@@ -35,3 +35,5 @@ chỗ ghi "DỪNG" / "KẾT THÚC LƯỢT" đổi thành: orchestrator chạy **
 (có *Chọn / Bỏ / Đảo bằng / Hiện ở*) và **chạy tiếp lệnh kế** trong cùng lượt; block thì ghi `blocked_by` rồi mới dừng.
 Gate D: bảng tầng review được autopilot chốt theo trigger §4.17 — unit chạm auth/PII/migration/public API **không** được
 hạ xuống `none` để khỏi chờ. Lệnh kế: `/ai-dlc:dlc-bolt` cho Unit đầu đường găng.
+**Mô hình cho người xem (protocol §2.4, 6.5.0)**: sau bước 3, trước bước 4 — spawn `ai-dlc:dlc-modeler` dựng
+`views/unit-plan.view.json`; chạy `human_view_check.py`.

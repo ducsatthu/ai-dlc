@@ -1,5 +1,22 @@
 # MIGRATION — ai-dlc
 
+## 6.4.x → 6.5.0 — bản mô hình cho người xem (additive)
+
+**Không làm gì ⇒ không đổi gì.** Tài liệu gate chưa có `views/*.view.json` được tower hiện toàn văn như cũ.
+
+Muốn có trang mô hình cho intent đang chạy (≤ 15 phút mỗi tài liệu):
+1. Giao `dlc-modeler` (HOF riêng, **không** giao cho agent đã viết tài liệu) dựng `intents/INT-NNN/views/intent-plan.view.json` và/hoặc
+   `unit-plan.view.json` theo `templates/human-view.json`.
+2. Chạy `python3 scripts/human_view_check.py <root>` tới khi hết `FIX`. `HV09` (có `gaps`) là **phát hiện về bản chữ**, không phải lỗi của view:
+   trả agent chủ tài liệu sửa bản chữ qua `dlc-revise`, rồi vẽ lại.
+3. Mỗi lần bản chữ đổi: vẽ lại. Quên ⇒ tower treo "MÔ HÌNH CŨ" và khoá Approve.
+4. Khởi động lại `/ai-dlc:dlc-tower serve`.
+
+Đổi nhỏ có thể chạm file đang có:
+- **HOF viết theo mẫu cũ của `protocol.md` §5** (nhiều khoá một dòng): tách mỗi khoá một dòng, nếu không bảng vị trí hiện rác.
+- **Escalation mới** dùng `templates/escalation.md` có mục *Cần quyết gì*; ESC cũ không phải sửa.
+- `checklists/source-plan.md` lên **v2** — intent đang chạy dùng bản pinned, không đổi.
+
 ## 6.3.0 → 6.4.0 — autopilot (opt-in, không đổi luật cho dự án đang chạy)
 
 **Không làm gì ⇒ không đổi gì.** Dự án không có `governance/autopilot.md` chạy `mode: lead` = luật 6.3.0.

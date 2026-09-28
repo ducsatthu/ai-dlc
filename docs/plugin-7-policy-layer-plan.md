@@ -242,5 +242,7 @@ Dòng aws-v2 ở trên **chưa làm** — nó chạm guard của template đội
 | Lát | Nội dung |
 |---|---|
 | **6.4.0** | Autopilot trên engine ai-dlc (`protocol` §2.3 · template · orchestrator · 5 skill gate · doctor 3b) + tower SVG + thẻ *AI đã tự quyết* / *Đảo* |
-| **7.0.0-a** | như §6 + `tests/` có ca autopilot (block check đúng/sai, DEC thiếu dòng, bỏ bước) |
+| **6.4.1** ✅ | `autopilot_check.py` + bộ `tests/` đầu tiên (42 ca) — câu §7.6 đã trả |
+| **6.5.0** ✅ | Bản mô hình cho người xem + agent `dlc-modeler` + 27 sửa từ lần chạy thử intent thật (`demo-run-2026-09-28-int-001.md`); 107 ca test |
+| **7.0.0-a** | như §6 — phần `tests/` đã có; còn doctor/status/resume/init nhánh aws-v2 + `policy.md` + trang mô hình cho `tower_aws_v2.py` |
 | **7.0.0-b** | như §6, `asm_timeout` gộp vào autopilot; aws-v2 ở chế độ *soạn sẵn — một nút* |

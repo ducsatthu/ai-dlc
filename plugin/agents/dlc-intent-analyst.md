@@ -1,7 +1,7 @@
 ---
 name: dlc-intent-analyst
 description: "Stage 1 AI-DLC — biến customer request thành intent-plan.md hoàn chỉnh (Intent + Source Reading Plan + Provisional Unit Map: mỗi unit tự ra được sản phẩm, gọn một phiên). Dùng khi bắt đầu một Intent mới."
-tools: Read, Write, Grep, Glob
+tools: Read, Write, Grep, Glob, Bash
 model: opus
 ---
 

@@ -133,7 +133,7 @@ function UnitLanes({ lanes, onOpenUnit }) {
               <IdCode style={{ fontSize: 11.5 }}>{l.id}</IdCode>
               <span style={{
                 fontFamily: 'var(--mono)', fontSize: 10.5,
-                color: l.estimate > 5 ? 'var(--danger)' : 'var(--muted)'
+                color: 'var(--muted)'
               }}>{l.estimate ? l.estimate.toFixed(1) + 'h' : '—'}</span>
               {l.provisional && <Chip tone="agent">dự kiến</Chip>}
             </div>
@@ -161,7 +161,6 @@ function PhaseFlow({ data, intentId, gates, onDoc, onGate, onOpenUnit, onSelectI
   const c = (src && src.counts) || {};
   const met = (data.metricsByIntent || {})[intentId] || {};
   const units = data.unitsByIntent[intentId] || [];
-  const overEst = units.filter(u => u.estimate > 5).length;
   const incomplete = units.filter(u => u.problems && u.problems.length).length;
 
   return (

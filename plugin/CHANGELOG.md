@@ -1,9 +1,95 @@
 # Changelog — ai-dlc plugin
 
-> **Nợ LL tổng (tính tới 6.4.0):** 5.0.0 (bỏ trần 5h) · 6.0.0 (gỡ Review Board) · 6.2.0 (map v2 + codekb) ·
-> 6.3.0 (lớp chính sách trên AWS v2 + layout resolver) · 6.4.0 (autopilot) đều đi bằng **quyết định chủ gói**, chưa bản nào có LL
+> **Nợ LL tổng (tính tới 6.5.0):** 5.0.0 (bỏ trần 5h) · 6.0.0 (gỡ Review Board) · 6.2.0 (map v2 + codekb) ·
+> 6.3.0 (lớp chính sách trên AWS v2 + layout resolver) · 6.4.0 (autopilot) · 6.5.0 (bản mô hình cho người xem) đều đi bằng **quyết định chủ gói**, chưa bản nào có LL
 > qua Gate G. 4.1.0 nợ `LL-004` (retro INT-003). Trả bằng: retro INT-003 của PILOT (engine ai-dlc) và retro
 > intent pilot đầu tiên của đội (engine aws-v2). Kế hoạch trả và lát kế tiếp: `docs/plugin-7-policy-layer-plan.md` §6.
+
+## 6.5.0 (2026-09-28) — Hai bản của một tài liệu gate: chữ cho AI, MÔ HÌNH cho người · agent `dlc-modeler` · 27 sửa từ lần chạy thử đầu tiên của autopilot
+
+**Nguồn**: quyết định chủ gói 2026-09-28 — (1) *"đọc intent + plan nhiều chữ quá; giữ bản chữ cho AI, con người chỉ cần dạng SVG/biểu đồ, mô
+hình hoá để dễ quyết"* · (2) *"việc mô hình hoá là một agent khác làm, không để chính agent viết docs làm"*. Cộng **quan sát hiện trường** của
+lần chạy thử intent thật dưới `mode: autopilot`: `docs/demo-run-2026-09-28-int-001.md` (38 phát hiện, 27 đã sửa ở bản này). Không phải LL qua
+Gate G — nợ LL. Minor: thêm một agent + hai script; luật gate không đổi; dự án không có `views/` chạy y như 6.4.1.
+
+### Bản mô hình cho người xem (protocol §2.4)
+- **Bản chữ** (`intent-plan.md`, `unit-plan.md`, `ESC-NNN.md`) là nguồn sự thật, AI đọc. **Bản mô hình**
+  `intents/INT-NNN/views/<tài liệu>.view.json` · `escalations/views/ESC-NNN.view.json` (`templates/human-view.json`, schema v3) là hình chiếu —
+  người quyết trên đó. Ca gốc: intent-plan **778 dòng cho intent 14 giờ**.
+- **Agent mới `dlc-modeler`** (sonnet) — **khác** agent viết tài liệu. Chỉ chiếu, không thêm; không sửa bản chữ. Chỗ không rút ra được phương án /
+  giá / người trả lời / mặc định ⇒ `gaps[]`, tower hiện lên thành *"bản chữ chưa rõ"*. Trong lần chạy thử nó tìm ra một phương án có thật mà bản
+  tóm tắt viết tay bỏ sót, và chỉ ra 3/3 escalation không ghi ai chốt.
+- **Chống hình đẹp mà sai**: view ghi `source_sha256` của bản chữ ⇒ bản chữ đổi mà chưa vẽ lại là **mô hình cũ** (tower treo dải đỏ, khoá Approve).
+- **Schema**: `pain` · `outcomes` (*hiện tại → đích*, `from_request` đánh dấu cái AI tự thêm) · `scope` (làm / để sau kèm giá / không làm) ·
+  `approach` (trục phân rã + đã bỏ gì) · `units` (`serves`, `condition`) · `decisions` · `risks`. **Giá đảo thuộc về từng phương án**
+  (`reversal: rẻ|đắt|chưa rõ`, `reversal_until`), rủi ro thuộc về câu hỏi. **Nối các mảnh của một chuyện**: `decisions[].sources` ·
+  `risks[].decision` · `scope.later[].decision` · `gaps[].decision`. `unlocks`: câu gỡ được nhiều câu khác. Tài liệu Gate D: `units[].review` (tầng soát từng
+  phần việc) · `decisions[].touches` (đổi quyết định thì phần việc nào đổi).
+- `scripts/human_view_check.py` (stdlib, thoát 1 khi FIX): `HV01` view hỏng · `HV02` mã không có trong bản chữ / trỏ chéo sai · **`HV03` hình thiếu
+  phần việc** · `HV04` chưa có view · `HV05` điểm cần chốt thiếu trường · `HV06` hình mà như chữ · **`HV07` mặc định là phương án đảo đắt** ·
+  **`HV08` mô hình cũ** · `HV09` có `gaps` · `HV10` `condition` ⇔ `blocks` lệch · `HV11` escalation không đúng một điểm cần chốt.
+- Nối vào: `dlc-orchestrator` 2c · skill `dlc-intent` / `dlc-units` / `dlc-revise` · `dlc-doctor` 3c.
+
+### Tower
+- **Trang mô hình** (`tower-ui/ModelPage.jsx`): dòng **"Nếu bạn không làm gì: AI áp N mặc định… Đội đang ĐỨNG ở: …"** → 7 hình SVG (đích · phạm vi ·
+  trục phân rã · lộ trình có phụ thuộc · nguồn · cần bạn quyết · rủi ro) → bản chữ gấp dưới `<details>`. Mở từ màn duyệt gate, nút *Xem mô hình* trên
+  thẻ *AI đã tự quyết*, tab *Mô hình* của intent.
+- **Mô hình của gate trước biết quyết định của gate sau**: tower **phủ** trạng thái mới nhất lên cây ("Đã áp ở Gate C (DEC-0003): …", nguồn bấm được).
+  Khớp qua `oq` → dòng *Soi chiếu* → bảng *Đối chiếu*; **không khớp được thì không phủ, không đoán**. DEC đã bị người đảo thì thôi phủ.
+- **Cần bạn quyết chia hai nhóm**: *Cần bạn* (cây mở sẵn — **chỉ** điểm không có mặc định) · *AI tự lo — đảo nếu cần* (mỗi điểm một dòng; rủi ro cao
+  xếp trên, nhãn đỏ). Bấm nhánh gom thành **một** ghi chú đảo.
+- Chip "→ D6" nối các mảnh; nguồn P0 không đọc được ghi "được thay bằng: D6" hoặc "chưa ai hỏi"; rủi ro chưa có chủ có nút *nhận / giao*.
+- **Thẻ escalation** vẽ cây lựa chọn thay ô chữ trống; hiện đúng mã `ESC-NNN`.
+- **Nên nhìn sớm**: thẻ hổ phách "Trả lời 1 câu, gỡ N câu" cho câu có `Gỡ được`/`unlocks` ≥ 2, dù không chặn. **Hạn đảo**: huy hiệu "đảo rẻ tới:
+  trước phát hành"; câu có mặc định mang hạn đảo xếp đầu thẻ câu hỏi.
+- `tower_generate.py` bọc vào `main()` + `if __name__` — **import không còn ghi file**; thêm `use_project(<gốc>)` cho người thử parser; gọi `main()` hai
+  lần trong một tiến trình không cộng dồn. Đầu ra CLI giống từng byte trên 3 dự án.
+- Sửa: tower 404 tới lần gọi `/state` đầu · đếm đôi mâu thuẫn · dấu vết trần 5h ở generator và 4 chỗ trên UI · `parse_questions` sinh câu hỏi ma
+  khi thiếu tiêu đề `## ` giữa bảng và thẻ · cảnh báo DEC đã quyết ESC mà ESC còn `open`.
+- Mode `lead`: mở trang mô hình = đã xem (§2.4.7); tài liệu chưa có view thì luật cũ — phải mở toàn văn.
+
+### Autopilot — chỉnh từ lần chạy thật (protocol §2.3, §4.10.12–16, §4.13)
+- **Điều kiện dừng #3 chặn đúng phần việc phụ thuộc**, không chặn cả intent; luật cũ không nói kiểm ở gate nào (`templates/autopilot.md` v2).
+- **Giá đảo có hạn + dừng trước mốc hết đảo rẻ** (§2.3.5b · §4.10.16): mặc định được tự áp; *hết hạn đảo* thì không. Ca gốc: "ghi chép huỷ mất khi
+  tắt mở lại" đảo rẻ tới trước phát hành, sau đó mất là mất.
+- **Câu gỡ được nhiều câu khác** (`Gỡ được`, §4.10.14) lên thẻ *Nên nhìn sớm* dù không chặn. Ca gốc: một cái tên gỡ 5 câu kỹ thuật.
+- **Escalation phải quyết được** (§4.13, `templates/escalation.md`): mục *Cần quyết gì* — ai chốt · câu hỏi · phương án + giá + giá đảo · đề xuất ·
+  nếu im lặng.
+- `autopilot_check.py`: **`AP12`** DEC đã quyết một escalation mà file ESC vẫn `open`; sửa **báo sai** `AP06` (bắt nhầm dòng `planned | 0` của bảng
+  tổng hợp).
+
+### Luật ép agent bịa — gỡ bốn chỗ
+Nguyên tắc rút ra: *mỗi trường bắt buộc phải nhận được câu "không có, vì…" — và câu đó phải hiện lên cho người thấy.*
+- Nguồn `missing` không còn phải ghi "đã hỏi ai, ngày nào" ở stage 2 (stage 2 bị cấm hỏi người) — `checklists/source-plan.md` **v2**,
+  `templates/source-ledger.md`, `dlc-context-archaeologist`.
+- Người trả lời `CHƯA RÕ tên — <vai> (chờ OQB-NN)` hợp lệ khi có câu hỏi đúng cái tên đó (§4.10.13, doctor 1b).
+- `recommended` được để trống khi `gaps` nói rõ bản chữ không có khuyến nghị (`HV05`).
+- Câu rủi ro cao mà giá đảo của mặc định `chưa rõ` ⇒ `default: null` + `needs`, không đoán (`HV07`).
+
+### Khác
+- `protocol.md` §5: mẫu HOF **mỗi khoá một dòng** (mẫu cũ gộp ba khoá một dòng làm tower hiện rác).
+- File câu hỏi nghiệp vụ trích nguồn đã soát bằng **mã sổ cái + lời** (§4.10.12) — hết đá nhau giữa "phải trích nguồn" và "cấm đường dẫn".
+- Bỏ trần "≤150 từ" cho thẻ bản chữ (§4.10.15) — trần độ dài áp trên cây của tower, đo được.
+- Stage 2 được **chạy thử** hệ thống để kiểm AS-IS với ba điều kiện (`dlc-context-archaeologist`).
+- **§4.17 làm rõ chữ** (không nới): trigger `qa` chỉ bắn với NFR có ngưỡng **cần dụng cụ đo**, không phải mọi ngưỡng số; `peer` của bolt một dev = agent
+  dev khác phiên, context tươi.
+- `dlc-intent-analyst` · `dlc-context-validator` · `dlc-unit-planner` · `dlc-retro-keeper` khai thêm `Bash` — không có thì không lấy được giờ thật cho
+  heartbeat §9.4.
+- `templates/intent-plan.md`: gỡ "Tổng ≤5.0".
+
+### Test
+`python3 -m unittest discover -s tests` — **107 ca** (6.4.1: 42). Mới: `test_human_view_check` (32) · tower `HumanView` / `TowerDetails` / `TowerServe`
+(16) · `AP12` + ca báo sai `AP06`. Đột biến cố ý vào checker mới: 10/10 bị bắt.
+
+### Chưa làm / giới hạn đã biết
+- Chưa có template cho `static-model` · `dynamic-model` · `decisions-inventory` (#8). `unit-plan.md` còn chép lại nội dung của `spec.md` (#31). Chưa có
+  chỗ chuẩn cho việc nền (#34). Hai DEC autopilot mâu thuẫn nhau không có máy bắt (#36). 
+- **Mô hình của gate trước không biết quyết định ở gate sau** (#25): trang mô hình Gate A vẫn ghi "đội đang đứng" ở câu đã được áp mặc định
+  tại Gate C. Định nghĩa `risk` còn hai cách hiểu (#26).
+- **Autopilot tự áp được cả việc miễn một mục DoD** (#38) — hiện chỉ được giữ lại bằng hạn đảo. Tower chưa có nhóm *Xác nhận trước mốc*, chưa cảnh
+  báo hai DEC mâu thuẫn (#36), parser bảng Unit còn lấy bảng đầu tiên chứa mã (#30) — đang làm, ra ở bản vá kế.
+- Lần chạy thử dừng ở stage 5; **chưa dòng code nào được viết bởi flow autopilot**. Agent trong lần chạy là `general-purpose` đóng vai.
+- `tower_aws_v2.py` (engine aws-v2) chưa có trang mô hình.
 
 ## 6.4.1 (2026-09-28) — luật autopilot máy kiểm được + bộ test đầu tiên của gói
 

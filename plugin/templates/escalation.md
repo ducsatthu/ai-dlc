@@ -24,6 +24,20 @@ created: <ISO>
 ## Việc phải làm (đề xuất)
 <Một việc, ước lượng thô. Nếu cần thành Unit riêng thì nói rõ.>
 
+## Cần quyết gì (6.5.0 — bắt buộc; thiếu mục này thì người nhận chỉ có một ô chữ trống)
+- **Ai chốt**: <người cụ thể — vai + tên. Không biết tên thì ghi vai và *ai biết tên người đó*.>
+- **Câu hỏi** (một câu, kết thúc bằng dấu hỏi): <…>
+
+| | Phương án | Hệ quả nhìn thấy được | Giá | Đảo |
+|---|---|---|---|---|
+| A | <làm ngay trong intent này / Unit nào> | <…> | <+Nh> | rẻ \| đắt \| chưa rõ |
+| B | <để intent sau> | <…> | <0h bây giờ · nợ gì> | rẻ \| đắt \| chưa rõ |
+| C | <chấp nhận rủi ro, không làm> | <…> | <0h · rủi ro gì còn nguyên> | rẻ \| đắt \| chưa rõ |
+
+- **Người phát hiện đề xuất**: <A|B|C> — <1 câu lý do>
+- **Nếu im lặng**: <phương án sẽ áp — KHÔNG được là phương án đảo đắt; không có phương án an toàn thì ghi
+  `không có — cần người` và nói rõ thiếu thông tin gì>
+
 ---
 
 > **Vì sao có file này** (protocol §4.13 · LL-002 P-3): luật "không sửa ngoài phạm vi Unit" là đúng — nó giữ

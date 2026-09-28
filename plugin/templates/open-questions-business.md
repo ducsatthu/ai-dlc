@@ -61,6 +61,7 @@ blocking: 0
        "hiện là Z, xác nhận giữ nguyên?" thay vì hỏi mở. -->
 - **Nếu không trả lời trước hạn**: đi theo <phương án>, ghi `[ASSUMED]` và gắn rủi ro vào <UOW-NN>.
   Đổi sau mốc <dd/mm> tốn thêm khoảng <N>h.
+- **Gỡ được**: <mã câu khác tự hết mở khi câu này có trả lời — bỏ dòng này nếu không có; ≥ 2 mã ⇒ tower đưa lên *Nên nhìn sớm*>
 - **Soi chiếu**: OQT-NN *(nếu câu này có bản kỹ thuật đi kèm; bỏ dòng này nếu không có)*
 - **Trạng thái**: open
 

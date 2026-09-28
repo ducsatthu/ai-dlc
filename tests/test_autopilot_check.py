@@ -107,6 +107,33 @@ class AutopilotCheck(unittest.TestCase):
         self.sub(led, r"\| S-02 \| docs/roles\.md \| vai trò \| read \|", "| S-02 | docs/roles.md | vai trò | planned |")
         self.expect("AP06")
 
+    def test_status_summary_table_is_not_a_planned_source(self):
+        # ca thật (demo INT-001, 2026-09-28): sổ cái có bảng tổng hợp `| planned | 0 |` đứng TRƯỚC bảng nguồn —
+        # checker từng bắt nhầm dòng đó thành "nguồn còn planned"
+        led = os.path.join(self.p["intent"], "as-is", "source-ledger.md")
+        summary = ("## Tổng hợp\n| Trạng thái | Số | Nghĩa |\n|---|---|---|\n| `read` | 2 | đã đọc |\n"
+                   "| `planned` | 0 | — |\n\n")
+        write(led, read(led).replace("## 0. Sổ cái", summary + "## 0. Sổ cái"))
+        rc, info, findings = autopilot_check(self.p["root"])
+        self.assertEqual(findings, [])
+
+    # ---- AP12: quyết escalation bằng DEC thì phải đổi file ESC -----------------------------
+    def put_esc_decision(self, status, owner):
+        write(os.path.join(self.p["cm"], "escalations", "ESC-002.md"),
+              "---\nid: ESC-002\nseverity: low\nowner: %s\nstatus: %s\n---\n# ESC-002 · hàm thời gian sắp gỡ\n" % (owner, status))
+        write(self.log, read(self.log) + dec(9, "escalation", shown="intent-plan.md#3").replace(
+            "- Căn cứ: intent-plan.md#3", "- Căn cứ: ../../escalations/ESC-002.md"))
+
+    def test_escalation_decided_but_file_still_open(self):
+        # ca thật (demo INT-001, DEC-0004): tower vẫn báo "đang đứng — cần bạn" cho 3 việc đã quyết
+        self.put_esc_decision("open", "")
+        self.assertIn("ESC-002", self.expect("AP12")[0]["where"])
+
+    def test_escalation_decided_and_claimed(self):
+        self.put_esc_decision("claimed", "dlc-unit-planner")
+        rc, info, findings = autopilot_check(self.p["root"])
+        self.assertEqual(findings, [])
+
     # ---- AP07: người đã Đảo ----------------------------------------------------------------
     def test_pending_steer(self):
         write(os.path.join(self.p["inbox"], "steer-20260928T101500.json"),

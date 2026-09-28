@@ -43,15 +43,22 @@ function Outline({ text, onJump }) {
 }
 
 /* Người duyệt đọc TOÀN VĂN tài liệu gate rồi mới quyết được — protocol §2.1 */
-function GateReview({ gate, doc, revisions, onClose, onDecide }) {
-  const [confirmed, setConfirmed] = React.useState(false);
+function GateReview({ gate, doc, revisions, onClose, onDecide, data, onAnswer }) {
+  /* Tài liệu có bản mô hình (protocol §2.4) ⇒ người quyết trên trang mô hình, bản chữ gấp phía dưới, và
+     mở trang mô hình = đã xem (§2.4.7). Không có mô hình, mô hình hỏng ⇒ luật cũ: toàn văn, phải đọc.
+     Mô hình CŨ (bản chữ đổi sau khi vẽ) ⇒ vẫn hiện nhưng khoá Approve. */
+  const model = (doc && data && window.modelOfDoc) ? window.modelOfDoc(data, doc.path) : null;
+  const usable = !!(model && !model.error);
+  const fullRef = React.useRef(null);
+  const [confirmed, setConfirmed] = React.useState(usable && !model.stale);
   const [reachedEnd, setReachedEnd] = React.useState(false);
   const [mode, setMode] = React.useState(null);      // 'request-changes' | 'reject'
   const [comment, setComment] = React.useState('');
   const [sending, setSending] = React.useState(false);
   const bodyRef = React.useRef(null);
 
-  const blockers = gate.blockers || [];
+  const blockers = (gate.blockers || []).concat(usable && model.stale
+    ? ['Mô hình cũ: bản chữ đã đổi sau khi hình được vẽ — đội phải vẽ lại trước khi bạn duyệt'] : []);
   const hardBlocked = blockers.length > 0;
   const md = doc ? doc.markdown : '';
 
@@ -69,6 +76,7 @@ function GateReview({ gate, doc, revisions, onClose, onDecide }) {
   const jump = (text) => {
     const el = bodyRef.current;
     if (!el) return;
+    if (fullRef.current) fullRef.current.open = true;       // mục lục trỏ vào bản chữ đang gấp
     const hs = el.querySelectorAll('.md-h');
     for (const h of hs) {
       if (h.textContent.trim().startsWith(text.slice(0, 40))) { h.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
@@ -87,7 +95,8 @@ function GateReview({ gate, doc, revisions, onClose, onDecide }) {
       display: 'flex', alignItems: 'stretch', justifyContent: 'center', padding: '2vh 2vw'
     }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={{
-        display: 'flex', flexDirection: 'column', width: 'min(1240px,100%)',
+        /* có trang mô hình: hình rộng 1000 cần đủ chỗ mới đọc được chữ — nới khung, bỏ cột mục lục */
+        display: 'flex', flexDirection: 'column', width: usable ? 'min(1520px,100%)' : 'min(1240px,100%)',
         background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: 'var(--radius-xl)',
         boxShadow: 'var(--shadow-overlay)', overflow: 'hidden'
       }}>
@@ -101,7 +110,9 @@ function GateReview({ gate, doc, revisions, onClose, onDecide }) {
           {doc && <Chip tone="neutral">{doc.name}{doc.version ? ' · v' + doc.version : ''}</Chip>}
           {doc && doc.truncated && <Chip tone="blocked">tài liệu bị cắt bớt — mở file gốc để đọc đủ</Chip>}
           <span style={{ marginLeft: 'auto' }} />
-          <StatusChip tone={confirmed ? 'done' : 'gate'}>{confirmed ? 'ĐÃ ĐỌC' : 'CHƯA XÁC NHẬN ĐỌC'}</StatusChip>
+          <StatusChip tone={confirmed ? 'done' : 'gate'}>
+            {usable ? (model.stale ? 'MÔ HÌNH CŨ' : 'ĐÃ XEM MÔ HÌNH') : (confirmed ? 'ĐÃ ĐỌC' : 'CHƯA XÁC NHẬN ĐỌC')}
+          </StatusChip>
           <button onClick={onClose} style={{
             background: 'transparent', border: '1px solid var(--line)', borderRadius: 'var(--radius-sm)',
             color: 'var(--muted)', cursor: 'pointer', fontFamily: 'var(--mono)', fontSize: 12, padding: '4px 9px'
@@ -110,8 +121,9 @@ function GateReview({ gate, doc, revisions, onClose, onDecide }) {
 
         <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 340px', minHeight: 0 }}>
           {/* tài liệu */}
-          <div style={{ display: 'grid', gridTemplateColumns: '210px minmax(0,1fr)', minHeight: 0 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: usable ? 'minmax(0,1fr)' : '210px minmax(0,1fr)', minHeight: 0 }}>
             <aside style={{
+              display: usable ? 'none' : 'block',
               borderRight: '1px solid var(--line)', background: 'var(--surface)', overflow: 'auto', padding: '12px 4px'
             }}>
               <div style={{
@@ -143,13 +155,24 @@ function GateReview({ gate, doc, revisions, onClose, onDecide }) {
                       ))}
                     </div>
                   )}
-                  <Markdown text={md} />
-                  <div style={{
-                    marginTop: 28, padding: '14px 16px', border: '1px dashed var(--line)',
-                    borderRadius: 'var(--radius-md)', color: 'var(--muted)', fontSize: 13
-                  }}>
-                    — hết tài liệu — {reachedEnd ? 'bạn đã cuộn tới cuối.' : ''}
-                  </div>
+                  {model && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 22, marginBottom: usable ? 0 : 18 }}>
+                      <window.ModelPage model={model} data={data}
+                        actions={{ onAnswer, onComment: t => setComment(t) }} />
+                      {usable && <window.FullText path={doc.path} lines={model.lines} data={data} innerRef={fullRef} />}
+                    </div>
+                  )}
+                  {!usable && (
+                    <>
+                      <Markdown text={md} />
+                      <div style={{
+                        marginTop: 28, padding: '14px 16px', border: '1px dashed var(--line)',
+                        borderRadius: 'var(--radius-md)', color: 'var(--muted)', fontSize: 13
+                      }}>
+                        — hết tài liệu — {reachedEnd ? 'bạn đã cuộn tới cuối.' : ''}
+                      </div>
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -219,8 +242,19 @@ function GateReview({ gate, doc, revisions, onClose, onDecide }) {
             )}
 
             <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {usable && !mode && comment.trim() !== '' && (
+                <div>
+                  <SectionLabel>Lựa chọn của bạn — gửi kèm quyết định</SectionLabel>
+                  <textarea value={comment} onChange={e => setComment(e.target.value)}
+                    style={{
+                      width: '100%', minHeight: 70, resize: 'vertical', boxSizing: 'border-box',
+                      background: 'var(--bg)', color: 'var(--ink)', fontFamily: 'var(--sans)', fontSize: 13,
+                      border: '1px solid var(--accent)', borderRadius: 'var(--radius-md)', padding: '9px 11px'
+                    }} />
+                </div>
+              )}
               <label style={{
-                display: 'flex', gap: 9, alignItems: 'flex-start', cursor: doc ? 'pointer' : 'not-allowed',
+                display: usable ? 'none' : 'flex', gap: 9, alignItems: 'flex-start', cursor: doc ? 'pointer' : 'not-allowed',
                 fontSize: 13, color: doc ? 'var(--ink)' : 'var(--muted)',
                 border: '1px solid ' + (confirmed ? 'var(--ok)' : 'var(--line)'),
                 background: confirmed ? 'var(--ok-bg)' : 'transparent',
@@ -261,7 +295,8 @@ function GateReview({ gate, doc, revisions, onClose, onDecide }) {
                     </div>
                   )}
                   <div style={{ display: 'flex', gap: 8 }}>
-                    <Button variant="secondary" onClick={() => { setMode('request-changes'); setComment(''); }}
+                    {/* lựa chọn đã bấm trên cây (nếu có) đi theo sang lời yêu cầu sửa — không xoá của người */}
+                    <Button variant="secondary" onClick={() => { setMode('request-changes'); if (!usable) setComment(''); }}
                       style={{ flex: 1 }}>Yêu cầu chỉnh sửa</Button>
                     <Button variant="danger" onClick={() => { setMode('reject'); setComment(''); }}>Reject</Button>
                   </div>

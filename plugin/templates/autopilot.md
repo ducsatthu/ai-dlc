@@ -1,6 +1,6 @@
 ---
 doc: autopilot
-version: 1
+version: 2
 mode: autopilot            # autopilot | lead
 # autopilot: chạy ĐỦ mọi stage và artefact; gate KHÔNG chờ người — orchestrator tự quyết bằng DEC có trade-off,
 #            chỉ dừng khi chạm một trong các điều kiện block dưới. Người xem và ĐẢO trên tower.
@@ -25,7 +25,7 @@ notify: []                 # kênh gọi người khi block (PushNotification/Sl
 |---|---|---|
 | 1 | Câu hỏi có `Ảnh hưởng: CHẶN UOW-NN` mà **không có phương án mặc định khả thi**, hoặc phương án nào cũng **đảo đắt** (xoá/di trú dữ liệu, public API, auth/PII, tiền, cam kết với khách) | bảng mục 0 của `open-questions-*.md`: cột *Nếu im lặng* rỗng, hoặc cột giá của mọi phương án chạm từ khoá đảo đắt |
 | 2 | Validator/QA ghi `CHẶN` vì **thông tin không đủ để viết AC/test** (không phải vì chưa chọn) | thẻ câu hỏi có dòng "Đã soát mà không thấy đáp án" ≥ 3 nguồn **và** không có phương án A/B/C |
-| 3 | Nguồn P0 trong Source Reading Plan `missing`/`planned` phủ vùng ảnh hưởng — AI không tự đọc được (ngoài repo, cần người cấp) | `source-ledger.md` |
+| 3 | Nguồn P0 trong Source Reading Plan `missing`/`planned` phủ vùng ảnh hưởng — AI không tự đọc được (ngoài repo, cần người cấp). **Chặn đúng phần việc phụ thuộc nguồn đó**, không chặn cả intent (protocol §2.3.3) | `source-ledger.md` + cột *Dùng cho Unit* |
 | 4 | **Ranh đỏ**: deploy môi trường khách/prod · migration phá huỷ (`DROP/TRUNCATE/DELETE` không WHERE) · gửi ra ngoài (PR lên repo khách, email, chat) · chi tiền · đổi quyền truy cập | tên stage/task + grep lệnh |
 | 5 | `dlc-doctor` có mục **FIX** trên intent này | doctor |
 | 6 | Cùng một chỗ tự sửa quá `max_self_fix` lần vẫn fail (test đỏ lặp, request-changes nội bộ lặp) | đếm REV/lượt fix cùng target |
@@ -56,3 +56,4 @@ Hiện ở / Block check*, `gates_auto` thêm gate đó, đi tiếp ngay trong c
 ## Changelog
 
 - v1: bản đầu (gói 6.4.0) — quyết định chủ gói 2026-09-28, nợ LL.
+- v2 (gói 6.5.0): điều kiện #3 chặn **đúng phần việc phụ thuộc**, không chặn cả intent — từ chạy thử INT-001 dự án demo: luật cũ không nói kiểm ở gate nào.

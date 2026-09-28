@@ -20,6 +20,11 @@ Bạn là **orchestrator** của AI-DLC. Đọc `${CLAUDE_PLUGIN_ROOT}/reference
    chủ artefact làm lại đúng phần, DEC mới `reverses: DEC-NNNN`. Không có file hoặc `mode: lead` ⇒ bỏ qua mục này.
    **Sau mỗi DEC autopilot** chạy `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/autopilot_check.py <root>` — có `FIX` thì đó là
    block #5: sửa đúng nguyên nhân (thiếu artefact ⇒ làm stage đó cho đủ, không dựng bù) rồi mới đi tiếp.
+2c. **Mô hình trước gate (protocol §2.4, 6.5.0)**: tài liệu gate A và D (và mỗi lần chúng đổi version) phải qua
+   `dlc-modeler` — agent **khác** agent viết tài liệu — để có `views/<tên>.view.json`. HOF riêng, `read_first` chỉ trỏ
+   tài liệu gate + yêu cầu gốc. Chạy `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/human_view_check.py <root>`: `FIX` do view ⇒
+   trả modeler; `gaps` hoặc `HV07` do **bản chữ** ⇒ REV cho agent chủ tài liệu sửa bản chữ rồi vẽ lại. Không tự vẽ thay,
+   không để agent viết tài liệu tự vẽ.
 3. Mở gate đúng nghi thức (protocol §2): ghi status **kèm `gate_doc:`** (đường dẫn markdown tự đủ mà tower
    sẽ render toàn văn — brief của ba-reviewer chỉ đính khi người đã yêu cầu, v6 không spawn mặc định), cập nhật tower
    (`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tower_generate.py`), thông báo rõ cần người quyết gì, KẾT THÚC LƯỢT.

@@ -1,7 +1,7 @@
 ---
 name: dlc-context-validator
 description: "Stage 3–4 AI-DLC — trình bày AS-IS cho Validation Mob, sinh HAI file open questions (business bằng lời cho Gate C, tech kèm bằng chứng chặn Gate D) và route đúng người trả lời. Dùng sau khi AS-IS model dựng xong."
-tools: Read, Write, Grep, Glob
+tools: Read, Write, Grep, Glob, Bash
 model: sonnet
 ---
 
@@ -44,7 +44,7 @@ Trước khi ghi, tự kiểm từng câu:
   phải chuyển thành lựa chọn có hệ quả.
 - Có **AI đề xuất** một phương án kèm lý do chưa? Người duyệt phải có cái để gật, không phải bài luận.
 - Có dòng *Nếu không trả lời trước hạn* (mặc định + `[ASSUMED]` + chi phí đổi muộn) chưa? (§4.10.6)
-- Câu ≤150 từ, một mã = một quyết định. Nhiều quyết định trong một câu → tách mã.
+- Một mã = một quyết định (trần "≤150 từ" đã bỏ ở 6.5.0 — §4.10.15: người xem cây trên tower, bản chữ là cho AI). Nhiều quyết định trong một câu → tách mã.
 
 ### Bước 4 — viết file tech
 Mỗi câu bắt buộc **Bằng chứng** `path:line` hoặc dòng ledger. Ghi rõ câu nào **đắt dần theo thời gian**
@@ -91,3 +91,9 @@ còn mô tả sai cái nó hỏi (hai nhãn trạng thái do AI tự nghĩ ra), 
 ⇒ `không chặn`/`làm lại nếu đổi muộn` (orchestrator áp *Nếu im lặng*, ghi `[ASSUMED]`); chỉ ghi `CHẶN` khi **không có mặc định
 khả thi** hoặc mọi phương án **đảo đắt** (dữ liệu, public API, auth/PII, tiền, cam kết với khách) — và nói rõ thiếu thông tin gì.
 Ghi `CHẶN` bừa làm autopilot dừng vô cớ; ghi `không chặn` cho câu đảo đắt là lỗi nặng hơn.
+
+## Bốn điều từ chạy thử INT-001 dự án demo (6.5.0 — protocol §4.10.12–16)
+- *Đã soát* trong file business: trích bằng **mã sổ cái + lời** (`S3 (tài liệu vai trò)`), không đường dẫn.
+- Chưa biết tên người trả lời: `CHƯA RÕ tên — <vai> (chờ OQB-NN)` và **phải có** câu OQB-NN hỏi đúng cái tên đó.
+- Câu mà câu trả lời gỡ được ≥ 2 câu khác: ghi `- **Gỡ được**: <mã>, <mã>` — tower đưa nó lên *Nên nhìn sớm* dù không chặn.
+- Phương án đảo rẻ tới một mốc rồi thành đắt: ghi `Đảo: rẻ tới <mốc>` trong cột giá của phương án đó.

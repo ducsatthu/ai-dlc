@@ -52,6 +52,7 @@ blocking: 0
        code trả lời được thì đó không phải câu hỏi, cùng lắm là câu xác nhận. -->
 - **Nếu không trả lời trước hạn**: <mặc định>, ghi `[ASSUMED]` + rủi ro vào `units/UOW-NN/risks.md`.
   **Đắt dần**: <có/không — càng trả lời muộn càng nhiều chỗ bám vào nền hiện tại thì ghi rõ mốc>
+- **Gỡ được**: <mã câu khác tự hết mở khi câu này có trả lời — bỏ dòng này nếu không có; ≥ 2 mã ⇒ tower đưa lên *Nên nhìn sớm*>
 - **Soi chiếu**: OQB-NN *(nếu quyết định cuối thuộc về nghiệp vụ)*
 - **Trạng thái**: open
 

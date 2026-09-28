@@ -240,7 +240,7 @@ function BoltBoard({ data, intentId, unitId, onOpenTask, onOpenUnit, onDoc, onSe
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(320px,1fr))', gap: 16, alignItems: 'start' }}>
           <Panel title="Unit này" meta={unit.status}>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
-              <Chip tone={unit.estimate > 5 ? 'blocked' : unit.estimate ? 'done' : 'pending'}>
+              <Chip tone={unit.estimate ? 'done' : 'pending'}>
                 {unit.estimate ? unit.estimate.toFixed(1) + 'h' : 'chưa ước lượng'}
               </Chip>
               <Chip tone={unit.stories ? 'done' : 'blocked'}>{unit.stories} user story</Chip>

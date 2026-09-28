@@ -33,7 +33,7 @@ function UnitCard({ u, onOpenUnit, onDoc }) {
         </Chip>
         <span style={{
           marginLeft: 'auto', fontFamily: 'var(--mono)', fontSize: 11,
-          color: u.estimate > 5 ? 'var(--danger)' : 'var(--muted)'
+          color: 'var(--muted)'
         }}>{u.estimate ? u.estimate.toFixed(1) + 'h' : 'chưa ước lượng'}</span>
       </div>
       <div style={{ fontSize: 14, fontWeight: 600 }}>{u.name}</div>
@@ -63,7 +63,7 @@ function UnitCard({ u, onOpenUnit, onDoc }) {
   );
 }
 
-function IntentDetail({ data, intentId, onOpenBolt, onOpenList, onSelectIntent, onDoc, onOpenUnit, onOpenFlow, onNav }) {
+function IntentDetail({ data, intentId, onOpenBolt, onOpenList, onSelectIntent, onDoc, onOpenUnit, onOpenFlow, onNav, onAnswer, onSteer }) {
   const intent = data.intents.find(x => x.id === intentId) || data.intents[0];
   if (!intent) return <div style={{ padding: 24, color: 'var(--muted)' }}>Chưa có intent nào.</div>;
   const units = data.unitsByIntent[intent.id] || [];
@@ -72,7 +72,12 @@ function IntentDetail({ data, intentId, onOpenBolt, onOpenList, onSelectIntent, 
   const questions = ((data.questionsByIntent || {})[intent.id]) || data.questions || [];
   const hofs = (data.handoffs || []).filter(h => (h.re || '').startsWith(intent.id));
   const c = src.counts || {};
-  const [tab, setTab] = React.useState('Units');
+  /* Yêu cầu có trang mô hình (protocol §2.4) ⇒ thêm tab "Mô hình" và mở nó trước; không có thì y như cũ. */
+  const models = Object.values((((data.humanView || {})[intent.id]) || {}).docs || {});
+  const [modelDoc, setModelDoc] = React.useState(null);
+  const model = window.modelOf ? window.modelOf(data, intent.id, modelDoc) : null;
+  const [tab, setTab] = React.useState(model ? 'Mô hình' : 'Units');
+  React.useEffect(() => { setModelDoc(null); setTab(model ? 'Mô hình' : 'Units'); }, [intent.id]);
   const docList = Object.values(data.docs || {}).filter(d => d.path.indexOf(intent.id) >= 0);
 
   return (
@@ -119,9 +124,26 @@ function IntentDetail({ data, intentId, onOpenBolt, onOpenList, onSelectIntent, 
 
       <Panel pad={false}>
         <div style={{ padding: '0 8px' }}>
-          <Tabs tabs={['Units', 'Nguồn', 'Handoff', 'Open Questions', 'Decisions', 'Chỉnh sửa', 'Tài liệu']} active={tab} onChange={setTab} />
+          <Tabs tabs={(model ? ['Mô hình'] : []).concat(['Units', 'Nguồn', 'Handoff', 'Open Questions', 'Decisions', 'Chỉnh sửa', 'Tài liệu'])} active={tab} onChange={setTab} />
         </div>
         <div style={{ padding: 16 }}>
+          {tab === 'Mô hình' && model && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+              {models.length > 1 && (
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 12.5, color: 'var(--muted)' }}>Mô hình của:</span>
+                  {models.map(m => (
+                    <span key={m.doc} onClick={() => setModelDoc(m.doc)} style={{ cursor: 'pointer' }}>
+                      <Chip tone={m.doc === model.doc ? 'agent' : 'pending'}>{m.gate ? 'Gate ' + m.gate + ' · ' : ''}{m.docName}{m.stale ? ' · cũ' : ''}</Chip>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <window.ModelPage key={model.doc} model={model} data={data} onNav={onNav} actions={{ onAnswer, onSteer }} />
+              <window.FullText path={model.doc} lines={model.lines} data={data} open={!!model.error} />
+            </div>
+          )}
+
           {tab === 'Units' && (
             units.length ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -242,6 +264,16 @@ function IntentDetail({ data, intentId, onOpenBolt, onOpenList, onSelectIntent, 
             </div>
           )}
 
+          {tab === 'Decisions' && ((data.autopilot || {}).warnings || []).filter(w => w.intent === intent.id).length > 0 && (
+            <div style={{ marginBottom: 12 }}>
+              <Note tone="danger" title="Quyết rồi mà chưa đóng sổ">
+                {data.autopilot.warnings.filter(w => w.intent === intent.id).map((w, i) => <div key={i}>{w.text}</div>)}
+                <div style={{ marginTop: 4, fontSize: 12.5, color: 'var(--muted)' }}>
+                  Thẻ của các việc này vẫn hiện ở “Cần tôi quyết” cho tới khi đội đổi trạng thái trong hồ sơ.
+                </div>
+              </Note>
+            </div>
+          )}
           {tab === 'Decisions' && (
             data.decisions.length ? (
               <DataTable columns={['DEC', 'Thời điểm', 'Gate', 'Ai quyết', 'Nội dung', 'Căn cứ']}

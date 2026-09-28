@@ -1,0 +1,140 @@
+{
+ "version": 3,
+ "source": "intent-plan.md",
+ "source_version": 1,
+ "source_sha256": "<shasum -a 256 của tài liệu, tính sau lần đọc cuối>",
+ "by": "dlc-modeler",
+ "at": "<ISO>",
+ "gaps": [
+  {
+   "text": "<bản chữ thiếu/không rõ gì — vì sao người quyết cần nó>",
+   "ref": "<mục>",
+   "decision": "<D-id nếu chỗ thiếu thuộc một điểm cần chốt | null>"
+  }
+ ],
+ "headline": "<một dòng: intent này làm gì>",
+ "pain": {
+  "text": "<một câu đang đau gì, lời người nghiệp vụ>",
+  "numbers": [
+   "<con số có trong bản chữ>"
+  ],
+  "ref": "1.1"
+ },
+ "outcomes": [
+  {
+   "id": "O1",
+   "text": "<kết quả>",
+   "now": "<hiện tại>",
+   "target": "<đích>",
+   "from_request": true
+  }
+ ],
+ "scope": {
+  "now": [
+   "<làm đợt này>"
+  ],
+  "later": [
+   {
+    "what": "<để đợt sau>",
+    "cost": "<giá của việc để lại>",
+    "decision": "<D-id nếu có | null>"
+   }
+  ],
+  "never": [
+   "<không làm>"
+  ],
+  "ref": "1.3"
+ },
+ "approach": {
+  "axis": "<cắt phần việc theo trục nào — 1 câu>",
+  "why": "<vì sao trục này>",
+  "rejected": [
+   {
+    "what": "<trục/phần việc đã cân nhắc rồi bỏ>",
+    "why": "<vì sao>"
+   }
+  ],
+  "ref": "3.1 · 3.4"
+ },
+ "units": [
+  {
+   "id": "UOW-01",
+   "short": "<≤ 60 ký tự>",
+   "serves": [
+    "O1"
+   ],
+   "condition": null,
+   "review": "none | peer | specialist(<vai>) — chỉ ở tài liệu Gate D; bỏ trống ở Gate A",
+   "review_why": "<≤ 70 ký tự: trigger nào của §4.17>"
+  },
+  {
+   "id": "UOW-02",
+   "short": "<…>",
+   "serves": [
+    "O2"
+   ],
+   "condition": {
+    "decision": "D1",
+    "when": "<ngã về phía nào thì làm>"
+   },
+   "review": "none | peer | specialist(<vai>) — chỉ ở tài liệu Gate D; bỏ trống ở Gate A",
+   "review_why": "<≤ 70 ký tự: trigger nào của §4.17>"
+  }
+ ],
+ "decisions": [
+  {
+   "id": "D1",
+   "ref": "1.7 mục 1",
+   "kind": "CONFLICT|OPEN",
+   "question": "<≤ 90 ký tự, kết thúc bằng dấu hỏi>",
+   "who": "<người cụ thể>",
+   "deadline": "<mốc | null>",
+   "options": [
+    {
+     "key": "A",
+     "name": "<tên ngắn>",
+     "effect": "<người dùng thấy gì>",
+     "cost": "<giờ / rủi ro>",
+     "reversal": "rẻ",
+     "reversal_until": "<mốc hết đảo rẻ, vd 'trước phát hành' | null>"
+    },
+    {
+     "key": "B",
+     "name": "<tên ngắn>",
+     "effect": "<…>",
+     "cost": "<…>",
+     "reversal": "đắt"
+    }
+   ],
+   "recommended": "A",
+   "default": "A",
+   "needs": null,
+   "risk": "cao|vừa|thấp",
+   "reverse_by": "<đảo phương án mặc định bằng cách nào>",
+   "blocks": [
+    "UOW-02"
+   ],
+   "sources": [
+    "<S-id: nguồn không đọc được mà câu này đang thay cho | bỏ trống>"
+   ],
+   "unlocks": [
+    "<mã điểm cần chốt/câu hỏi khác tự hết mở khi câu này có trả lời | bỏ trống>"
+   ],
+   "touches": [
+    "<UOW-id: đổi quyết định này thì phần việc nào đổi — khác `blocks` (phần việc chỉ LÀM khi điểm này ngã về một phía)>"
+   ]
+  }
+ ],
+ "decisions_minor": [
+  "<điểm nhỏ, không đổi khối lượng việc — kèm ref>"
+ ],
+ "risks": [
+  {
+   "text": "<rủi ro>",
+   "level": "cao|vừa|thấp",
+   "owner": "<người | chưa có>",
+   "decision": "<D-id nếu rủi ro này là mặt kia của một điểm cần chốt | null>",
+   "ref": "<mục | ESC-NNN>"
+  }
+ ]
+}

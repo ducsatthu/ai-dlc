@@ -147,7 +147,7 @@ Acceptance Criteria (đo được, trace về outcome O_x):
 | code FE | | <mấy màn / component> |
 | test | | |
 | review + fix | | |
-| **Tổng** | **≤5.0** | |
+| **Tổng** | **<tổng giờ — không có trần, §4.9 v5>** | |
 
 **Nguồn cần đọc trước khi làm Unit này**: S1, S2 (từ bảng 2.1)
 

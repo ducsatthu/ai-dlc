@@ -334,6 +334,13 @@ class H(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
+    # Sinh tower MỘT lần trước khi nhận kết nối: trước đây trang đầu trả 404 ("chưa có tower") cho tới khi
+    # có lần gọi /state đầu tiên — mà /state chỉ được gọi bởi chính trang chưa nạp được đó.
+    try:
+        subprocess.run([sys.executable, GEN, ROOT], capture_output=True, timeout=120, check=False)
+        _last_gen[0] = time.time()
+    except (OSError, subprocess.SubprocessError) as _e:
+        print("cảnh báo: chưa sinh được tower lúc khởi động (%s) — sẽ thử lại ở lần gọi /state" % _e, file=sys.stderr)
     srv = HTTPServer(("127.0.0.1", PORT), H)
     print(f"AI-DLC Tower: http://127.0.0.1:{PORT}/?token={TOKEN}", flush=True)
     print(f"Inbox: {INBOX}", flush=True)

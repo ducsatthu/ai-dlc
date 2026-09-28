@@ -15,7 +15,8 @@ Chỉ đọc + báo cáo (sửa gì phải được user đồng ý từng mục
    - Câu trong `open-questions-business.md` chứa dấu vết kỹ thuật (`/`, `.md`, `.ts`, `.py`, `_id`, `()`,
      `snake_case`, tên bảng/cột) → **FIX**: người nghiệp vụ không trả lời được câu viết bằng ngôn ngữ code.
    - Câu thiếu **người trả lời cụ thể** (rỗng, "TBD", hoặc chuỗi vai chung chung kiểu `BA/Tech Lead/Test Lead`)
-     → **FIX**. Câu thiếu cột *Nếu im lặng* (phương án mặc định) → **FIX** (§4.10.6).
+     → **FIX**. `CHƯA RÕ tên — <vai> (chờ OQB-NN)` với OQB-NN đang mở hỏi đúng cái tên đó → **OK** (6.5.0, §4.10.13).
+     Dòng *Đã soát* chỉ chứa mã sổ cái `S-NN` và lời thì **không** tính là dấu vết kỹ thuật (§4.10.12). Câu thiếu cột *Nếu im lặng* (phương án mặc định) → **FIX** (§4.10.6).
    - Câu business không có phương án chọn sẵn (bảng A/B/C) → **WARN**: câu mở khó chốt tại Gate C.
    - `open-questions-tech.md` có câu `CHẶN UOW-NN` còn `open` mà intent đã ở stage ≥5 → **FIX** (chặn Gate D).
    - Mã *soi chiếu* trỏ tới mã không tồn tại ở file kia → **WARN** (cặp câu đứt).
@@ -125,6 +126,9 @@ Chỉ đọc + báo cáo (sửa gì phải được user đồng ý từng mục
    - `gate_open` có `blocked_by` quá 24h chưa ai trả lời → **WARN** kèm tên người cần trả lời.
    - `inbox/steer-*.json` chưa xử lý → **FIX** (người đã đảo mà AI vẫn chạy hướng cũ).
    - Tỷ lệ `reversed/decisions` < 10% sau ≥ 10 DEC → **WARN**: có thể không ai nhìn; > 30% → **WARN**: giả định kém.
+3c. **Bản mô hình cho người xem (protocol §2.4, 6.5.0)**: chạy `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/human_view_check.py <root>`,
+   chép nguyên phát hiện `HV01`–`HV09`. `HV08` (mô hình cũ) và `HV03` (hình thiếu phần việc) là hai mã phải xử trước —
+   người đang quyết trên một hình sai. `HV09` không phải lỗi của view: nó trỏ chỗ **bản chữ** chưa đủ rõ.
 4. `.ai-dlc/overrides/**`: thiếu frontmatter reason/source → cảnh báo; nội dung ⊆ bản plugin hiện tại →
    "đã upstream, nên xóa"; xung đột bản mới → in diff.
 5. So version checklist: pinned của intent đang chạy vs plugin hiện tại → liệt kê lệch (chỉ thông tin —

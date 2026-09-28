@@ -31,7 +31,7 @@ Delta ⇒ thêm `as-is/delta.md`, dòng ledger ghi rõ nguồn từ codekb hay t
 | Trạng thái | Số | Nghĩa |
 |---|---|---|
 | `read` | | đã đọc, có evidence (vùng đọc + phát hiện) |
-| `missing` | | không tồn tại / không truy cập được → đã hỏi ai, ngày nào |
+| `missing` | | không tồn tại / không truy cập được → ai giữ nguồn · mã câu hỏi mang nó đi (stage 4 điền "đã hỏi ai, ngày nào") |
 | `deferred` | | cố ý hoãn → ai chịu, tới mốc nào, rủi ro chấp nhận |
 | `superseded` | | bị nguồn khác thay thế → trỏ tới nguồn thay |
 | `[ADDED]` | | phát hiện ngoài plan, đã bổ sung |

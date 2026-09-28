@@ -32,3 +32,5 @@ mở, chỉ là tài liệu đi một vòng sửa.
 8. **Vòng thứ 3** cùng một gate_doc mà vẫn chưa hội tụ → dừng vòng sửa, tạo MSG `escalation` →
    `ai-dlc:dlc-tech-lead-reviewer`. Sửa vòng 3 im lặng là dấu hiệu vấn đề nằm ở chỗ khác (đề bài, scope,
    hoặc thiếu nguồn), không phải ở câu chữ tài liệu.
+**Mô hình phải vẽ lại (protocol §2.4.5, 6.5.0)**: tài liệu gate vừa bump version ⇒ view cũ thành `HV08`. Spawn
+`ai-dlc:dlc-modeler` vẽ lại **trước** khi mở lại gate.

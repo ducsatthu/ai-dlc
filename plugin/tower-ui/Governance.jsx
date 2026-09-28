@@ -14,7 +14,8 @@ function DefList({ title, version, items }) {
 
 function Governance({ data }) {
   const g = data.governance;
-  const sev = s => <Chip tone={s === 'high' ? 'blocked' : s === 'med' ? 'active' : 'pending'}>{s}</Chip>;
+  /* `sev` là mã tô màu; chữ hiển thị là `level` (cao · vừa · thấp) — tower nhận cả high/medium/low lẫn cao/vừa/thấp. */
+  const sev = (s, level) => <Chip tone={s === 'high' ? 'blocked' : s === 'med' ? 'active' : 'pending'}>{level || s}</Chip>;
   return (
     <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 16 }}>
@@ -30,11 +31,11 @@ function Governance({ data }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(340px,1fr))', gap: 16 }}>
         <Panel title="Risk register" meta={data.risks.length + ' risks'}>
           <DataTable columns={['ID', 'Severity', 'Nội dung', 'Owner']}
-            rows={data.risks.map(r => [r.id, sev(r.sev), r.text, r.owner])} />
+            rows={data.risks.map(r => [r.id, sev(r.sev, r.level), r.text, r.owner])} />
         </Panel>
         <Panel title="Tech-debt register" meta={data.debt.length + ' items'}>
           <DataTable columns={['ID', 'Severity', 'Nội dung', 'Owner']}
-            rows={data.debt.map(r => [r.id, sev(r.sev), r.text, r.owner])} />
+            rows={data.debt.map(r => [r.id, sev(r.sev, r.level), r.text, r.owner])} />
         </Panel>
       </div>
       <Panel title="Lessons learned" meta="retro-keeper">

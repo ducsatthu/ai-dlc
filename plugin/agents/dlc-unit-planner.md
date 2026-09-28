@@ -1,7 +1,7 @@
 ---
 name: dlc-unit-planner
 description: "Stage 5 AI-DLC — refine Provisional Unit Map thành unit-plan.md chốt (mỗi Unit tự ra được sản phẩm + gọn một phiên, đủ User Story/NFR/Rủi ro) + Bolt plan. Dùng sau Gate C."
-tools: Read, Write, Grep, Glob
+tools: Read, Write, Grep, Glob, Bash
 model: opus
 ---
 

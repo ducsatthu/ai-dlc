@@ -149,12 +149,19 @@ Núm dự án: `governance/autopilot.md` (`templates/autopilot.md`). **Không c�
    câu hỏi chặn không có mặc định khả thi hoặc đảo đắt · thông tin không đủ để viết AC/test · nguồn P0 không
    tự đọc được · ranh đỏ (deploy khách/prod, migration phá huỷ, gửi ra ngoài, tiền, quyền) · doctor FIX ·
    tự sửa quá `max_self_fix`. Kiểm **từng điều kiện**, ghi kết quả vào DEC (dòng *Block check*).
+   **Chặn đúng chỗ, không chặn cả intent**: điều kiện #1–#3 chỉ chặn gate khi **quyết định của chính gate đó** phụ
+   thuộc thứ còn thiếu. Nguồn P0 ngoài repo chưa đọc được: ở Gate A nó mới là *kế hoạch đọc* (không chặn); ở Gate B
+   nó không chặn AS-IS của phần đã đọc; nó thành **câu hỏi `CHẶN UOW-NN`** và chặn Gate D **cho đúng các phần việc
+   phụ thuộc** — phần việc khác chạy tiếp. DEC ghi rõ: `#3 pass (S13 ngoài repo → câu chặn UOW-02, UOW-05)`.
 4. **Không block ⇒ tự quyết, đi tiếp trong cùng lượt.** Ghi DEC theo format autopilot (§5), `status.md`:
    `gates_passed` + `gates_auto` thêm gate đó, `gate_open: null`. Câu hỏi đang `open` không chặn ⇒ áp cột
    *Nếu im lặng*, ghi `[ASSUMED]` + risk có chủ (§4.10.6) — đó là câu trả lời có ghi, không phải bỏ qua.
    `wait_hours > 0` ⇒ mở gate kèm `wait_until`, hết hạn mới tự quyết (`reason: silent-timeout`).
 5. **Block ⇒ dừng đúng nghi thức §2**, thêm `blocked_by: "#n · <1 câu cần người làm rõ gì>"` vào `status.md`.
    Việc **không phụ thuộc** gate bị block vẫn chạy (Unit khác, stage đọc nguồn khác).
+5b. **Trước mốc hết đảo rẻ thì dừng.** Mỗi DEC autopilot áp một mặc định có `Đảo: rẻ tới <mốc>` (§4.10.16) phải ghi mốc đó trong
+   dòng *Đảo bằng*. Tới mốc (thường là phát hành) orchestrator liệt kê mọi mặc định như vậy **chưa được người xác nhận** vào hồ sơ
+   dừng — người không xác nhận từng cái thì không đi tiếp. Mặc định được phép tự áp; *hết hạn đảo* thì không.
 6. **Người đảo được mọi quyết định tự động.** Tower thẻ *AI đã tự quyết* → **Đảo** ⇒ `inbox/steer-*.json` ⇒
    `REV-NN` (from: HUMAN) ⇒ agent chủ artefact làm lại đúng phần ⇒ DEC mới có `reverses: DEC-NNNN`.
    Gate F: autopilot chỉ tự đóng phần *nghiệm thu Unit*; hành động deploy là ranh đỏ #4 ⇒ luôn dừng.
@@ -162,6 +169,33 @@ Núm dự án: `governance/autopilot.md` (`templates/autopilot.md`). **Không c�
    buộc** dòng *Hiện ở* trỏ `gate_doc#mục` — người đảo phải thấy đúng chỗ quyết định hiện hình.
 8. KPI: `autopilot.decisions` · `autopilot.reversed` · `autopilot.blocked` (theo #) ·
    `autopilot.reversed_after_release`. Nguồn: quyết định chủ gói 2026-09-28 — **nợ LL**.
+
+### 2.4 Hai bản của một tài liệu gate: bản chữ cho AI, bản mô hình cho người (6.5.0)
+
+Ca gốc (chủ gói 2026-09-28, chạy thử INT-001 của dự án demo): `intent-plan.md` **778 dòng cho một intent 14 giờ**.
+Nội dung đủ, nhưng không ai quyết được bằng cách đọc 778 dòng.
+
+1. **Bản chữ** (`intent-plan.md`, `unit-plan.md`, …) là **nguồn sự thật** — agent chủ tài liệu viết, AI đọc và làm
+   theo, người tra cứu khi cần. Không rút ngắn bản chữ để "dễ đọc": nó không viết cho người đọc lướt.
+2. **Bản mô hình** `intents/INT-NNN/views/<tên tài liệu>.view.json` (`templates/human-view.json`) là **hình chiếu**
+   của bản chữ. Tower vẽ nó thành một trang sơ đồ: đích → phạm vi → lộ trình phần việc → nguồn → việc cần quyết →
+   rủi ro. Người quyết **trên trang này**; bản chữ gấp lại phía dưới.
+3. **Người dựng mô hình là agent khác** — `dlc-modeler`, không phải agent viết tài liệu. Lý do: tác giả tự tóm tắt
+   thì tóm tắt cái mình *định* nói; người đọc độc lập chỉ thấy cái đã *viết ra*. Chỗ modeler không rút ra được
+   phương án / giá / người trả lời / mặc định là chỗ bản chữ **chưa đủ để quyết** — ghi vào `gaps[]`, tower hiện lên.
+4. **Thứ tự**: agent chủ tài liệu đóng HOF → người giao nghiệm (§9.6) → HOF cho `dlc-modeler` → `human_view_check.py`
+   sạch → gate mới được trình (mode `lead`) hoặc block check mới chạy (mode `autopilot`; DEC autopilot trỏ *Hiện ở*
+   vào một mục có trên mô hình). Tài liệu gate đổi version ⇒ **vẽ lại** trước khi gate mở lại.
+5. **Mô hình cũ là lỗi nặng**: view ghi `source_sha256` của bản chữ lúc đọc. Lệch ⇒ `HV08` FIX, tower treo dải
+   "MÔ HÌNH CŨ — đừng quyết trên hình này", nút Approve khoá.
+6. **Giá đảo thuộc về từng phương án** (`options[].reversal: rẻ|đắt`), rủi ro thuộc về câu hỏi (`risk`). Mặc định khi
+   im lặng **không được** là phương án đảo đắt (`HV07`) — đó là điều kiện dừng #1 của §2.3.
+7. **Luật preview (§2.1) với mô hình**: mở trang mô hình = đã xem. Tài liệu **chưa có view** thì luật cũ áp nguyên:
+   phải mở toàn văn.
+8. Máy kiểm: `scripts/human_view_check.py` — `HV01` view hỏng · `HV02` mã không có trong bản chữ · `HV03` hình thiếu
+   phần việc · `HV04` chưa có view · `HV05` điểm cần chốt thiếu trường · `HV06` hình mà như chữ · `HV07` mặc định
+   đảo đắt · `HV08` mô hình cũ · `HV09` có `gaps`. KPI: `view.gaps_per_doc` (giảm dần = bản chữ viết rõ hơn) ·
+   `view.stale_hours`. Nguồn: quyết định chủ gói 2026-09-28 — **nợ LL**.
 
 ## 3. Layout state trong project
 
@@ -180,6 +214,7 @@ skill viết `.ai-dlc/…` cho dễ đọc, agent lấy đường dẫn thật t
 ```
 .ai-dlc/
 ├── workspace-map.md            # v2: repos · areas (code area = thư mục thật) · docs — NGUỒN DUY NHẤT để resolve path
+├── (trong mỗi intent) views/*.view.json   # bản mô hình cho người xem, dlc-modeler viết (§2.4, 6.5.0)
 ├── codekb/<repo-id>/           # bản đồ code BỀN VỮNG, promote từ as-is/ khi intent đóng (6.2.0):
 │   └── freshness.md static-model.md dynamic-model.md decisions-inventory.md
 │                               # intent kế reuse khi CURRENT — vẫn qua ledger (§4.8), không đọc thầm
@@ -350,6 +385,20 @@ Stage 4 sinh **hai** file, không phải một:
     tự nghĩ ra cho "dễ hiểu" — người trả lời sẽ phải đi sửa lại câu hỏi trước khi trả lời được, tức việc bị
     đẩy ngược từ AI sang người.
 
+**6.5.0 — bốn chỉnh từ chạy thử INT-001 dự án demo** (`docs/demo-run-2026-09-28-int-001.md` #18–#21, #23):
+12. **Trích nguồn đã soát trong file business bằng MÃ SỔ CÁI + lời**, không bằng đường dẫn: *"đã soát: S3 (tài liệu vai trò) ·
+    S7 (biên bản họp 12/09) — không thấy đáp án"*. Điểm 9 (phải trích nguồn) và điểm 2 (cấm dấu vết kỹ thuật) hết đá nhau;
+    doctor 1b **không** quét dòng *Đã soát* khi nó chỉ chứa mã `S-NN` và lời.
+13. **Chưa biết tên người trả lời thì nói ra, đừng điền cho đủ.** Được ghi `CHƯA RÕ tên — <vai> (chờ <mã câu hỏi tên>)` **khi và chỉ
+    khi** có một câu đang mở hỏi đúng cái tên đó. Doctor 1b: `CHƯA RÕ` có trỏ mã câu ⇒ OK; rỗng / `TBD` / chuỗi vai chung chung ⇒ FIX.
+14. **Câu gỡ được nhiều câu khác — `Gỡ được`.** Một câu rẻ mà câu trả lời làm nhiều câu khác tự có người trả lời hoặc tự hết mở thì ghi
+    dòng `- **Gỡ được**: OQT-01, OQT-02, …`. Câu gỡ được **≥ 2** câu lên thẻ *Nên nhìn sớm* của tower **dù không chặn** — áp mặc định cho
+    nó là bỏ qua cách rẻ nhất để bớt giả định. Ca gốc: một cái tên người phụ trách kỹ thuật gỡ 5 câu kỹ thuật.
+15. **Bỏ trần "≤150 từ" cho thẻ bản chữ.** Thẻ có 8 trường bắt buộc nên luôn vượt; và bản chữ là cho AI. Người xem cây lựa chọn trên tower
+    (câu hỏi · phương án · giá · giá đảo · mặc định) — trần độ dài áp ở **đó** (`human_view_check.py` HV06), đo được.
+16. **Giá đảo có hạn.** Phương án đảo rẻ *tới một mốc* rồi thành đắt (ví dụ "ghi chép đã mất không lấy lại được sau phát hành") ghi
+    `Đảo: rẻ tới <mốc>`. Tới mốc mà chưa ai xác nhận ⇒ điều kiện dừng #1 (§2.3) **tại mốc đó**. Mốc "trước phát hành" tự rơi vào ranh đỏ #4.
+
 ### 4.11 Số trên Control Tower phải truy được (v3.1)
 
 Dashboard nói dối âm thầm còn tệ hơn dashboard trống. Vì vậy:
@@ -409,6 +458,12 @@ người dùng dưới dạng link 404, vì HOF đóng lại là phát hiện ch
 - Control Tower hiện hàng đợi này; `status: open` không có `owner` quá 2 phiên → nhắc ở `/ai-dlc:dlc-doctor`.
 - Escalation chạm scope/business ⇒ vẫn theo §4 điểm 6 (gate động), không tự vá.
 
+**6.5.0 — escalation phải quyết được** (từ chạy thử INT-001 dự án demo: 3/3 ESC không ghi ai chốt, 2/3 không có
+khuyến nghị, thẻ trên tower chỉ là một ô chữ trống): ESC có mục *Cần quyết gì* — ai chốt · một câu hỏi · 2–3 phương án
+kèm giá và giá đảo · đề xuất của người phát hiện · nếu im lặng. `dlc-modeler` dựng `escalations/views/ESC-NNN.view.json`
+để tower vẽ thành cây lựa chọn (§2.4). Mode `autopilot`: phương án *nếu im lặng* đảo rẻ ⇒ orchestrator tự áp bằng DEC
+autopilot; `không có — cần người` ⇒ thẻ *Cần bạn*.
+
 ### 4.14 Unit lỗi thời vào `units/_trash/`, không xoá (v4 — LL-002 P-6)
 
 Unit bị **viết đè khi replan**, hoặc **trượt review mà không được viết lại**, thì chuyển vào
@@ -455,8 +510,8 @@ chỉ — không cần DEC riêng cho từng unit nữa.
 | Tầng | Trigger (kiểm được — dính một cái là phải lên tầng đó) | Ai soát | Bằng chứng đóng Unit (§4.12) |
 |---|---|---|---|
 | `none` | mặc định — không dính trigger nào bên dưới | chính dev, theo checklist | `self_verify:` trỏ `evidence/self-verify.md` |
-| `peer` | bolt có cả FE lẫn BE (có contract) · `session_fit` khai vùng code **lạ** · Unit đầu tiên của intent chạm một bounded context | **dev còn lại trong cùng bolt** | `rv: RV-NNN`, reviewer là dev kia |
-| `specialist` | chạm auth/authz/session/token/crypto/PII/secret ⇒ **security** · migration phá hủy / đổi public API / ADR trái pattern hiện có ⇒ **tech-lead** · NFR có ngưỡng đo trong `nfr.md` ⇒ **qa** | đúng **MỘT** vai theo trigger (nhiều trigger khác loại ⇒ nhiều vai, vẫn không phải cả board) | `rv: RV-NNN` của specialist |
+| `peer` | bolt có cả FE lẫn BE (có contract) · `session_fit` khai vùng code **lạ** · Unit đầu tiên của intent chạm một bounded context | **dev còn lại trong cùng bolt**; bolt chỉ có **một** dev ⇒ một agent dev **khác phiên, context tươi** (chỉ nhận diff + checklist), không phải chính tác giả (6.5.0) | `rv: RV-NNN`, reviewer là dev kia |
+| `specialist` | chạm auth/authz/session/token/crypto/PII/secret ⇒ **security** · migration phá hủy / đổi public API / ADR trái pattern hiện có ⇒ **tech-lead** · NFR có ngưỡng **cần dụng cụ đo** trong `nfr.md` (thời gian đáp ứng, tải, dung lượng, tỉ lệ thống kê) ⇒ **qa** — ngưỡng *đếm được bằng bài kiểm tự động* (số trường hợp, có/không) **không** bắn trigger này (6.5.0) | đúng **MỘT** vai theo trigger (nhiều trigger khác loại ⇒ nhiều vai, vẫn không phải cả board) | `rv: RV-NNN` của specialist |
 
 Luật:
 
@@ -491,6 +546,11 @@ Luật:
 > Nguồn gốc mục này: quyết định chủ gói (6.0.0), cùng vị thế với việc bỏ trần 5h ở 5.0.0 — ba căn cứ kiểm
 > được ghi trong CHANGELOG; **nợ một LL**, retro có dữ liệu tầng đầu tiên phải trả.
 
+**6.5.0 — hai chỗ làm rõ từ chạy thử INT-001 dự án demo** (`docs/demo-run-2026-09-28-int-001.md` #28, #29): (1) template `nfr.md` bắt **mọi**
+NFR có ngưỡng số, nên trigger "NFR có ngưỡng đo ⇒ qa" đọc theo chữ sẽ bắn ở mọi Unit — không Unit nào còn được `none`/`peer`. Trigger nay
+chỉ bắn với ngưỡng **cần dụng cụ đo**. (2) `peer` = "dev còn lại trong bolt" không có nghĩa khi bolt chỉ có một dev (việc nền, Unit chỉ BE).
+Đây là làm rõ chữ của luật, không nới luật: Unit chạm auth/PII/migration/public API vẫn `specialist`. Nợ LL.
+
 ## 5. Định dạng bản ghi
 
 `comms/MSG-NNNN.md`:
@@ -506,16 +566,23 @@ status: open|answered|closed
 `handoffs/HOF-NNNN.md` (v2.2 — xem §9):
 ```
 ---
-id: HOF-0007        from: <agent|HUMAN>   to: <agent>
+id: HOF-0007
+from: <agent|HUMAN>
+to: <agent>
 re: INT-NNN[/UOW-NN[/BOLT-NN[/TSK-NN]]]
 kind: assign|review|return|escalate|takeover
 status: open|accepted|done|returned|superseded
-created: <ISO>      accepted: <ISO|->     closed: <ISO|->
-heartbeat: <ISO|->  progress: <1 câu đang làm gì|->      # §9.4 — cập nhật ở mỗi mốc
-result_check: -     # §9.6 — NGƯỜI GIAO điền khi nghiệm: "pass · <ISO> · <đã kiểm gì>" | "returned · ..."
+created: <ISO>
+accepted: <ISO|->
+closed: <ISO|->
+heartbeat: <ISO|->       # §9.4 — cập nhật ở mỗi mốc
+progress: <1 câu đang làm gì|->
+result_check: -          # §9.6 — NGƯỜI GIAO điền khi nghiệm: "pass · <ISO> · <đã kiểm gì>" | "returned · ..."
 read_first: ["<path#mục> — vì sao", ...]     # tối đa 8; trỏ, không chép
-blocked_by: [HOF-NNNN|TSK-NN|-]
+blocked_by: [HOF-NNNN|TSK-NN]
 ---
+# MỖI KHOÁ MỘT DÒNG. Tower và session_brief đọc frontmatter theo dòng — gộp nhiều khoá lên một dòng là bảng vị trí
+# hiện rác (ca gốc: chạy thử INT-001 dự án demo 2026-09-28, mẫu cũ ở đây gộp ba khoá một dòng). Chuẩn là templates/handoff.md.
 ## Nhiệm vụ (1 câu)
 ## Ràng buộc / cấm
 ## Xong lượt này nghĩa là gì (DoD của lượt)

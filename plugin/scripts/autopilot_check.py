@@ -18,6 +18,7 @@ Mã phát hiện:
   AP09 WARN  tỷ lệ đảo ngoài 10–30% (khi đã có ≥ 10 DEC autopilot)
   AP10 WARN  mode autopilot mà gate mở không có blocked_by/wait_until (dừng không lý do)
   AP11 WARN  có DEC autopilot trong khi mode là lead / không có autopilot.md
+  AP12 FIX   DEC autopilot đã quyết một escalation mà file ESC vẫn `status: open` / chưa có `owner`
 """
 import glob
 import json
@@ -196,7 +197,8 @@ def check(project_dir):
                             add("FIX", "AP06", "%s %s" % (iid, r.get("Mã", "?")),
                                 "TỰ QUYẾT QUA BLOCK #1: câu CHẶN còn mở, không có mặc định, mà Gate D đã tự đóng")
         if any(g.upper() in ("B", "D") for g in gates_auto):
-            for r in table_rows(read(os.path.join(idir, "as-is", "source-ledger.md")), ["Trạng thái"]):
+            # bảng NGUỒN (có cột "Nguồn"), không phải bảng tổng hợp đếm trạng thái (`| planned | 0 |`)
+            for r in table_rows(read(os.path.join(idir, "as-is", "source-ledger.md")), ["Nguồn", "Trạng thái"]):
                 if re.search(r"\bplanned\b|⬜", r.get("Trạng thái", ""), re.I):
                     add("FIX", "AP06", "%s ledger %s" % (iid, r.get("#", r.get("Nguồn", "?"))),
                         "TỰ QUYẾT QUA BLOCK #3: nguồn còn 'planned' mà gate đã tự đóng")
@@ -210,6 +212,18 @@ def check(project_dir):
             elif not st.get("wait_until"):
                 add("WARN", "AP10", "%s gate %s" % (iid, gate_open),
                     "gate mở mà không có blocked_by/wait_until — autopilot dừng không lý do")
+
+    # AP12 — quyết bằng DEC mà không đổi file ESC: tower vẫn báo "đang đứng — cần bạn" cho việc đã xong
+    for d in auto:
+        refs = " ".join(sum((d["fields"].get(k, []) for k in ("Quyết định", "Căn cứ", "Hiện ở")), []))
+        for esc in sorted(set(re.findall(r"ESC-\d+", refs))):
+            fm = frontmatter(read(os.path.join(cm, "escalations", esc + ".md")))
+            if not fm:
+                continue
+            if (fm.get("status") or "open") == "open" or not (fm.get("owner") or "").strip():
+                add("FIX", "AP12", "%s → %s" % (d["id"], esc),
+                    "đã quyết bằng DEC nhưng %s vẫn status=%s, owner=%r — đổi trạng thái + ghi mục Chỉ đạo" % (
+                        esc, fm.get("status") or "open", fm.get("owner") or ""))
 
     inbox = lay.get("inbox") or ""
     for p in sorted(glob.glob(os.path.join(inbox, "steer-*.json"))):

@@ -130,7 +130,7 @@ function UnitDrawerBody({ unit, data, intentId, onDoc }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div style={{ fontSize: 15, fontWeight: 650 }}>{unit.name}</div>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        <AChip tone={unit.estimate > 5 ? 'blocked' : 'done'}>{unit.estimate ? unit.estimate.toFixed(1) + 'h' : 'chưa ước lượng'}</AChip>
+        <AChip tone={unit.estimate ? 'done' : 'blocked'}>{unit.estimate ? unit.estimate.toFixed(1) + 'h' : 'chưa ước lượng'}</AChip>
         <AChip tone={unit.stories ? 'done' : 'blocked'}>{unit.stories} user story</AChip>
         <AChip tone={unit.nfrs ? 'done' : 'blocked'}>{unit.nfrs} NFR</AChip>
         <AChip tone={unit.riskCount ? 'done' : 'blocked'}>{unit.riskCount} rủi ro</AChip>
@@ -230,6 +230,7 @@ function App() {
   const [review, setReview] = React.useState(null);   // gate đang được đọc để quyết
   const [viewDoc, setViewDoc] = React.useState(null); // tài liệu đang đọc (không quyết)
   const [focus, setFocus] = React.useState(null);     // thẻ cần cuộn tới sau khi bấm trên sơ đồ
+  const [viewModel, setViewModel] = React.useState(null); // trang mô hình đang mở dạng lớp phủ {intent, doc}
 
   React.useEffect(() => { document.documentElement.setAttribute('data-theme', theme); }, [theme]);
 
@@ -416,7 +417,8 @@ function App() {
         )}
         <div style={{ flex: 1, overflow: 'auto' }}>
           {screen === 'inbox' && <LeadInbox data={data} gates={gates} onOpenGate={openGate} onDoc={openDoc}
-            onAnswer={answer} onBrief={() => setScreen('brief')} onNav={nav} onSteer={steer} focus={focus} />}
+            onAnswer={answer} onBrief={() => setScreen('brief')} onNav={nav} onSteer={steer} focus={focus}
+            onModel={(intent, doc, focusId) => setViewModel({ intent, doc, focusId })} />}
           {screen === 'brief' && <Brief data={data} gates={gates} onInbox={() => setScreen('inbox')} onNav={nav}
             onLookup={k => { setLookupOpen(true); setScreen(typeof k === 'string' ? k : 'mission'); }}
             onOpenIntent={id => { setIntentId(id); setScreen('intent'); }} />}
@@ -434,6 +436,7 @@ function App() {
           {screen === 'intent' && <IntentDetail data={data} intentId={intentId}
             onOpenBolt={() => setScreen('bolt')} onOpenList={() => setScreen('intents')} onSelectIntent={setIntentId}
             onDoc={openDoc} onOpenFlow={() => setScreen('flow')} onNav={nav}
+            onAnswer={answer} onSteer={steer}
             onOpenUnit={u => { setUnitId(u.id); setDrawer({ kind: 'unit', u }); }} />}
           {screen === 'bolt' && <BoltBoard data={data} intentId={intentId} unitId={unitId} onSelectUnit={setUnitId}
             onOpenTask={t => setDrawer({ kind: 'task', t })} onOpenUnit={u => setDrawer({ kind: 'unit', u })}
@@ -445,7 +448,11 @@ function App() {
 
       {review && <GateReview gate={review} doc={(data.docs || {})[review.doc]}
         revisions={(data.revisionsByIntent || {})[review.target] || []}
+        data={data} onAnswer={answer}
         onClose={() => setReview(null)} onDecide={decide} />}
+      {viewModel && window.ModelViewer && <ModelViewer data={data}
+        model={window.modelOf(data, viewModel.intent, viewModel.doc)} focusId={viewModel.focusId}
+        actions={{ onAnswer: answer, onSteer: steer }} onNav={nav} onClose={() => setViewModel(null)} />}
       {viewDoc && <DocViewer doc={viewDoc} onClose={() => setViewDoc(null)} />}
 
       <Drawer open={!!drawer} onClose={() => setDrawer(null)}

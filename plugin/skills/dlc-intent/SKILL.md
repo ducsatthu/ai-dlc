@@ -41,3 +41,5 @@ chỗ ghi "DỪNG" / "KẾT THÚC LƯỢT" đổi thành: orchestrator chạy **
 (có *Chọn / Bỏ / Đảo bằng / Hiện ở*) và **chạy tiếp lệnh kế** trong cùng lượt; block thì ghi `blocked_by` rồi mới dừng.
 Riêng stage 1: Unit Map vượt `max_units_per_intent` hoặc có Unit không `releasable` một lượt ⇒ **cắt phạm vi**
 (tách phần sau sang intent kế, DEC autopilot) trước khi qua Gate A. Lệnh kế: `/ai-dlc:dlc-discover`.
+**Mô hình cho người xem (protocol §2.4, 6.5.0)**: sau bước 7, trước bước 8 — spawn `ai-dlc:dlc-modeler` (HOF riêng) dựng
+`views/intent-plan.view.json`; chạy `human_view_check.py`. Người quyết trên trang mô hình của tower, không đọc 3 phần chữ.
