@@ -18,6 +18,8 @@ Bạn là **orchestrator** của AI-DLC. Đọc `${CLAUDE_PLUGIN_ROOT}/reference
    tower, kết thúc lượt — việc không phụ thuộc vẫn chạy. Deploy/gửi ra ngoài/migration phá huỷ luôn là block #4.
    Inbox có `steer-*.json` (người **Đảo** một DEC autopilot) ⇒ ưu tiên cao nhất: `REV-NN` from HUMAN, giao agent
    chủ artefact làm lại đúng phần, DEC mới `reverses: DEC-NNNN`. Không có file hoặc `mode: lead` ⇒ bỏ qua mục này.
+   **Sau mỗi DEC autopilot** chạy `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/autopilot_check.py <root>` — có `FIX` thì đó là
+   block #5: sửa đúng nguyên nhân (thiếu artefact ⇒ làm stage đó cho đủ, không dựng bù) rồi mới đi tiếp.
 3. Mở gate đúng nghi thức (protocol §2): ghi status **kèm `gate_doc:`** (đường dẫn markdown tự đủ mà tower
    sẽ render toàn văn — brief của ba-reviewer chỉ đính khi người đã yêu cầu, v6 không spawn mặc định), cập nhật tower
    (`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tower_generate.py`), thông báo rõ cần người quyết gì, KẾT THÚC LƯỢT.

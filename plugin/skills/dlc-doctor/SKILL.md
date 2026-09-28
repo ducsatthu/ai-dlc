@@ -109,7 +109,11 @@ Chỉ đọc + báo cáo (sửa gì phải được user đồng ý từng mục
    - NFR không có ngưỡng số hoặc không có cách đo → **WARN**.
 3. **Gate** — `status.md` có `gate_open` mà `gate_doc` null hoặc file không tồn tại → **FIX** (protocol §2.1).
    `revisions/REV-*.md` còn `status: open` quá 2 bản → **WARN** (nên escalation).
-3b. **Autopilot (protocol §2.3, 6.4.0)** — chỉ khi `governance/autopilot.md` có `mode: autopilot`:
+3b. **Autopilot (protocol §2.3, 6.4.0)** — **chạy máy trước, đừng đọc bằng mắt** (6.4.1):
+   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/autopilot_check.py <root>` — in mã `AP01`–`AP11`, thoát 1 khi có FIX. Chép nguyên
+   phát hiện vào báo cáo. Các gạch đầu dòng dưới là **nghĩa** của từng mã; hai mục cuối bảng (hạ tầng review so với trigger
+   §4.17 · diff chạm migration/auth/PII/public API/lệnh deploy) script **chưa** kiểm — vẫn phải soát tay.
+   Chỉ khi `governance/autopilot.md` có `mode: autopilot`:
    - DEC `autopilot` thiếu một trong *Chọn · Bỏ · Đảo bằng · Hiện ở · Block check* → **FIX** (quyết định không đảo được
      là quyết định không được tự ra). *Hiện ở* trỏ mục không tồn tại trong gate_doc → **FIX**.
    - **Bỏ bước**: gate nằm trong `gates_auto` mà artefact của stage đó thiếu (`intent-plan.md` · `source-ledger.md` ·

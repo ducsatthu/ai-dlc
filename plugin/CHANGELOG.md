@@ -5,6 +5,28 @@
 > qua Gate G. 4.1.0 nợ `LL-004` (retro INT-003). Trả bằng: retro INT-003 của PILOT (engine ai-dlc) và retro
 > intent pilot đầu tiên của đội (engine aws-v2). Kế hoạch trả và lát kế tiếp: `docs/plugin-7-policy-layer-plan.md` §6.
 
+## 6.4.1 (2026-09-28) — luật autopilot máy kiểm được + bộ test đầu tiên của gói
+
+**Nguồn**: `docs/plugin-7-policy-layer-plan.md` §7 câu 6 (đã chốt: `tests/` là điều kiện của 7.0.0-a) + nguyên tắc
+§4.15 áp cho chính gói. Patch: không đổi luật, không đổi format — chỉ làm cho luật 6.4.0 **kiểm được bằng máy**.
+
+- `scripts/autopilot_check.py` (stdlib, chỉ đọc, thoát 1 khi có FIX): `AP01` DEC thiếu dòng · `AP02` *Hiện ở* trỏ file
+  không có · `AP03` block check thiếu/`hit` mà vẫn quyết · `AP04` `gates_auto` không có DEC · **`AP05` BỎ BƯỚC** (artefact
+  của gate đã tự đóng thiếu hoặc chỉ là vỏ; Unit thiếu một trong bốn file) · **`AP06` TỰ QUYẾT QUA BLOCK** (câu `CHẶN`
+  còn mở không có mặc định; nguồn còn `planned`) · `AP07` `steer-*` chưa xử lý · `AP08` block > 24h · `AP09` tỷ lệ đảo
+  ngoài 10–30% · `AP10` dừng không lý do · `AP11` DEC autopilot dưới `mode: lead`. `dlc-doctor` 3b và `dlc-orchestrator`
+  2b gọi nó. **Chưa kiểm** (vẫn soát tay): hạ tầng review so với trigger §4.17 · diff chạm migration/auth/PII/deploy.
+- `tests/` — 42 ca, `unittest` stdlib, không thêm phụ thuộc: `python3 -m unittest discover -s tests`.
+  `test_autopilot_check` (22: một ca sạch làm đối chứng, mỗi ca đột biến một thứ và đòi đúng một mã; tài liệu **ngắn vì
+  phạm vi nhỏ** phải qua, **vỏ rỗng** phải bị bắt) · `test_gate_guard` (6: Gate D do autopilot đóng mở guard như do người
+  đóng; state tuỳ biến vẫn chặn) · `test_layout` (10: `layout.py` = `layout.ts` trên 10 kiểu thư mục — thay cho 14 ca
+  chạy tay của 6.3.0) · `test_tower_generate` (4: `data.js` nạp được, SVG có mặt, **escape**, dự án `lead` không có thẻ
+  autopilot, không đẻ `.ai-dlc/` rác).
+- **Test của test** (§4.15): 12 đột biến cố ý vào `autopilot_check.py` · `gate_guard.py` · `layout.py` ·
+  `tower_generate._x` (tắt escape) — **12/12 bị bộ test bắt**.
+- Phát hiện khi viết test: fixture dựng cho tower ở 6.4.0 có `intent-plan.md`/`source-ledger.md` chỉ là vỏ — `AP05` bắt
+  đúng. Fixture đó chỉ để vẽ hình, không phải ca mẫu của một intent chạy đủ.
+
 ## 6.4.0 (2026-09-28) — Autopilot: gate không chờ người, chạy đủ bước, dừng khi block · tower mô hình hoá bằng SVG
 
 **Nguồn: quyết định chủ gói 2026-09-28** (`docs/plugin-7-policy-layer-plan.md` §9 — nguyên ý chỉ thị + bảng trade-off
