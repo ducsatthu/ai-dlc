@@ -63,7 +63,7 @@ function UnitCard({ u, onOpenUnit, onDoc }) {
   );
 }
 
-function IntentDetail({ data, intentId, onOpenBolt, onOpenList, onSelectIntent, onDoc, onOpenUnit, onOpenFlow }) {
+function IntentDetail({ data, intentId, onOpenBolt, onOpenList, onSelectIntent, onDoc, onOpenUnit, onOpenFlow, onNav }) {
   const intent = data.intents.find(x => x.id === intentId) || data.intents[0];
   if (!intent) return <div style={{ padding: 24, color: 'var(--muted)' }}>Chưa có intent nào.</div>;
   const units = data.unitsByIntent[intent.id] || [];
@@ -109,7 +109,12 @@ function IntentDetail({ data, intentId, onOpenBolt, onOpenList, onSelectIntent, 
             </span>
           </span>
         </div>
-        <div style={{ marginTop: 14 }}><StageStrip current={intent.stage} gate={intent.gate} labels /></div>
+        {/* 6.4.0: sơ đồ SVG (stage · gate · phần việc) thay dải stage; data.js cũ chưa có hình thì vẫn dải cũ. */}
+        <div style={{ marginTop: 14 }}>
+          {(data.svg && data.svg.flowByIntent && data.svg.flowByIntent[intent.id])
+            ? <window.SvgFigure svg={data.svg.flowByIntent[intent.id]} onNav={onNav} style={{ maxWidth: 1100 }} />
+            : <StageStrip current={intent.stage} gate={intent.gate} labels />}
+        </div>
       </Panel>
 
       <Panel pad={false}>

@@ -1,6 +1,6 @@
 ---
 name: dlc-intent
-description: Bắt đầu một Intent AI-DLC mới từ yêu cầu của user (stage 1 · Inception) — tạo INT-NNN, snapshot pinned, dựng intent-plan.md hoàn chỉnh (Intent + Source Reading Plan + Provisional Units tự ra được sản phẩm, gọn một phiên), mở Gate A rồi DỪNG chờ duyệt trên Control Tower.
+description: Bắt đầu một Intent AI-DLC mới từ yêu cầu của user (stage 1 · Inception) — tạo INT-NNN, snapshot pinned, dựng intent-plan.md hoàn chỉnh (Intent + Source Reading Plan + Provisional Units tự ra được sản phẩm, gọn một phiên), mở Gate A rồi DỪNG chờ duyệt trên Control Tower. (Autopilot §2.3: không dừng — tự quyết có trade-off, chỉ dừng khi block.)
 ---
 
 Đọc `${CLAUDE_PLUGIN_ROOT}/references/protocol.md` (§1.1, §2.1, §4.8, §4.9). Yêu cầu `.ai-dlc/` đã init
@@ -35,3 +35,9 @@ description: Bắt đầu một Intent AI-DLC mới từ yêu cầu của user (
 9. Mở **Gate A** theo nghi thức protocol §2 — nói rõ với người dùng: mở Control Tower để **đọc toàn văn
    intent-plan.md rồi mới Approve / Yêu cầu chỉnh sửa / Reject**, rồi **KẾT THÚC LƯỢT**.
    Không chạy stage 2 khi chưa có quyết định.
+
+**Autopilot (protocol §2.3, 6.4.0)**: `governance/autopilot.md` có `mode: autopilot` ⇒ mọi bước trên vẫn chạy đủ, artefact đủ mục;
+chỗ ghi "DỪNG" / "KẾT THÚC LƯỢT" đổi thành: orchestrator chạy **block check** → không block thì tự ghi DEC autopilot
+(có *Chọn / Bỏ / Đảo bằng / Hiện ở*) và **chạy tiếp lệnh kế** trong cùng lượt; block thì ghi `blocked_by` rồi mới dừng.
+Riêng stage 1: Unit Map vượt `max_units_per_intent` hoặc có Unit không `releasable` một lượt ⇒ **cắt phạm vi**
+(tách phần sau sang intent kế, DEC autopilot) trước khi qua Gate A. Lệnh kế: `/ai-dlc:dlc-discover`.

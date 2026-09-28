@@ -229,6 +229,7 @@ function App() {
   const [toast, setToast] = React.useState(null);
   const [review, setReview] = React.useState(null);   // gate đang được đọc để quyết
   const [viewDoc, setViewDoc] = React.useState(null); // tài liệu đang đọc (không quyết)
+  const [focus, setFocus] = React.useState(null);     // thẻ cần cuộn tới sau khi bấm trên sơ đồ
 
   React.useEffect(() => { document.documentElement.setAttribute('data-theme', theme); }, [theme]);
 
@@ -304,6 +305,50 @@ function App() {
     }).catch(() => { say('Không nối được server — tower đang mở dạng file tĩnh hoặc server đã tắt; chạy /ai-dlc:dlc-tower serve'); return false; });
   };
 
+  /* Đảo một quyết định AI đã tự ghi → POST /steer → .ai-dlc/inbox/steer-*.json (protocol §2.3.6).
+     `previewed: true` vì thẻ đã hiện Chọn / Bỏ / Đảo bằng ngay trước nút; server chặn nếu thiếu. */
+  const steer = payload => {
+    const token = new URLSearchParams(location.search).get('token') || '';
+    return fetch('/steer?token=' + encodeURIComponent(token), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'steer', dec: payload.dec, intent: payload.intent || '', note: payload.note, previewed: true })
+    }).then(r => {
+      if (r.ok) {
+        say('Đã gửi yêu cầu đảo ' + payload.dec + ' — đội làm lại đúng phần đó rồi ghi quyết định mới; phiên đã đóng thì /ai-dlc:dlc-resume là nó drain', 6000);
+        return true;
+      }
+      if (r.status === 403) say('Thiếu/sai token — mở lại tower bằng đúng URL có ?token=… (in ở terminal khi chạy /ai-dlc:dlc-tower serve)');
+      else r.json().then(j => say('Server từ chối (' + r.status + '): ' + (j.error || ''), 6000)).catch(() => say('Server từ chối (' + r.status + ')', 6000));
+      return false;
+    }).catch(() => { say('Không nối được server — tower đang mở dạng file tĩnh hoặc server đã tắt; chạy /ai-dlc:dlc-tower serve'); return false; });
+  };
+
+  /* Bấm một hộp / hình thoi / viên Unit trên sơ đồ SVG. Hình chỉ mang địa chỉ `data-nav="<loại>:<đích>"`
+     (generator ghi); đi đâu là việc của chỗ này. */
+  const nav = target => {
+    const t = String(target || '');
+    const cut = t.indexOf(':');
+    const kind = t.slice(0, cut), arg = t.slice(cut + 1);
+    if (kind === 'doc') openDoc(arg);
+    else if (kind === 'gate') {
+      const g = gates.find(x => x.key === arg);
+      if (g) setReview(g); else say('Gate này vừa đóng hoặc bạn đã gửi quyết định — không còn gì để quyết');
+    } else if (kind === 'unit') {
+      const [iid, uid] = arg.split(':');
+      const u = ((data.unitsByIntent || {})[iid] || []).find(x => x.id === uid);
+      if (u) { setIntentId(iid); setUnitId(uid); setDrawer({ kind: 'unit', u }); }
+    } else if (kind === 'screen') {
+      const [name, iid] = arg.split(':');
+      if (!SCREENS.includes(name)) return;
+      if (iid && data.intents.some(i => i.id === iid)) setIntentId(iid);
+      setLookupOpen(true); setScreen(name);
+    } else if (kind === 'dec') {
+      const live = window.autoDecisions ? window.autoDecisions(data) : [];
+      if (live.some(d => d.id === arg)) { setScreen('inbox'); setFocus({ id: arg, n: Date.now() }); }
+      else openDoc('context-memory/governance/decisions-log.md');
+    }
+  };
+
   const openGate = (gateOrLetter) => {
     const g = typeof gateOrLetter === 'string'
       ? gates.find(x => x.gate === gateOrLetter && x.target === intentId)
@@ -371,8 +416,8 @@ function App() {
         )}
         <div style={{ flex: 1, overflow: 'auto' }}>
           {screen === 'inbox' && <LeadInbox data={data} gates={gates} onOpenGate={openGate} onDoc={openDoc}
-            onAnswer={answer} onBrief={() => setScreen('brief')} />}
-          {screen === 'brief' && <Brief data={data} gates={gates} onInbox={() => setScreen('inbox')}
+            onAnswer={answer} onBrief={() => setScreen('brief')} onNav={nav} onSteer={steer} focus={focus} />}
+          {screen === 'brief' && <Brief data={data} gates={gates} onInbox={() => setScreen('inbox')} onNav={nav}
             onLookup={k => { setLookupOpen(true); setScreen(typeof k === 'string' ? k : 'mission'); }}
             onOpenIntent={id => { setIntentId(id); setScreen('intent'); }} />}
           {screen === 'mission' && <MissionControl data={data} gates={gates} onOpenGate={openGate}
@@ -388,7 +433,7 @@ function App() {
           {screen === 'intents' && <IntentList data={data} onOpenIntent={id => { setIntentId(id); setScreen('intent'); }} />}
           {screen === 'intent' && <IntentDetail data={data} intentId={intentId}
             onOpenBolt={() => setScreen('bolt')} onOpenList={() => setScreen('intents')} onSelectIntent={setIntentId}
-            onDoc={openDoc} onOpenFlow={() => setScreen('flow')}
+            onDoc={openDoc} onOpenFlow={() => setScreen('flow')} onNav={nav}
             onOpenUnit={u => { setUnitId(u.id); setDrawer({ kind: 'unit', u }); }} />}
           {screen === 'bolt' && <BoltBoard data={data} intentId={intentId} unitId={unitId} onSelectUnit={setUnitId}
             onOpenTask={t => setDrawer({ kind: 'task', t })} onOpenUnit={u => setDrawer({ kind: 'unit', u })}

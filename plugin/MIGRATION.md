@@ -1,5 +1,22 @@
 # MIGRATION — ai-dlc
 
+## 6.3.0 → 6.4.0 — autopilot (opt-in, không đổi luật cho dự án đang chạy)
+
+**Không làm gì ⇒ không đổi gì.** Dự án không có `governance/autopilot.md` chạy `mode: lead` = luật 6.3.0.
+
+Bật autopilot cho dự án đang chạy (≤ 10 phút):
+1. Copy `templates/autopilot.md` vào `.ai-dlc/context-memory/governance/autopilot.md`, giữ `mode: autopilot`.
+   Muốn có khoảng đệm cho người: `wait_hours: 4`.
+2. Ghi một DEC tay: "bật autopilot từ <ngày>, gate đang mở <X> xử lý theo §2.3" — gate **đang mở** lúc bật vẫn chạy
+   block check như gate mới; DEC của người đã ghi trước đó không bị đụng.
+3. Intent đang giữa stage 6 (nhiều Unit): autopilot áp cho Gate E của Unit **chưa** vào bolt; Unit đang dở giữ luật cũ
+   tới khi đóng bolt hiện tại.
+4. Rà `open-questions-*.md`: câu `CHẶN` nào thật ra có mặc định khả thi và đảo rẻ ⇒ đổi *Ảnh hưởng*, nếu không
+   autopilot sẽ dừng ở đó. Câu đảo đắt (dữ liệu, public API, auth/PII, tiền) **giữ `CHẶN`**.
+5. Khởi động lại `/ai-dlc:dlc-tower serve` để có route *Đảo* và SVG.
+
+Tắt: đổi `mode: lead`. DEC autopilot đã ghi vẫn hợp lệ; muốn rà lại thì `dlc-doctor` mục 3b.
+
 ## 6.2.0 → 6.3.0 — lớp chính sách trên engine AWS v2 + layout resolver (additive, không đổi luật gate)
 
 **Dự án `.ai-dlc/` hiện có: không phải làm gì.** Mọi thứ mới (`hooks/aws_v2_write_receipt.ts`,

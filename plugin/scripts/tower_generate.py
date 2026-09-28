@@ -1321,6 +1321,681 @@ def unit_stops(intent_id, u, passed, gate_open, qs):
     return out
 
 
+# ---------- SVG: mô hình hoá thay cho chữ (6.4.0 — yêu cầu chủ gói 2026-09-28) ----------
+# Sinh server-side thành CHUỖI, nhúng vào data.js: không thư viện JS, không CDN. Màu đi bằng biến CSS
+# của tower (`var(--ok)`…) nên cùng một chuỗi đọc được ở cả dark lẫn light. Mọi chữ lấy từ hồ sơ đều
+# đi qua `_x()` trước khi vào SVG — UI chèn chuỗi này bằng innerHTML.
+SVG_CSS = """
+.ct-svg{display:block;max-width:100%;overflow-x:auto}
+.ct-svg svg{display:block;width:100%;height:auto;font-family:var(--sans)}
+.ct-svg text{fill:var(--ink)}
+.ct-svg .mono{font-family:var(--mono)}
+.ct-svg .cap{font-family:var(--mono);letter-spacing:.12em}
+.ct-svg .t-muted{fill:var(--muted)}
+.ct-svg .t-done{fill:var(--ok)}
+.ct-svg .t-open{fill:var(--accent)}
+.ct-svg .t-blocked{fill:var(--danger)}
+.ct-svg .t-active{fill:var(--blue)}
+.ct-svg .sh{fill:var(--surface);stroke:var(--line);stroke-width:1.4}
+.ct-svg .sh.pending{fill:transparent;stroke:var(--line)}
+.ct-svg .sh.done{fill:var(--ok-bg);stroke:var(--ok)}
+.ct-svg .sh.auto{fill:var(--ok-bg);stroke:var(--ok);stroke-dasharray:4 3}
+.ct-svg .sh.active{fill:var(--blue-bg);stroke:var(--blue);stroke-width:1.9}
+.ct-svg .sh.open{fill:var(--accent-bg);stroke:var(--accent);stroke-width:2;animation:cts-pulse 1800ms ease-in-out infinite}
+.ct-svg .sh.lg-open{fill:var(--accent-bg);stroke:var(--accent)}
+.ct-svg .sh.blocked{fill:var(--danger-bg);stroke:var(--danger);stroke-width:2.3}
+.ct-svg .sh.rec{fill:var(--blue-bg);stroke:var(--blue);stroke-width:2.6}
+.ct-svg .sh.silent{stroke-dasharray:6 4}
+.ct-svg .sh.undo{fill:var(--accent-bg);stroke:var(--accent);stroke-dasharray:6 4}
+.ct-svg .sh.band{fill:transparent;stroke:var(--line);stroke-dasharray:2 4}
+.ct-svg .pill{fill:var(--surface-2);stroke:none}
+.ct-svg .pill.rec{fill:var(--blue)}
+.ct-svg .pill.ok{fill:var(--ok-bg);stroke:var(--ok)}
+.ct-svg .pill.bad{fill:var(--danger-bg);stroke:var(--danger)}
+.ct-svg .pill.silent{fill:transparent;stroke:var(--muted);stroke-dasharray:4 3}
+.ct-svg .t-on-rec{fill:var(--on-accent)}
+.ct-svg .ln{stroke:var(--line);stroke-width:1.4;fill:none}
+.ct-svg .ln.done{stroke:var(--ok)}
+.ct-svg .ln.rec{stroke:var(--blue);stroke-width:2.2}
+.ct-svg .ln.silent{stroke-dasharray:6 4}
+.ct-svg .ah{fill:var(--line);stroke:none}
+.ct-svg .ah.done{fill:var(--ok)}
+.ct-svg .nav{cursor:pointer}
+.ct-svg .nav:hover .sh,.ct-svg .nav:focus-visible .sh{stroke-width:3}
+.ct-svg .nav:focus{outline:none}
+@keyframes cts-pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@media (prefers-reduced-motion:reduce){.ct-svg .sh.open{animation:none}}
+"""
+
+STAGE_NAMES = ["Inception", "Discovery", "Validation", "Clarify", "Units",
+               "Construction", "Acceptance", "Operations"]
+# Gate nằm SAU stage nào (protocol §2). Gate E không nằm giữa hai stage: nó ở TRONG mỗi Bolt của stage 6.
+GATE_AFTER_STAGE = {1: "A", 3: "B", 4: "C", 5: "D", 7: "F", 8: "G"}
+STAGE_DOCS = {1: ("intent-plan.md", "intent.md"), 2: ("as-is/static-model.md", "as-is/source-ledger.md"),
+              3: ("as-is/source-ledger.md",), 4: ("open-questions-business.md", "open-questions.md"),
+              5: ("unit-plan.md",), 7: ("acceptance.md",)}
+STAGE_SCREEN = {6: "bolt", 8: "gov"}
+GATE_CAPTION = {"auto": "tự quyết", "open": "chờ bạn", "blocked": "đang đứng"}
+
+
+def _x(s):
+    return (str("" if s is None else s).replace("&", "&amp;").replace("<", "&lt;")
+            .replace(">", "&gt;").replace('"', "&quot;").replace("'", "&#39;"))
+
+
+def _n(v):
+    s = "%.1f" % float(v)
+    return s[:-2] if s.endswith(".0") else s
+
+
+def _plain(s):
+    """Bỏ markdown inline — SVG không render markdown, để nguyên thì người đọc thấy dấu sao."""
+    s = re.sub(r"<!--.*?-->", "", str(s or ""), flags=re.S)
+    s = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", s)
+    s = re.sub(r"[*`]", "", s)
+    return re.sub(r"\s+", " ", s).strip()
+
+
+def _tw(s, size, mono=False):
+    """Ước lượng bề rộng chữ (px). Python không đo được font thật nên ước DƯ một chút: thà xuống dòng
+    sớm còn hơn chữ tràn khỏi hộp."""
+    if mono:
+        return len(s) * size * 0.62
+    w = 0.0
+    for ch in s:
+        if ch in "iljtfrI.,:;'|!·()[] ":
+            w += 0.32
+        elif ch in "mwMW@—…%":
+            w += 0.9
+        elif ch.isupper() or ch.isdigit():
+            w += 0.66
+        else:
+            w += 0.56
+    return w * size
+
+
+def _clip(s, max_px, size, mono=False):
+    s = _plain(s)
+    if _tw(s, size, mono) <= max_px:
+        return s
+    while s and _tw(s + "…", size, mono) > max_px:
+        s = s[:-1]
+    return s.rstrip() + "…"
+
+
+def _wrap(text, max_px, size, max_lines=2):
+    """Xuống dòng theo từ; quá `max_lines` thì cắt bằng dấu ba chấm (chữ đầy đủ vẫn nằm trong <title>
+    của hình và trong khối gấp bên dưới thẻ)."""
+    lines, cur = [], ""
+    for w in _plain(text).split(" "):
+        if not w:
+            continue
+        trial = (cur + " " + w).strip()
+        if not cur or _tw(trial, size) <= max_px:
+            cur = trial
+        else:
+            lines.append(cur)
+            cur = w
+    if cur:
+        lines.append(cur)
+    cut = len(lines) > max_lines
+    lines = [_clip(l, max_px, size) for l in lines[:max_lines]]
+    if cut and lines and not lines[-1].endswith("…"):
+        lines[-1] = _clip(lines[-1] + " …", max_px, size) if _tw(lines[-1] + " …", size) <= max_px \
+            else _clip(lines[-1] + "……", max_px, size)
+    return lines
+
+
+def _text(x, y, s, size=12, cls="", anchor="start", weight=None):
+    return '<text x="%s" y="%s" font-size="%s"%s%s%s>%s</text>' % (
+        _n(x), _n(y), _n(size),
+        ' text-anchor="%s"' % anchor if anchor != "start" else "",
+        ' font-weight="%s"' % weight if weight else "",
+        ' class="%s"' % cls if cls else "", _x(s))
+
+
+def _rect(x, y, w, h, cls, rx=6):
+    return '<rect x="%s" y="%s" width="%s" height="%s" rx="%s" class="%s"/>' % (
+        _n(x), _n(y), _n(w), _n(h), _n(rx), cls)
+
+
+def _nav(target, title, inner):
+    """Nhóm bấm được. `data-nav` là địa chỉ để UI nhảy tới (doc: · gate: · unit: · dec: · screen: · pick:)."""
+    if not target:
+        return "<g><title>%s</title>%s</g>" % (_x(title), inner)
+    return '<g class="nav" data-nav="%s" tabindex="0" role="link"><title>%s</title>%s</g>' % (
+        _x(target), _x(title), inner)
+
+
+def _svg(w, h, body, label):
+    return ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %s %s" role="img" aria-label="%s">%s</svg>'
+            % (_n(w), _n(h), _x(label), "".join(body)))
+
+
+def svg_intent_flow(intent_id, base, stage, passed, gate_open, gates_auto, blocked_by, units,
+                    dec_of_gate=None, show_auto_legend=False):
+    """Một hình cho một intent: 8 stage theo hàng ngang, gate là hình thoi ĐÚNG chỗ protocol §2 đặt nó
+    (A sau 1 · B sau 3 · C sau 4 · D sau 5 · E trong stage 6 · F sau 7 · G sau 8), dưới stage 6 là hàng Unit."""
+    W, BW, BH, GAP, X0, R = 960, 80, 46, 38, 8, 14
+    dec_of_gate = dec_of_gate or {}
+    passed_l = {p.strip()[:1].upper() for p in passed if p.strip()}
+    auto_l = {p.strip()[:1].upper() for p in gates_auto if p.strip()}
+    open_l = gate_open[:1] if gate_open and gate_open != "escalation" else ""
+
+    def stage_state(s):
+        if s < stage:
+            return "done"
+        if s == stage:
+            return "done" if (stage >= 8 and not gate_open and "G" in passed_l) else "active"
+        return "pending"
+
+    def gate_state(g):
+        if open_l == g:
+            return "blocked" if blocked_by else "open"
+        if g in auto_l:
+            return "auto"
+        if g in passed_l or (g == "E" and stage > 6):
+            return "done"
+        return "pending"
+
+    def gate_nav(g, state):
+        if state in ("open", "blocked"):
+            return "gate:g-%s-%s" % (intent_id, g)
+        if state in ("done", "auto") and dec_of_gate.get(g):
+            return "dec:" + dec_of_gate[g]
+        return None
+
+    def diamond(cx, cy, g):
+        state = gate_state(g)
+        tip = {"done": "đã qua", "auto": "AI đã tự quyết — bấm để xem và đảo nếu cần",
+               "open": "đang chờ bạn quyết", "blocked": "đang đứng: " + _plain(blocked_by),
+               "pending": "chưa tới"}[state]
+        pts = "%s,%s %s,%s %s,%s %s,%s" % (_n(cx), _n(cy - R), _n(cx + R), _n(cy), _n(cx), _n(cy + R),
+                                          _n(cx - R), _n(cy))
+        inner = '<polygon points="%s" class="sh %s"/>' % (pts, state)
+        inner += _text(cx, cy + 4, g, 11, "mono" + ("" if state != "pending" else " t-muted"), "middle", 700)
+        return state, _nav(gate_nav(g, state), "Gate %s — %s" % (g, tip), inner)
+
+    body, y = [], 0
+    if blocked_by and open_l:
+        body.append(_rect(X0, 4, W - 2 * X0, 26, "sh blocked", 5))
+        body.append(_text(X0 + 12, 21, _clip("■ Đang đứng ở Gate %s — %s" % (open_l, _plain(blocked_by)),
+                                             W - 2 * X0 - 24, 12), 12, "t-blocked", weight=650))
+        y = 34
+    # băng ba pha
+    xs = [X0 + i * (BW + GAP) for i in range(8)]
+    for label, a, b in (("INCEPTION", 0, 4), ("CONSTRUCTION", 5, 5), ("OPERATIONS", 6, 7)):
+        body.append(_text((xs[a] + xs[b] + BW) / 2, y + 12, label, 9, "cap t-muted", "middle"))
+        body.append('<line x1="%s" y1="%s" x2="%s" y2="%s" class="ln"/>' % (
+            _n(xs[a]), _n(y + 17), _n(xs[b] + BW), _n(y + 17)))
+    top = y + 26
+    cy = top + BH / 2
+    for i in range(8):
+        s = i + 1
+        state = stage_state(s)
+        x = xs[i]
+        target = None
+        for rel in STAGE_DOCS.get(s, ()):
+            if os.path.isfile(os.path.join(base, rel)):
+                target = "doc:" + os.path.relpath(os.path.join(base, rel), A)
+                break
+        if not target and s in STAGE_SCREEN:
+            target = "screen:%s:%s" % (STAGE_SCREEN[s], intent_id)
+        inner = _rect(x, top, BW, BH, "sh " + state, 7)
+        inner += _text(x + 8, top + 14, str(s), 9.5, "mono t-muted")
+        if state == "done":
+            inner += _text(x + BW - 8, top + 14, "✓", 10, "t-done", "end", 700)
+        inner += _text(x + BW / 2, top + 32, STAGE_NAMES[i], 11.5,
+                       "t-muted" if state == "pending" else "", "middle", 650 if state == "active" else 500)
+        tip = {"done": "đã xong", "active": "đang ở đây", "pending": "chưa tới"}[state]
+        body.append(_nav(target, "Stage %d · %s — %s" % (s, STAGE_NAMES[i], tip), inner))
+        # đoạn nối sang stage kế (hoặc tới gate G sau stage 8)
+        g = GATE_AFTER_STAGE.get(s)
+        x1, x2 = x + BW, x + BW + GAP
+        ln = "ln done" if s < stage else "ln"
+        ah = "ah done" if s < stage else "ah"
+        if g:
+            gx = x1 + GAP / 2
+            gstate, gsvg = diamond(gx, cy, g)
+            body.append('<line x1="%s" y1="%s" x2="%s" y2="%s" class="%s"/>' % (
+                _n(x1), _n(cy), _n(gx - R), _n(cy), ln))
+            if s < 8:
+                body.append('<line x1="%s" y1="%s" x2="%s" y2="%s" class="%s"/>' % (
+                    _n(gx + R), _n(cy), _n(x2 - 4), _n(cy), ln))
+            body.append(gsvg)
+            if gstate in GATE_CAPTION:
+                body.append(_text(gx, top + BH + 12, GATE_CAPTION[gstate], 9,
+                                  {"auto": "t-done", "open": "t-open", "blocked": "t-blocked"}[gstate],
+                                  "middle", 650))
+        elif s < 8:
+            body.append('<line x1="%s" y1="%s" x2="%s" y2="%s" class="%s"/>' % (
+                _n(x1), _n(cy), _n(x2 - 4), _n(cy), ln))
+        if s < 8:
+            body.append('<polygon points="%s,%s %s,%s %s,%s" class="%s"/>' % (
+                _n(x2 - 5), _n(cy - 3.5), _n(x2), _n(cy), _n(x2 - 5), _n(cy + 3.5), ah))
+    # gate E + hàng Unit dưới stage 6
+    ex, ey = xs[5] + BW / 2, top + BH + 30
+    estate, esvg = diamond(ex, ey, "E")
+    body.append('<line x1="%s" y1="%s" x2="%s" y2="%s" class="ln"/>' % (_n(ex), _n(top + BH), _n(ex), _n(ey - R)))
+    body.append(esvg)
+    body.append(_text(ex + R + 7, ey + 3.5, "trong mỗi vòng xây" +
+                      (" · " + GATE_CAPTION[estate] if estate in GATE_CAPTION else ""), 9,
+                      {"auto": "t-done", "open": "t-open", "blocked": "t-blocked"}.get(estate, "t-muted")))
+    live = [u for u in units if not u.get("descoped")]
+    n_done = sum(1 for u in live if u["status"] == "done")
+    by = ey + R + 12
+    body.append('<line x1="%s" y1="%s" x2="%s" y2="%s" class="ln"/>' % (_n(ex), _n(ey + R), _n(ex), _n(by)))
+    PW, PH, PG = 66, 20, 8
+    per_row = max(1, int((W - 2 * X0 - 20 + PG) // (PW + PG)))
+    rows = (len(live) + per_row - 1) // per_row
+    bh = 28 + max(1, rows) * (PH + 6) + 4
+    body.append(_rect(X0, by, W - 2 * X0, bh, "sh band", 8))
+    body.append(_text(X0 + 12, by + 17, "PHẦN VIỆC (UNIT) · %d/%d XONG" % (n_done, len(live)) if live
+                      else "PHẦN VIỆC (UNIT)", 9, "cap t-muted"))
+    if not live:
+        body.append(_text(X0 + 12, by + 40, "Chưa có phần việc nào — chia ở stage 5, duyệt tại Gate D.",
+                          11.5, "t-muted"))
+    for i, u in enumerate(live):
+        ust = "done" if u["status"] == "done" else ("active" if u["status"] == "in-bolt" else "pending")
+        px = X0 + 12 + (i % per_row) * (PW + PG)
+        py = by + 26 + (i // per_row) * (PH + 6)
+        inner = _rect(px, py, PW, PH, "sh " + ust, 10)
+        inner += _text(px + PW / 2, py + 14, u["id"], 10, "mono" + (" t-muted" if ust == "pending" else ""),
+                       "middle")
+        word = {"done": "đã xong", "active": "đang xây", "pending": "chưa làm"}[ust]
+        body.append(_nav("unit:%s:%s" % (intent_id, u["id"]),
+                         "%s · %s — %s" % (u["id"], _plain(u.get("name") or ""), word), inner))
+    # chú giải — mục "tự quyết" chỉ hiện khi dự án thật sự có autopilot
+    ly = by + bh + 18
+    legend = [("done", "đã xong")] + ([("auto", "AI tự quyết")] if show_auto_legend or auto_l else []) + \
+             [("open", "chờ bạn"), ("blocked", "đang đứng"), ("active", "đang làm"), ("pending", "chưa tới")]
+    lx = X0 + 2
+    for cls, label in legend:
+        # ô chú giải của "chờ bạn" dùng lớp riêng: cùng màu nhưng KHÔNG nhấp nháy
+        body.append(_rect(lx, ly - 9, 14, 10, "sh " + ("lg-open" if cls == "open" else cls), 2))
+        body.append(_text(lx + 19, ly, label, 10, "t-muted"))
+        lx += 19 + _tw(label, 10) + 22
+    words = "stage %d/8 (%s)" % (stage, STAGE_NAMES[max(1, min(8, stage)) - 1])
+    if open_l:
+        words += ", gate %s %s" % (open_l, "đang đứng: " + _plain(blocked_by) if blocked_by else "đang chờ bạn")
+    return _svg(W, ly + 10, body, "Sơ đồ các bước của %s — %s, %d/%d phần việc xong"
+                % (intent_id, words, n_done, len(live)))
+
+
+# ----- cây lựa chọn của một câu hỏi -----
+def parse_question_details(base):
+    """Thẻ `### OQB-NN` / `### OQT-NN` của hai file câu hỏi → {mã: chi tiết}.
+
+    `parse_questions` chỉ đọc bảng điều phối (mục 0) nên không biết các phương án. Ở đây đọc phần thẻ:
+    bảng "Chọn một" (nhận cột theo TÊN, dùng lại `md_tables` + `col_of`), dòng "AI đề xuất" và
+    "Nếu không trả lời trước hạn"."""
+    out = {}
+    for _aud, fname, _label in OQ_FILES:
+        txt = read(os.path.join(base, fname))
+        if not txt.strip():
+            continue
+        for m in re.finditer(r"^###\s*(OQ[BT]?-\d+)\s*[·:—–-]?\s*([^\n]*)\n(.*?)(?=^#{1,3}\s|^---\s*$|\Z)",
+                             txt, re.S | re.M):
+            code, title, blk = m.group(1), _plain(m.group(2)), m.group(3)
+            if code in out:
+                continue
+
+            def field(label, _blk=blk):
+                mm = re.search(r"\*\*" + label + r"\*\*\s*(?:\([^)]*\))?\s*:\s*(.+?)"
+                               r"(?=\s+·\s+\*\*|\n\s*-\s+\*\*|\n\s*\n|\n\*\*|\Z)", _blk, re.S)
+                return _plain(mm.group(1)) if mm else ""
+
+            options = []
+            for _h, header, rows in md_tables(blk):
+                ci = col_of(header, r"phương án|phuong an")
+                if ci < 0:
+                    continue
+                c_mean = col_of(header, r"nghĩa là|nghia la|hệ quả|he qua")
+                c_cost = col_of(header, r"cái giá|cai gia|chi phí|chi phi|giá\b")
+                c_risk = col_of(header, r"rủi ro|rui ro")
+                for cells in rows:
+                    raw = _plain(cells[ci]) if ci < len(cells) else ""
+                    if not raw or raw.startswith("<") or raw in ("…", "..."):
+                        continue
+                    km = re.match(r"^([A-Z])[.):]\s*(.*)$", raw)
+
+                    def cell(i, _c=cells):
+                        return _plain(_c[i]) if 0 <= i < len(_c) else ""
+                    options.append({"key": km.group(1) if km else "",
+                                    "name": (km.group(2) if km else raw).strip(),
+                                    "meaning": cell(c_mean), "cost": cell(c_cost), "risk": cell(c_risk)})
+                break
+            rec = field("AI đề xuất")
+            silent = field("Nếu không trả lời trước hạn")
+            out[code] = {"code": code, "title": title, "who": field("Ai trả lời"), "due": field("Hạn"),
+                         "impact": field("Ảnh hưởng"), "context": field("Bối cảnh"),
+                         "options": options[:6], "recommend": rec, "silent": silent,
+                         "checked": field("Đã soát mà không thấy đáp án")}
+    return out
+
+
+def _pick_option(text, options, lead_only=False):
+    """Câu "AI đề xuất: B — …" / "đi theo phương án A, ghi [ASSUMED]" trỏ vào phương án nào.
+    Không đoán: không nhận ra thì trả "" và hình không tô phương án nào."""
+    t = _plain(text)
+    if not t or not options:
+        return ""
+    keys = {o["key"] for o in options if o["key"]}
+    m = re.match(r"^([A-Z])(?![\w])", t)
+    if m and m.group(1) in keys:
+        return m.group(1)
+    if not lead_only:
+        m = re.search(r"(?:phương án|phuong an|theo|chọn|chon|áp|giữ)\s+(?:phương án\s+)?([A-Z])(?![\w])", t)
+        if m and m.group(1) in keys:
+            return m.group(1)
+    low = t.lower()
+    hits = [o for o in options if len(o["name"]) >= 4 and o["name"].lower() in low]
+    if len(hits) == 1:
+        return hits[0]["key"] or hits[0]["name"]
+    return ""
+
+
+def svg_question_tree(q, d):
+    """Nút gốc = câu hỏi rút gọn; mỗi nhánh = một phương án kèm cái giá; phương án AI đề xuất tô đậm;
+    phương án áp khi im lặng viền nét đứt; hạn + người trả lời ở góc phải trên."""
+    opts = d.get("options") or []
+    if len(opts) < 2:
+        return None, {}
+    W, RX, RW, OX = 760, 10, 232, 300
+    OW = W - OX - 10
+    rec = _pick_option(d.get("recommend"), opts, lead_only=False)
+    fallback_txt = d.get("silent") or q.get("fallback") or ""
+    sil = _pick_option(fallback_txt, opts)
+
+    def okey(o):
+        return o["key"] or o["name"]
+
+    body = []
+    head = q.get("code") or d.get("code") or ""
+    impact = _plain(q.get("impact") or d.get("impact") or "")
+    body.append(_text(RX, 15, head, 11, "mono", weight=700))
+    if impact:
+        body.append(_text(RX + _tw(head, 11, True) + 10, 15, _clip(impact, 190, 10.5), 10.5,
+                          "t-blocked" if q.get("blocking") else "t-muted", weight=650 if q.get("blocking") else None))
+    who = _plain(q.get("who") or d.get("who") or "")
+    due = _plain(q.get("due") or d.get("due") or "")
+    corner = " · ".join(x for x in (("Hạn: " + due) if due else "", ("Trả lời: " + who) if who else "") if x)
+    if corner:
+        body.append(_text(W - 10, 15, _clip(corner, 440, 10.5), 10.5, "t-muted", "end"))
+
+    # đo từng nhánh trước, rồi mới đặt nút gốc vào giữa
+    y, boxes = 28, []
+    for o in opts:
+        is_rec, is_sil = okey(o) == rec and bool(rec), okey(o) == sil and bool(sil)
+        badge_w = (74 if is_rec else 0) + (82 if is_sil else 0) + (6 if is_rec and is_sil else 0)
+        name_l = _wrap(o["name"], OW - 52 - badge_w - (10 if badge_w else 0), 12.5, 2)
+        mean_l = _wrap(o["meaning"], OW - 56, 11.5, 2) if o["meaning"] else []
+        cost = " · ".join(x for x in (("giá: " + o["cost"]) if o["cost"] else "",
+                                       ("rủi ro: " + o["risk"]) if o["risk"] else "") if x)
+        h = 14 + 16 * len(name_l) + 15 * len(mean_l) + (17 if cost else 0) + 6
+        boxes.append((o, y, max(h, 40), name_l, mean_l, cost, is_rec, is_sil))
+        y += max(h, 40) + 10
+    note = None
+    if fallback_txt and not sil:
+        note_l = _wrap("Nếu im lặng: " + fallback_txt, OW - 28, 11.5, 2)
+        note = (y, 14 + 15 * len(note_l), note_l)
+        y += note[1] + 10
+    bottom = y - 10
+    q_lines = _wrap(d.get("title") or q.get("q") or "", RW - 24, 12.5, 5)
+    rh = 30 + 17 * len(q_lines)
+    total = max(bottom, 28 + rh)
+    ry = 28 + (total - 28 - rh) / 2
+    rcy = ry + rh / 2
+    inner = _rect(RX, ry, RW, rh, "sh active", 8)
+    inner += _text(RX + 12, ry + 16, "CÂU HỎI", 9, "cap t-muted")
+    for i, l in enumerate(q_lines):
+        inner += _text(RX + 12, ry + 34 + 17 * i, l, 12.5, weight=600)
+    body.append(_nav(None, d.get("title") or q.get("q") or "", inner))
+
+    def branch(y_mid, cls):
+        x1, x2 = RX + RW, OX
+        xm = (x1 + x2) / 2
+        return '<path d="M%s %s C%s %s %s %s %s %s" class="%s"/>' % (
+            _n(x1), _n(rcy), _n(xm), _n(rcy), _n(xm), _n(y_mid), _n(x2), _n(y_mid), cls)
+
+    for o, oy, oh, name_l, mean_l, cost, is_rec, is_sil in boxes:
+        body.append(branch(oy + oh / 2, "ln" + (" rec" if is_rec else "") + (" silent" if is_sil else "")))
+        cls = "sh" + (" rec" if is_rec else "") + (" silent" if is_sil else "")
+        inner = _rect(OX, oy, OW, oh, cls, 8)
+        if o["key"]:
+            inner += '<circle cx="%s" cy="%s" r="11" class="%s"/>' % (
+                _n(OX + 22), _n(oy + 21), "pill rec" if is_rec else "pill")
+            inner += _text(OX + 22, oy + 25, o["key"], 11.5, "mono" + (" t-on-rec" if is_rec else ""), "middle", 700)
+        tx = OX + (44 if o["key"] else 14)
+        ty = oy + 22
+        for l in name_l:
+            inner += _text(tx, ty, l, 12.5, weight=700 if is_rec else 600)
+            ty += 16
+        for l in mean_l:
+            inner += _text(tx, ty, l, 11.5, "t-muted")
+            ty += 15
+        if cost:
+            inner += _text(tx, ty + 1, _clip(cost, OW - 56, 11, True), 11, "mono t-open")
+        bx = OX + OW - 10
+        if is_sil:
+            inner += _rect(bx - 82, oy + 9, 82, 18, "pill silent", 9)
+            inner += _text(bx - 41, oy + 21.5, "nếu im lặng", 9.5, "t-muted", "middle", 650)
+            bx -= 88
+        if is_rec:
+            inner += _rect(bx - 74, oy + 9, 74, 18, "pill rec", 9)
+            inner += _text(bx - 37, oy + 21.5, "AI đề xuất", 9.5, "t-on-rec", "middle", 700)
+        tip = "%s%s%s%s — bấm để điền vào ô trả lời" % (
+            (o["key"] + ". ") if o["key"] else "", o["name"],
+            (" · giá: " + o["cost"]) if o["cost"] else "",
+            (" · AI đề xuất" if is_rec else "") + (" · áp khi bạn im lặng" if is_sil else ""))
+        body.append(_nav("pick:" + okey(o), tip, inner))
+    if note:
+        ny, nh, note_l = note
+        body.append(branch(ny + nh / 2, "ln silent"))
+        inner = _rect(OX, ny, OW, nh, "sh silent", 8)
+        for i, l in enumerate(note_l):
+            inner += _text(OX + 14, ny + 19 + 15 * i, l, 11.5, "t-muted")
+        body.append(_nav(None, "Nếu im lặng: " + _plain(fallback_txt), inner))
+    label = "Cây lựa chọn cho %s: %s. %d phương án%s%s" % (
+        head, _plain(d.get("title") or q.get("q") or ""), len(opts),
+        ("; AI đề xuất " + rec) if rec else "", ("; im lặng thì áp " + sil) if sil else "")
+    meta = {"options": [{"key": okey(o), "label": ((o["key"] + ". ") if o["key"] else "") + o["name"],
+                         "cost": o["cost"]} for o in opts],
+            "recommend": rec, "silent": sil,
+            "recommendWhy": d.get("recommend", ""), "silentText": fallback_txt,
+            "context": d.get("context", ""), "checked": d.get("checked", "")}
+    return _svg(W, total + 8, body, label), meta
+
+
+# ----- quyết định (DEC) — đọc TRƯỚC vòng intent để flow biết gate nào đóng bằng DEC nào -----
+def dec_fields(body):
+    """Dòng `- Nhãn: giá trị` của một DEC. Mẫu protocol §5 đặt hai nhãn trên một dòng, cách nhau bằng
+    nhiều khoảng trắng — tách cả hai. Một nhãn lặp nhiều lần (`Bỏ:`) thì giữ đủ mọi lần."""
+    out = {}
+    for line in body.splitlines():
+        for part in re.split(r"\s{2,}(?=-\s)", line.strip()):
+            mm = re.match(r"^-\s*\**([^:*\n]{2,32}?)\**\s*:\s*(.*)$", part.strip())
+            if mm:
+                out.setdefault(mm.group(1).strip().lower(), []).append(mm.group(2).strip())
+    return out
+
+
+def _split_cost(v, word):
+    """`<phương án> — giá: <…>` / `<phương án> — vì: <…>` → (phương án, phần sau)."""
+    parts = re.split(r"\s+[—–-]\s+" + word + r"\s*:\s*", v, maxsplit=1, flags=re.I)
+    return (_plain(parts[0]), _plain(parts[1]) if len(parts) > 1 else "")
+
+
+def parse_decisions():
+    out = []
+    txt = read(os.path.join(CM, "governance", "decisions-log.md"))
+    # Nhóm thứ năm (`· autopilot`) là phần THÊM ở 6.4.0; tiêu đề bốn đoạn cũ khớp y như trước.
+    for m in re.finditer(r"^## (DEC-\d+) · ([^·\n]+) · ([^·\n]+) · (\S+)(?: · ([^\n]+))?\n(.*?)(?=\n## |\Z)",
+                         txt, re.S | re.M):
+        body = m.group(6)
+        what = re.search(r"Quyết định:\s*(.+)", body)
+        basis = re.search(r"Căn cứ:\s*(.+)", body)
+        d = {"id": m.group(1), "when": m.group(2).strip(), "gate": m.group(3).replace("Gate", "").strip(),
+             "by": "Human supervisor", "what": (what.group(1).strip()[:180] if what else ""),
+             "basis": (basis.group(1).strip()[:60] if basis else ""), "_to": m.group(4)}
+        f = dec_fields(body)
+        who = (f.get("người quyết") or [""])[0]
+        rev = re.search(r"DEC-\d+", (f.get("reverses") or [""])[0])
+        if rev:
+            d["reverses"] = rev.group(0)
+        if (m.group(5) or "").strip().lower().startswith("autopilot") or re.match(r"autopilot\b", who, re.I):
+            chosen, cost = _split_cost((f.get("chọn") or [""])[0], "giá")
+            shown = _plain((f.get("hiện ở") or [""])[0])
+            checks = (f.get("block check") or [""])[0]
+            hits = re.findall(r"#(\d)\s*hit\b[:\s]*([^·#]*)", checks, re.I)
+            d.update({
+                "by": "autopilot", "autopilot": True, "intent": m.group(4),
+                "what": _plain((f.get("quyết định") or [""])[0])[:240] or d["what"],
+                "basis": _plain((f.get("căn cứ") or [""])[0])[:120] or d["basis"],
+                "impact": _plain((f.get("ảnh hưởng") or [""])[0])[:240],
+                "chosen": chosen, "chosenCost": cost,
+                "rejected": [dict(zip(("option", "why"), _split_cost(v, "vì"))) for v in f.get("bỏ", []) if v],
+                "undo": _plain((f.get("đảo bằng") or [""])[0]),
+                "shownAt": shown, "blockCheck": _plain(checks),
+                "blockPass": len(re.findall(r"#\d\s*pass\b", checks, re.I)),
+                "blockHits": [{"no": h[0], "why": _plain(h[1])} for h in hits],
+                "reason": _plain((f.get("reason") or [""])[0]),
+                "missing": [k for k, lbl in (("chọn", "Chọn"), ("bỏ", "Bỏ"), ("đảo bằng", "Đảo bằng"),
+                                             ("hiện ở", "Hiện ở"), ("block check", "Block check"))
+                            if not (f.get(k) or [""])[0]],
+            })
+        out.append(d)
+    return out
+
+
+def scan_steers():
+    """`inbox/steer-*.json` — người bấm Đảo trên tower. Còn trong `inbox/` = chưa áp; trong
+    `inbox/processed/` = đã áp. Trả {DEC: "pending"|"applied"} (applied thắng)."""
+    out = {}
+    for sub, state in (("", "pending"), ("processed", "applied")):
+        d = os.path.join(A, "inbox", sub) if sub else os.path.join(A, "inbox")
+        if not os.path.isdir(d):
+            continue
+        for f in sorted(os.listdir(d)):
+            if not (f.startswith("steer-") and f.endswith(".json")):
+                continue
+            try:
+                with open(os.path.join(d, f), encoding="utf-8") as fh:
+                    j = json.load(fh)
+            except Exception:  # noqa: BLE001
+                continue
+            dec = str(j.get("dec") or "").strip()
+            if re.match(r"^DEC-\d+$", dec) and (state == "applied" or dec not in out):
+                out[dec] = state
+    return out
+
+
+def autopilot_config():
+    """`governance/autopilot.md` — override thắng bản gốc, cùng luật với mọi governance khác.
+    Không có file = `lead` (protocol §2.3): tower hiển thị y như trước 6.4.0."""
+    for p in (os.path.join(A, "overrides", "governance", "autopilot.md"),
+              os.path.join(CM, "governance", "autopilot.md")):
+        if os.path.isfile(p):
+            d = fm(read(p))
+            mode = (d.get("mode") or "lead").strip().strip('"\'').lower()
+            return {"present": True, "mode": mode if mode in ("autopilot", "lead") else "lead",
+                    "waitHours": num(d.get("wait_hours"), 0.0), "path": os.path.relpath(p, A)}
+    return {"present": False, "mode": "lead", "waitHours": 0.0, "path": None}
+
+
+def resolve_shown_doc(intent_id, shown):
+    """`Hiện ở: unit-plan.md#3` → đường dẫn tài liệu (tương đối `.ai-dlc/`) mà tower mở được."""
+    rel = re.split(r"[#\s]", (shown or "").strip(), maxsplit=1)[0].strip("`")
+    if not rel.endswith(".md"):
+        return None
+    for cand in (os.path.join(idir, intent_id, rel), os.path.join(CM, rel), os.path.join(A, rel)):
+        real = os.path.realpath(cand)
+        if os.path.isfile(real) and real.startswith(os.path.realpath(CM) + os.sep):
+            return os.path.relpath(cand, A)
+    return None
+
+
+def svg_autopilot_decision(d):
+    """Hai cột CHỌN vs BỎ, mỗi bên kèm cái giá / lý do; hàng dưới là cách đảo và nơi quyết định hiện hình."""
+    W, X0, GAP = 760, 10, 28
+    CW = (W - 2 * X0 - GAP) / 2
+    body = []
+    body.append(_text(X0, 15, d["id"], 11, "mono", weight=700))
+    body.append(_text(X0 + _tw(d["id"], 11, True) + 10, 15,
+                      _clip(" · ".join(x for x in ("Gate " + d["gate"] if re.match(r"^[A-G]", d["gate"] or "")
+                                                   else d["gate"], d["when"]) if x), 300, 10.5),
+                      10.5, "t-muted"))
+    hits = d.get("blockHits") or []
+    chip = ("block check: hit #" + ", #".join(h["no"] for h in hits)) if hits else \
+           ("block check: %d/6 pass" % d["blockPass"] if d.get("blockPass") else "block check: chưa ghi")
+    cw = _tw(chip, 10, True) + 18
+    body.append(_rect(W - X0 - cw, 3, cw, 18, "pill " + ("bad" if hits or not d.get("blockPass") else "ok"), 9))
+    body.append(_text(W - X0 - cw / 2, 15.5, chip, 10,
+                      "mono " + ("t-blocked" if hits or not d.get("blockPass") else "t-done"), "middle"))
+    top = 30
+    ch_l = _wrap(d.get("chosen") or "(DEC không ghi dòng Chọn)", CW - 28, 13, 3)
+    cost_l = _wrap("giá: " + d["chosenCost"], CW - 28, 11.5, 2) if d.get("chosenCost") else []
+    lh = 30 + 17 * len(ch_l) + 15 * len(cost_l) + 10
+    rej = d.get("rejected") or [{"option": "(DEC không ghi dòng Bỏ)", "why": ""}]
+    rboxes, ry = [], top
+    for r in rej[:4]:
+        o_l = _wrap(r["option"], CW - 28, 12.5, 2)
+        w_l = _wrap("vì: " + r["why"], CW - 28, 11.5, 2) if r.get("why") else []
+        h = 30 + 16 * len(o_l) + 15 * len(w_l) + 8
+        rboxes.append((ry, h, o_l, w_l, r))
+        ry += h + 8
+    rh_total = ry - 8 - top
+    lh = max(lh, rh_total)
+    lx, rx = X0, X0 + CW + GAP
+    inner = _rect(lx, top, CW, lh, "sh done", 8)
+    inner += _text(lx + 14, top + 17, "CHỌN", 9, "cap t-done", weight=700)
+    ty = top + 37
+    for l in ch_l:
+        inner += _text(lx + 14, ty, l, 13, weight=700)
+        ty += 17
+    for l in cost_l:
+        inner += _text(lx + 14, ty + 1, l, 11.5, "t-open")
+        ty += 15
+    body.append(_nav(None, "Chọn: %s%s" % (d.get("chosen") or "", (" — giá: " + d["chosenCost"])
+                                           if d.get("chosenCost") else ""), inner))
+    body.append(_text(lx + CW + GAP / 2, top + lh / 2 + 4, "≠", 15, "t-muted", "middle"))
+    for by_, h, o_l, w_l, r in rboxes:
+        inner = _rect(rx, by_, CW, h, "sh pending", 8)
+        inner += _text(rx + 14, by_ + 17, "BỎ", 9, "cap t-muted", weight=700)
+        ty = by_ + 36
+        for l in o_l:
+            inner += _text(rx + 14, ty, l, 12.5, "t-muted", weight=600)
+            ty += 16
+        for l in w_l:
+            inner += _text(rx + 14, ty, l, 11.5, "t-muted")
+            ty += 15
+        body.append(_nav(None, "Bỏ: %s%s" % (r["option"], (" — vì: " + r["why"]) if r.get("why") else ""), inner))
+    y = top + lh + 12
+    undo_l = _wrap(d.get("undo") or "(DEC không ghi dòng Đảo bằng)", W - 2 * X0 - 28, 12, 2)
+    uh = 28 + 16 * len(undo_l) + 6
+    inner = _rect(X0, y, W - 2 * X0, uh, "sh undo", 8)
+    inner += _text(X0 + 14, y + 17, "↺ ĐẢO BẰNG", 9, "cap t-open", weight=700)
+    for i, l in enumerate(undo_l):
+        inner += _text(X0 + 14, y + 35 + 16 * i, l, 12)
+    body.append(_nav(None, "Đảo bằng: " + (d.get("undo") or ""), inner))
+    y += uh + 16
+    if d.get("shownAt"):
+        inner = _text(X0, y, _clip("Hiện ở: " + d["shownAt"] + (" ↗" if d.get("shownDoc") else ""),
+                                   W - 2 * X0, 11, True), 11, "mono t-active")
+        body.append(_nav(("doc:" + d["shownDoc"]) if d.get("shownDoc") else None,
+                         "Mở tài liệu nơi quyết định này hiện hình", inner))
+        y += 8
+    return _svg(W, y + 4, body, "%s — AI đã tự quyết. Chọn: %s. Bỏ: %s. Đảo bằng: %s" % (
+        d["id"], d.get("chosen") or "?", "; ".join(r["option"] for r in rej), d.get("undo") or "?"))
+
+
+AUTOPILOT = autopilot_config()
+decisions = parse_decisions()
+STEERS = scan_steers()
+_reversed_by = {d["reverses"]: d["id"] for d in decisions if d.get("reverses")}
+svg_flow_by_intent, svg_questions = {}, {}
+blocked_gates = []
+
 if os.path.isdir(idir):
     for name in sorted(os.listdir(idir)):
         base = os.path.join(idir, name)
@@ -1341,6 +2016,11 @@ if os.path.isdir(idir):
             print("cảnh báo: %s/status.md có `gate_open: %s` — không phải A–G hay escalation, "
                   "tower coi như KHÔNG có gate mở." % (name, raw_gate[:60]), file=sys.stderr)
         passed = [g.strip() for g in (st.get("gates_passed", "") or "").strip("[]").split(",") if g.strip()]
+        # 6.4.0 (protocol §2.3) — hai trường tuỳ chọn; intent cũ không có thì cả hai rỗng, mọi thứ như trước.
+        gates_auto = [g.strip() for g in (st.get("gates_auto", "") or "").strip("[]").split(",") if g.strip()]
+        blocked_by = (st.get("blocked_by") or "").strip().strip('"\'').strip()
+        if blocked_by.lower() in ("null", "none", "-", "—") or not gate_open:
+            blocked_by = ""              # `blocked_by` chỉ có nghĩa khi có gate đang mở
 
         units = parse_units(base, name, stage)
         units_by_intent[name] = units
@@ -1355,6 +2035,27 @@ if os.path.isdir(idir):
                                           bool((it.get('brownfield_type') or '').strip()))
         metrics_by_intent[name] = build_metrics(name, base, units, srcs, qs,
                                                 [gate_open[:1]] if gate_open else [], passed)
+
+        # ---- SVG: flow của intent + cây lựa chọn cho từng câu hỏi CÒN MỞ ----
+        _dec_of_gate = {}
+        for _d in decisions:                       # DEC mới nhất của mỗi gate thắng
+            if _d.get("_to") == name and re.match(r"^[A-G]", _d.get("gate") or ""):
+                _dec_of_gate[_d["gate"][:1]] = _d["id"]
+        svg_flow_by_intent[name] = svg_intent_flow(
+            name, base, stage, passed, gate_open, gates_auto, blocked_by, units, _dec_of_gate,
+            show_auto_legend=AUTOPILOT["mode"] == "autopilot")
+        _details = parse_question_details(base)
+        for _q in qs:
+            if not _q["code"] or _q["code"] not in _details or \
+                    re.search(r"closed|đã chốt|da chot|đóng|descoped", _q["status"], re.I):
+                continue
+            _svg_q, _meta = svg_question_tree(_q, _details[_q["code"]])
+            if _svg_q:
+                svg_questions["%s:%s" % (name, _q["code"])] = dict(_meta, svg=_svg_q)
+        if blocked_by:
+            _bn = re.match(r"^#?(\d)\b", blocked_by)
+            blocked_gates.append({"intent": name, "gate": gate_open[:1], "no": _bn.group(1) if _bn else "",
+                                  "why": re.sub(r"^#?\d\s*[·:—–-]\s*", "", blocked_by)})
 
         revs = []
         rdir_i = os.path.join(base, "revisions")
@@ -1391,6 +2092,8 @@ if os.path.isdir(idir):
             "planVersion": st.get("plan_version", plan_fm.get("version", "")),
             "openRevisions": sum(1 for r in revs if r["status"] == "open"),
             "risk": None,
+            **({"gatesAuto": gates_auto} if gates_auto else {}),
+            **({"blockedBy": blocked_by} if blocked_by else {}),
         })
 
         # ---- gate đang mở: đính TOÀN VĂN gate_doc để preview ----
@@ -1452,6 +2155,8 @@ if os.path.isdir(idir):
                               % (q["code"] or "OQ", q["who"] or "chưa rõ người trả lời", q["q"][:70])
                               for q in oq_block if q["audience"] == "tech"][:5] if g == "D" else []),
                 "revisions": [r for r in revs if r["status"] == "open"][:3],
+                # 6.4.0 — gate mở vì autopilot BLOCK (không phải vì chờ duyệt): thẻ đỏ, lý do lên đầu
+                **({"blockedBy": blocked_by} if blocked_by else {}),
             })
 
 # ---------- handoffs → vị trí đang làm việc ----------
@@ -1756,18 +2461,66 @@ if os.path.isdir(rdir):
             feed.append({"time": mtime_hm(p), "id": f.replace(".md", ""), "from": d.get("reviewer", "?").replace("dlc-", ""),
                          "to": d.get("target", "").split("/")[0], "type": "finding" if "changes" in d.get("verdict", "") else "review-request",
                          "summary": (d.get("verdict", "") + " · " + finding)[:140]})
-decisions = []
-for m in re.finditer(r"^## (DEC-\d+) · ([^·\n]+) · ([^·\n]+) · (\S+)\n(.*?)(?=\n## |\Z)",
-                     read(os.path.join(CM, "governance", "decisions-log.md")), re.S | re.M):
-    body = m.group(5)
-    what = re.search(r"Quyết định:\s*(.+)", body)
-    basis = re.search(r"Căn cứ:\s*(.+)", body)
-    decisions.append({"id": m.group(1), "when": m.group(2).strip(), "gate": m.group(3).replace("Gate", "").strip(),
-                      "by": "Human supervisor", "what": (what.group(1).strip()[:180] if what else ""),
-                      "basis": (basis.group(1).strip()[:60] if basis else "")})
-    feed.append({"time": "", "id": m.group(1), "from": "orchestrator", "to": m.group(4),
-                 "type": "decision", "summary": (what.group(1).strip()[:140] if what else "")})
+# `decisions` đã đọc ở trên (parse_decisions) — flow của intent cần nó trước vòng intent.
+for _d in decisions:
+    feed.append({"time": "", "id": _d["id"], "from": "orchestrator", "to": _d.pop("_to"),
+                 "type": "decision", "summary": _d["what"][:140]})
 feed = [x for x in feed if x["summary"]][:25]
+
+# ---------- autopilot: thẻ "AI đã tự quyết" + KPI (6.4.0, protocol §2.3) ----------
+# Không có DEC autopilot, không có autopilot.md, không gate nào block ⇒ khối này không sinh ra gì:
+# dự án chạy `lead` thấy tower y như trước.
+auto_decisions = []
+for _d in decisions:
+    if not _d.get("autopilot"):
+        continue
+    _d["shownDoc"] = resolve_shown_doc(_d["intent"], _d.get("shownAt"))
+    _d["reversedBy"] = _reversed_by.get(_d["id"], "")
+    _d["steer"] = STEERS.get(_d["id"], "")
+    _d["svg"] = svg_autopilot_decision(_d)
+    auto_decisions.append(_d)
+
+for _iid, _ms in metrics_by_intent.items():
+    _mine = [d for d in auto_decisions if d["intent"] == _iid]
+    _blk = [b for b in blocked_gates if b["intent"] == _iid]
+    if not (_mine or _blk or AUTOPILOT["present"]):
+        continue
+    _dl = [{"file": "context-memory/governance/decisions-log.md",
+            "section": "mục `## DEC-NNNN · … · autopilot` (hoặc `Người quyết: autopilot`)", "rows": len(_mine)}]
+    _rev = [d for d in _mine if d["reversedBy"] or d["steer"]]
+    _through = [d for d in _mine if d["blockHits"]]
+    _short = [d for d in _mine if d["missing"]]
+    for _key, _val, _label, _rule, _files, _rows, _warn, _tone in (
+        ("autopilot.decisions", len(_mine), "quyết định AI đã tự quyết",
+         "Đếm entry trong `decisions-log.md` do autopilot ghi cho intent này. Mỗi entry phải đủ các dòng "
+         "Chọn · Bỏ · Đảo bằng · Hiện ở · Block check (protocol §5) — thiếu dòng nào thì người xem không "
+         "đảo được có căn cứ.",
+         _dl, [{"DEC": d["id"], "Gate": d["gate"], "Khi nào": d["when"], "Chọn": d["chosen"][:80],
+                "Block check": d["blockCheck"][:80] or "—",
+                "Thiếu dòng": ", ".join(d["missing"]) or "—"} for d in _mine],
+         ["%d DEC autopilot thiếu dòng bắt buộc: %s" % (len(_short), ", ".join(d["id"] for d in _short))]
+         if _short else [], "agent"),
+        ("autopilot.reversed", "%d/%d" % (len(_rev), len(_mine)), "quyết định tự động đã bị người đảo",
+         "Một quyết định tính là đã đảo khi có `inbox/steer-*.json` (hoặc `inbox/processed/steer-*.json`) trỏ "
+         "vào nó, hoặc có DEC sau ghi `reverses: DEC-NNNN`. Cách đọc theo `governance/autopilot.md`: 10–30% "
+         "là Lead đang nhìn thật · dưới 10% nghi không ai nhìn · trên 30% là giả định của AI kém.",
+         _dl + [{"file": "inbox/", "section": "steer-*.json (chờ áp) · processed/steer-*.json (đã áp)",
+                 "rows": sum(1 for d in _mine if d["steer"])}],
+         [{"DEC": d["id"], "Gate": d["gate"], "Quyết định": d["what"][:80],
+           "Đảo bằng": d["reversedBy"] or ("steer đã áp" if d["steer"] == "applied" else "steer chờ áp")}
+          for d in _rev], [], "agent"),
+        ("autopilot.blocked", len(_blk), "gate đang đứng vì autopilot block",
+         "Đọc `blocked_by` trong `status.md` khi `gate_open` có giá trị. Số `#n` đầu dòng là điều kiện block "
+         "trong `governance/autopilot.md` (1 câu chặn không có mặc định · 2 thiếu thông tin viết AC/test · "
+         "3 nguồn P0 không tự đọc được · 4 ranh đỏ · 5 doctor FIX · 6 tự sửa quá số lần).",
+         [{"file": "context-memory/intents/%s/status.md" % _iid,
+           "section": "frontmatter `gate_open` · `blocked_by`", "rows": len(_blk)}],
+         [{"Gate": b["gate"], "Điều kiện #": b["no"] or "—", "Lý do": b["why"]} for b in _blk],
+         ["%s: block check ghi `hit` mà autopilot vẫn tự quyết — tự quyết qua block là lỗi (doctor FIX)"
+          % d["id"] for d in _through], "gate" if _blk or _through else "done"),
+    ):
+        _ms[_key] = {"key": _key, "value": _val, "label": _label, "rule": _rule, "files": _files,
+                     "rows": _rows[:80], "rowCount": len(_rows), "warnings": list(_warn), "tone": _tone}
 
 
 def parse_reg(path, kind):
@@ -1871,13 +2624,20 @@ if os.path.isdir(_ib):
                 _j = json.load(_fh)
         except Exception:  # noqa: BLE001 — file hỏng vẫn phải hiện là "đang treo"
             _j = {}
-        inbox_pending.append({"file": _f, "kind": _j.get("kind") or _f.split("-")[0],
+        inbox_pending.append({"file": _f, "kind": _j.get("kind") or _j.get("type") or _f.split("-")[0],
                               "intent": _j.get("intent", ""), "code": _j.get("code", ""),
                               "esc": _j.get("esc", ""), "gate": _j.get("gate", ""),
-                              "at": _j.get("answered_at") or _j.get("decided_at", "")})
+                              **({"dec": _j["dec"]} if _j.get("dec") else {}),
+                              "at": _j.get("answered_at") or _j.get("decided_at") or _j.get("at", "")})
 
 first = intents[0]["id"] if intents else None
+# Bảng Decisions ở Tra cứu giữ đúng sáu trường cũ; phần trade-off + SVG của DEC autopilot đi riêng trong
+# `autopilot.decisions` để không nhân đôi chuỗi SVG trong data.js.
+_DEC_KEYS = ("id", "when", "gate", "by", "what", "basis")
+decisions_out = [{k: d[k] for k in _DEC_KEYS} for d in decisions]
 data = {
+    "autopilot": dict(AUTOPILOT, decisions=auto_decisions, blocked=blocked_gates),
+    "svg": {"css": SVG_CSS, "flowByIntent": svg_flow_by_intent, "questions": svg_questions},
     "inboxPending": inbox_pending,
     "project": {"name": os.path.basename(ROOT), "root": ROOT,
                 "generated": datetime.datetime.now().strftime("%d/%m %H:%M"), "plugin": PLUGIN_VERSION},
@@ -1893,7 +2653,7 @@ data = {
              ([{"kind": "rv", "id": reviews[0]["id"], "note": reviews[0]["verdict"]}] if reviews else []) +
              ([{"kind": "msg", "id": feed[0]["id"], "note": feed[0]["type"]}] if feed else []) +
              ([{"kind": "intent", "id": intents[0]["id"], "note": intents[0]["name"][:50]}] if intents else []),
-    "reviews": reviews, "decisions": decisions,
+    "reviews": reviews, "decisions": decisions_out,
     "questions": questions, "questionsByIntent": questions_by_intent,
     "risks": risks, "debt": debt, "lessons": lessons, "escalations": escalations,
     "governance": {"dor": gov_doc("dor"), "dod": gov_doc("dod"), "changelog": gov_changelog},

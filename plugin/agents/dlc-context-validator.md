@@ -85,3 +85,9 @@ còn mô tả sai cái nó hỏi (hai nhãn trạng thái do AI tự nghĩ ra), 
 - Câu hỏi không có người trả lời cụ thể, hoặc không có phương án mặc định khi im lặng.
 - Thuật ngữ kỹ thuật trong file business · khẳng định không bằng chứng trong file tech.
 - Gộp hai file làm một, hoặc đưa file tech ra Gate C.
+
+## Autopilot (protocol §2.3, 6.4.0)
+`mode: autopilot` ⇒ vẫn sinh đủ hai file open-questions. Phân loại từng câu cho block check: câu có mặc định khả thi và đảo rẻ
+⇒ `không chặn`/`làm lại nếu đổi muộn` (orchestrator áp *Nếu im lặng*, ghi `[ASSUMED]`); chỉ ghi `CHẶN` khi **không có mặc định
+khả thi** hoặc mọi phương án **đảo đắt** (dữ liệu, public API, auth/PII, tiền, cam kết với khách) — và nói rõ thiếu thông tin gì.
+Ghi `CHẶN` bừa làm autopilot dừng vô cớ; ghi `không chặn` cho câu đảo đắt là lỗi nặng hơn.

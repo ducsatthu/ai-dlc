@@ -27,8 +27,12 @@ function Row({ label, children }) {
   );
 }
 
-function Brief({ data, gates, onInbox, onLookup, onOpenIntent }) {
+function Brief({ data, gates, onInbox, onLookup, onOpenIntent, onNav }) {
   const intents = data.intents || [];
+  const flows = (data.svg && data.svg.flowByIntent) || {};
+  const autoAll = ((data.autopilot || {}).decisions || []);
+  const autoLive = window.autoDecisions ? window.autoDecisions(data) : [];
+  const finished = i => { const u = i.units || [0, 0]; return i.stage >= 8 && !i.gate && u[0] > 0 && u[1] >= u[0]; };
   const inbox = window.buildInbox ? window.buildInbox(data, gates) : [];
   const showcases = (gates || []).filter(g => g.gate === 'E');
   const escOpen = (data.escalations || []).filter(e => e.status === 'open');
@@ -45,7 +49,7 @@ function Brief({ data, gates, onInbox, onLookup, onOpenIntent }) {
   const link = (txt, fn) => <span onClick={fn} style={{ color: 'var(--blue)', cursor: 'pointer' }}>{txt}</span>;
 
   return (
-    <div style={{ padding: '24px 24px 48px', maxWidth: 820 }}>
+    <div style={{ padding: '24px 24px 48px', maxWidth: 1120 }}>
       <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 8 }}>
         Một trang, bằng lời. Chi tiết nằm ở {link('Tra cứu ▸', onLookup)}.
       </div>
@@ -53,11 +57,24 @@ function Brief({ data, gates, onInbox, onLookup, onOpenIntent }) {
       <Row label="Đã làm">
         {intents.length === 0 && <span style={{ color: 'var(--muted)' }}>Chưa có yêu cầu nào.</span>}
         {intents.map(i => (
-          <div key={i.id}>
+          <div key={i.id} style={{ marginBottom: flows[i.id] ? 10 : 0 }}>
             {link(window.plainName ? window.plainName(i.name) : i.name, () => onOpenIntent(i.id))}
-            <span style={{ color: 'var(--muted)' }}> — {intentLine(i)}</span>
+            <span style={{ color: i.blockedBy ? 'var(--danger)' : 'var(--muted)' }}> — {i.blockedBy ? 'đang đứng, cần bạn' : intentLine(i)}</span>
+            {/* Sơ đồ các bước: yêu cầu đang chạy hiện sẵn, yêu cầu đã xong gấp lại — một trang vẫn là một trang. */}
+            {flows[i.id] && (finished(i)
+              ? <details style={{ marginTop: 2 }}>
+                  <summary style={{ cursor: 'pointer', color: 'var(--muted)', fontSize: 12.5 }}>sơ đồ các bước</summary>
+                  <window.SvgFigure svg={flows[i.id]} onNav={onNav} style={{ marginTop: 6 }} />
+                </details>
+              : <window.SvgFigure svg={flows[i.id]} onNav={onNav} style={{ marginTop: 6 }} />)}
           </div>
         ))}
+        {autoAll.length > 0 && (
+          <div style={{ fontSize: 13.5 }}>
+            <span style={{ color: 'var(--muted)' }}>AI đã tự quyết {autoAll.length} việc, {autoAll.length - autoLive.length} đã bị đảo — </span>
+            {link('xem và đảo nếu cần ▸', onInbox)}
+          </div>
+        )}
         {decisions.length > 0 && (
           <div style={{ marginTop: 4, color: 'var(--muted)', fontSize: 13.5 }}>
             Vừa chốt: {decisions.map(d => (d.what || '').slice(0, 80)).join(' · ')}

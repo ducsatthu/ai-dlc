@@ -176,5 +176,34 @@ function SectionLabel({ children, style }) {
   return <div style={{ fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 8, ...style }}>{children}</div>;
 }
 
-Object.assign(window, { Sidebar, TopBar, Drawer, SectionLabel, NAV, plainName });
+/* Hình SVG do generator vẽ sẵn (data.svg.* · autopilot.decisions[].svg) — 6.4.0.
+   CSS của hình nằm cùng chỗ với code vẽ (tower_generate.py · SVG_CSS) và chèn MỘT lần ngay lúc nạp file
+   này, trước lần vẽ đầu: chèn muộn thì hình nháy một nhịp màu đen (fill mặc định của SVG).
+   Phần tử bấm được mang `data-nav="<loại>:<đích>"`; hình không tự điều hướng, nó báo cho `onNav`. */
+(function injectSvgCss() {
+  const css = window.CT_DATA && window.CT_DATA.svg && window.CT_DATA.svg.css;
+  if (!css || document.getElementById('ct-svg-css')) return;
+  const el = document.createElement('style');
+  el.id = 'ct-svg-css';
+  el.textContent = css;
+  document.head.appendChild(el);
+})();
+
+function SvgFigure({ svg, onNav, style }) {
+  if (!svg) return null;
+  const go = e => {
+    const t = e.target && e.target.closest ? e.target.closest('[data-nav]') : null;
+    if (!t || !onNav) return false;
+    e.stopPropagation();
+    onNav(t.getAttribute('data-nav'));
+    return true;
+  };
+  return (
+    <div className="ct-svg" style={style} onClick={go}
+      onKeyDown={e => { if ((e.key === 'Enter' || e.key === ' ') && go(e)) e.preventDefault(); }}
+      dangerouslySetInnerHTML={{ __html: svg }} />
+  );
+}
+
+Object.assign(window, { Sidebar, TopBar, Drawer, SectionLabel, SvgFigure, NAV, plainName });
 })();

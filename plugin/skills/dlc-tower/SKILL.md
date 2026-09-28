@@ -22,3 +22,7 @@ description: Control Tower — generate dashboard từ .ai-dlc/ và serve local 
 5. Muốn tower phản ánh đúng ai đang làm gì: agent phải tuân §9.4 — đặt `status: accepted` khi nhận HOF và
    cập nhật `heartbeat`/`progress` ở mỗi mốc. Nếu board hiện "chờ nhận" mà panel *Hoạt động gần đây* lại có
    file trong vùng đó vừa đổi, tower sẽ cảnh báo: có agent chạy mà không khai báo.
+
+**6.4.0 — SVG + autopilot**: tower vẽ flow intent, cây lựa chọn cho từng câu hỏi và thẻ *AI đã tự quyết* (Chọn ≠ Bỏ)
+bằng SVG sinh sẵn trong `data.js`. Ngoài `gate-*`/`answer-*`/`direction-*`, inbox có thêm **`steer-*.json`** (người bấm
+*Đảo* một DEC autopilot) — Monitor inbox phải bắt cả mẫu này và xử lý **trước tiên** theo protocol §2.3.6.

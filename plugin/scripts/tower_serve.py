@@ -10,6 +10,9 @@ v2 (theo protocol v2):
 - Ba verdict: approve · request-changes · reject. `request-changes`/`reject` bắt buộc comment.
 - `approve` bắt buộc cờ `previewed: true` — chặn approve mù ở tầng server, không chỉ tầng UI.
 - GET /doc?path=<rel> trả markdown tươi từ .ai-dlc/context-memory (chỉ đọc, guard path traversal).
+
+6.4.0 (protocol §2.3): POST /steer — người đảo một DEC autopilot → `inbox/steer-<ts>.json`
+(bắt buộc `dec` dạng DEC-NNNN · `note` · `previewed: true`).
 """
 import json
 import os
@@ -199,6 +202,9 @@ class H(BaseHTTPRequestHandler):
             "tasks": d.get("tasks", []),
             "feed": d.get("feed", [])[:12],
             "gateKeys": [g.get("key") for g in d.get("gates", [])],
+            # App.jsx đã đọc `live.inboxPending` từ 6.1.0 nhưng /state chưa từng gửi — thiếu nó thì việc vừa
+            # gửi (trả lời · chỉ đạo · đảo) hiện lại như chưa gửi cho tới khi F5 đúng lúc data.js đã sinh lại.
+            "inboxPending": d.get("inboxPending", []),
             "intents": [{"id": i.get("id"), "stage": i.get("stage"), "gate": i.get("gate"),
                          "units": i.get("units"), "estimate": i.get("estimate")}
                         for i in d.get("intents", [])],
@@ -254,9 +260,45 @@ class H(BaseHTTPRequestHandler):
             json.dump(data, f, ensure_ascii=False, indent=2)
         self._send(200, json.dumps({"ok": True, "file": fname}).encode("utf-8"))
 
+    def _post_steer(self):
+        """Đảo một quyết định autopilot đã tự ghi (6.4.0, protocol §2.3.6).
+
+        Ghi `inbox/steer-<ts>.json` — cùng hàng đợi durable với gate/answer. Server KHÔNG sửa decisions-log:
+        orchestrator drain file này thành `REV-NN` (from: HUMAN) rồi DEC mới có `reverses:`. Cùng luật
+        preview với approve: phải kèm `previewed: true` (thẻ đã hiện Chọn/Bỏ/Đảo bằng cho người bấm)."""
+        if not self._token_ok():
+            self._fail(403, "Thiếu hoặc sai token")
+            return
+        try:
+            n = int(self.headers.get("Content-Length", "0"))
+            data = json.loads(self.rfile.read(n) or b"{}")
+            dec = str(data.get("dec") or "").strip()
+            if not re.match(r"^DEC-\d+$", dec):
+                raise ValueError("thiếu mã quyết định cần đảo (DEC-NNNN)")
+            if not (data.get("note") or "").strip():
+                raise ValueError("đảo cần nói rõ đổi sang gì / vì sao — đội làm lại theo đúng lời này")
+            if data.get("previewed") is not True:
+                raise ValueError("đảo phải kèm previewed=true — xem Chọn/Bỏ/Đảo bằng trên thẻ trước khi đảo")
+        except Exception as e:  # noqa: BLE001
+            self._fail(400, str(e))
+            return
+        out = {"type": "steer", "dec": dec, "intent": str(data.get("intent") or ""),
+               "note": data["note"].strip(), "previewed": True,
+               "at": time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime())}
+        ts = int(time.time())
+        while os.path.exists(os.path.join(INBOX, "steer-%d.json" % ts)):
+            ts += 1                       # hai lần đảo trong cùng một giây không được đè lên nhau
+        fname = "steer-%d.json" % ts
+        with open(os.path.join(INBOX, fname), "w", encoding="utf-8") as f:
+            json.dump(out, f, ensure_ascii=False, indent=2)
+        self._send(200, json.dumps({"ok": True, "file": fname}).encode("utf-8"))
+
     def do_POST(self):
         if self.path.startswith("/answer"):
             self._post_answer()
+            return
+        if self.path.startswith("/steer"):
+            self._post_steer()
             return
         if not self.path.startswith("/decision"):
             self._fail(404, "Endpoint không tồn tại")

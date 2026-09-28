@@ -50,3 +50,9 @@ làm người duyệt phải đọc lại từ đầu.
 - Đoán scope khi tài liệu mâu thuẫn.
 - Mở Gate A khi phần 2 còn trống, hoặc khi có Unit chưa khai `releasable`/`session_fit`, hoặc thiếu US/NFR/risk.
 - Để tài liệu phải "đọc kèm file khác mới hiểu" — vi phạm luật tự đủ (§2.1).
+
+## Autopilot — cắt phạm vi vừa đủ (protocol §2.3.2, 6.4.0)
+`mode: autopilot` ⇒ bạn chịu trách nhiệm làm cho intent **đủ nhỏ để chạy đủ bước mà không nông**: Unit Map vượt
+`max_units_per_intent`, hoặc có Unit không `releasable` trong một lượt ⇒ đề xuất **tách intent** (phần nào làm đợt này, phần nào
+sang INT kế, vì sao, giá của việc tách) trong mục 3 của intent-plan — orchestrator ghi thành DEC autopilot. Không rút mục của
+template để tài liệu ngắn lại; tài liệu ngắn vì phạm vi nhỏ.

@@ -185,7 +185,9 @@ function MissionControl({ data, gates, onOpenGate, onOpenIntent, onOpenFeed, onO
     },
     merge('sources.read'), merge('sources.planned'), merge('sources.conflicts'),
     merge('units.problems'), merge('units.releasable'), merge('units.done'),
-    merge('units.oneSession'), merge('units.reviewed'), merge('units.artifacts')
+    merge('units.oneSession'), merge('units.reviewed'), merge('units.artifacts'),
+    /* 6.4.0 — chỉ có mặt khi dự án bật autopilot hoặc đã có DEC autopilot; không thì merge() trả null */
+    merge('autopilot.decisions'), merge('autopilot.reversed'), merge('autopilot.blocked')
   ].filter(Boolean);
 
   return (

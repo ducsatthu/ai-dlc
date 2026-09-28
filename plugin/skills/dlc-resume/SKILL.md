@@ -33,6 +33,7 @@ Bạn đang vào một dự án có thể đã chạy nhiều tuần. **KHÔNG n
    trước chết giữa chừng) → cảnh báo nguồn `planned` / unit thiếu `releasable`·`session_fit`·`review:` → intent chưa có gate chờ.
 
 3. **Drain inbox trước mọi thứ khác** (nếu có): mỗi file `inbox/*.json` →
+   - `steer-*` (6.4.0): người **Đảo** một DEC autopilot → xử lý **trước mọi thứ** theo protocol §2.3.6.
    - `gate-*`: đối chiếu `gate_open` trong status.md → ghi DEC → move sang `inbox/processed/`.
      `verdict: request-changes` thì chuyển `/ai-dlc:dlc-revise`, KHÔNG đóng gate.
    - `answer-*` (Lead trả lời câu hỏi ngay trên tower): áp **nguyên văn** vào file open-questions của intent

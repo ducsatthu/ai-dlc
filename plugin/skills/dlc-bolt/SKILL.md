@@ -1,6 +1,6 @@
 ---
 name: dlc-bolt
-description: Stage 6 AI-DLC — chạy một Bolt cho một Unit (args UOW-NN [BOLT-NN]) qua bolt-coordinator, soát design/code theo TẦNG review của Unit (§4.17) + checkpoint Gate E. Unit có thể chạy nhiều Bolt song song/tuần tự.
+description: Stage 6 AI-DLC — chạy một Bolt cho một Unit (args UOW-NN [BOLT-NN]) qua bolt-coordinator, soát design/code theo TẦNG review của Unit (§4.17) + checkpoint Gate E. Unit có thể chạy nhiều Bolt song song/tuần tự. (Autopilot §2.3: Gate E tự đóng khi có bằng chứng thật.)
 ---
 
 Điều kiện: gates_passed chứa D; Unit thuộc danh sách được duyệt; DoR pass; `spec.md` có `review:` tầng đã duyệt.
@@ -11,3 +11,9 @@ description: Stage 6 AI-DLC — chạy một Bolt cho một Unit (args UOW-NN [B
    **Gate E(b) DỪNG** demo). Gate E(a)/E(b) của NGƯỜI dừng cho MỌI tầng.
 2. Coordinator spawn `ai-dlc:dlc-be-dev` / `ai-dlc:dlc-fe-dev` theo task board; hàng rào PreToolUse hook đã chặn code-write khi chưa qua Gate D.
 3. Mỗi checkpoint/gate: cập nhật status + tower rồi kết thúc lượt. Bolt xong: đề xuất bolt kế hoặc `/ai-dlc:dlc-accept UOW-NN`.
+
+**Autopilot (protocol §2.3, 6.4.0)**: `governance/autopilot.md` có `mode: autopilot` ⇒ mọi bước trên vẫn chạy đủ, artefact đủ mục;
+chỗ ghi "DỪNG" / "KẾT THÚC LƯỢT" đổi thành: orchestrator chạy **block check** → không block thì tự ghi DEC autopilot
+(có *Chọn / Bỏ / Đảo bằng / Hiện ở*) và **chạy tiếp lệnh kế** trong cùng lượt; block thì ghi `blocked_by` rồi mới dừng.
+Gate E(a)/E(b): soát design/code theo tầng **vẫn chạy đủ**; E(b) tự đóng khi self-verify/RV có bằng chứng thật và test xanh,
+đỏ lặp quá `max_self_fix` = block #6. Lệnh kế: bolt kế hoặc `/ai-dlc:dlc-accept`.

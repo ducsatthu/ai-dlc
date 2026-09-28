@@ -1,6 +1,6 @@
 ---
 name: dlc-validate
-description: Stage 3–4 AI-DLC — Context Validation (Gate B, tài liệu là source-ledger.md) rồi Clarification (Gate C). Mỗi gate mở là DỪNG chờ người quyết trên Control Tower.
+description: Stage 3–4 AI-DLC — Context Validation (Gate B, tài liệu là source-ledger.md) rồi Clarification (Gate C). Mỗi gate mở là DỪNG chờ người quyết trên Control Tower. (Autopilot §2.3: không dừng — chỉ câu chặn không có mặc định mới lên thẻ.)
 ---
 
 Điều kiện: `gates_passed` chứa A; `as-is/` tồn tại; **`source-ledger.md` không còn dòng `planned`**
@@ -25,3 +25,9 @@ description: Stage 3–4 AI-DLC — Context Validation (Gate B, tài liệu là 
    của Unit liên quan và `governance/risks.md`. Trước khi sang stage 5: rà `open-questions-tech.md`, câu
    `CHẶN` nào còn `open` thì đẩy cho tech lead ngay — đó là thứ sẽ chặn Gate D.
    Cập nhật status stage 5, regenerate tower. Đề xuất `/ai-dlc:dlc-units`.
+
+**Autopilot (protocol §2.3, 6.4.0)**: `governance/autopilot.md` có `mode: autopilot` ⇒ mọi bước trên vẫn chạy đủ, artefact đủ mục;
+chỗ ghi "DỪNG" / "KẾT THÚC LƯỢT" đổi thành: orchestrator chạy **block check** → không block thì tự ghi DEC autopilot
+(có *Chọn / Bỏ / Đảo bằng / Hiện ở*) và **chạy tiếp lệnh kế** trong cùng lượt; block thì ghi `blocked_by` rồi mới dừng.
+Gate C: câu `không chặn` / `làm lại nếu đổi muộn` áp cột *Nếu im lặng*; câu `CHẶN` không có mặc định khả thi hoặc đảo đắt
+= block #1/#2 — **chỉ những câu đó** lên thẻ *Cần tôi trả lời*. Lệnh kế: `/ai-dlc:dlc-units`.

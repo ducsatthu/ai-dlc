@@ -19,3 +19,7 @@ description: Learning loop AI-DLC — retro sau release (hoặc theo yêu cầu)
    đội lốt quyết định thiết kế, và nó xoá luôn khả năng ai đó phát hiện vấn đề ở intent sau.
 2. Mở **Gate G**, DỪNG (trình LL + patch).
 3. Approve → DEC; apply patch vào `.ai-dlc/overrides/` (mode patch, frontmatter source: LL-NNN); tăng version + changelog governance; cập nhật OVERRIDES.md index; nhắc `/ai-dlc:dlc-contribute` nếu lesson mang tính chuẩn chung.
+
+**Autopilot (protocol §2.3, 6.4.0)**: retro vẫn chạy đủ; thêm bảng KPI `autopilot.decisions · reversed · blocked(#) ·
+reversed_after_release` và liệt kê từng DEC bị **Đảo** (đó là nguồn LL tốt nhất: AI chọn gì, người đổi thành gì, vì sao).
+LL ghi không chờ; **patch vào overrides/gói vẫn dừng chờ người ký** (đổi luật cho lần sau = đảo đắt).

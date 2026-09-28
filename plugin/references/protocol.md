@@ -133,6 +133,36 @@ cập nhật tower, gửi PushNotification (nếu có), rồi **KẾT THÚC LƯ�
 3. Gate mở lại với bản mới; tower hiển thị diff-note (mục changelog) trên đầu preview.
 4. 2 vòng request-changes cùng một gate_doc mà chưa hội tụ → escalation (protocol §4.6), không sửa vòng 3 im lặng.
 
+### 2.3 Autopilot — gate không chờ người, nhưng KHÔNG bỏ bước (6.4.0)
+
+Núm dự án: `governance/autopilot.md` (`templates/autopilot.md`). **Không có file, hoặc `mode: lead` ⇒ §2–§2.2
+áp nguyên văn** (mỗi gate kết thúc lượt, chờ người). `mode: autopilot` ⇒ mục này thay cho câu "KẾT THÚC LƯỢT"
+ở §2 và cho điều cấm "tự quyết thay người" của orchestrator — **chỉ hai thứ đó**; mọi luật khác giữ nguyên.
+
+1. **Chạy đủ.** Tám stage và mọi artefact của chúng vẫn sinh đầy đủ, đúng template, đúng thứ tự; `gate_doc`
+   vẫn phải tự đủ (§2.1) vì người đọc nó *sau*, không phải *không đọc*. Bỏ stage, gộp stage, hay mở gate
+   không có `gate_doc` là **FIX** như cũ. Autopilot đổi **ai quyết**, không đổi **làm gì**.
+2. **Cắt phạm vi vừa đủ, không làm nông.** Ở stage 1, Provisional Unit Map vượt `max_units_per_intent` hoặc có
+   Unit không `releasable` trong một lượt ⇒ tách phần sau sang intent kế (DEC autopilot "cắt phạm vi"). Độ sâu
+   mỗi stage tương xứng phạm vi đã cắt — artefact ngắn vì phạm vi nhỏ là đúng; artefact thiếu mục là sai.
+3. **Block check tại mỗi gate** (A–G, E(a), E(b)) — sáu điều kiện trong `governance/autopilot.md`:
+   câu hỏi chặn không có mặc định khả thi hoặc đảo đắt · thông tin không đủ để viết AC/test · nguồn P0 không
+   tự đọc được · ranh đỏ (deploy khách/prod, migration phá huỷ, gửi ra ngoài, tiền, quyền) · doctor FIX ·
+   tự sửa quá `max_self_fix`. Kiểm **từng điều kiện**, ghi kết quả vào DEC (dòng *Block check*).
+4. **Không block ⇒ tự quyết, đi tiếp trong cùng lượt.** Ghi DEC theo format autopilot (§5), `status.md`:
+   `gates_passed` + `gates_auto` thêm gate đó, `gate_open: null`. Câu hỏi đang `open` không chặn ⇒ áp cột
+   *Nếu im lặng*, ghi `[ASSUMED]` + risk có chủ (§4.10.6) — đó là câu trả lời có ghi, không phải bỏ qua.
+   `wait_hours > 0` ⇒ mở gate kèm `wait_until`, hết hạn mới tự quyết (`reason: silent-timeout`).
+5. **Block ⇒ dừng đúng nghi thức §2**, thêm `blocked_by: "#n · <1 câu cần người làm rõ gì>"` vào `status.md`.
+   Việc **không phụ thuộc** gate bị block vẫn chạy (Unit khác, stage đọc nguồn khác).
+6. **Người đảo được mọi quyết định tự động.** Tower thẻ *AI đã tự quyết* → **Đảo** ⇒ `inbox/steer-*.json` ⇒
+   `REV-NN` (from: HUMAN) ⇒ agent chủ artefact làm lại đúng phần ⇒ DEC mới có `reverses: DEC-NNNN`.
+   Gate F: autopilot chỉ tự đóng phần *nghiệm thu Unit*; hành động deploy là ranh đỏ #4 ⇒ luôn dừng.
+7. **Preview (§2.1) với autopilot**: không có nút approve nên không có approve mù; nhưng DEC autopilot **bắt
+   buộc** dòng *Hiện ở* trỏ `gate_doc#mục` — người đảo phải thấy đúng chỗ quyết định hiện hình.
+8. KPI: `autopilot.decisions` · `autopilot.reversed` · `autopilot.blocked` (theo #) ·
+   `autopilot.reversed_after_release`. Nguồn: quyết định chủ gói 2026-09-28 — **nợ LL**.
+
 ## 3. Layout state trong project
 
 **Một `.ai-dlc/` = một space** (6.2.0): một đội ổn định, một bộ luật, một tower. Space không phải
@@ -519,6 +549,22 @@ checklist: <tên> v<N>
 - Quyết định: ...   - Người quyết: HUMAN|<agent đề xuất>
 - Căn cứ: RV-xxx · MSG-xxxx   - Ảnh hưởng: ...
 ```
+
+DEC do **autopilot** ghi (§2.3, 6.4.0) — đủ các dòng, thiếu dòng nào doctor báo FIX:
+```
+## DEC-NNNN · <ngày> · Gate X · INT-NNN · autopilot
+- Quyết định: <1 câu>   - Người quyết: autopilot (mode: autopilot, governance/autopilot.md)
+- Căn cứ: <file#mục · RV · MSG>   - Ảnh hưởng: <1 câu>
+- Chọn: <phương án> — giá: <giờ / rủi ro>
+- Bỏ: <phương án khác> — vì: <lý do>          # lặp dòng này cho từng phương án bị bỏ
+- Đảo bằng: <việc phải làm lại + chi phí ước>   - Hiện ở: <gate_doc#mục>
+- Block check: #1 pass · #2 pass · #3 pass · #4 pass · #5 pass · #6 pass
+- reverses: DEC-NNNN        # chỉ khi DEC này sinh từ một lần người Đảo
+- reason: silent-timeout    # chỉ khi wait_hours > 0 và hết hạn
+```
+`status.md` thêm hai trường (tuỳ chọn, 6.4.0): `gates_auto: [A, B]` (gate đã đóng bằng DEC autopilot) ·
+`blocked_by: "#n · <lý do>"` (gate đang mở vì block, không phải vì chờ duyệt). `inbox/steer-*.json`:
+`{type: "steer", dec: "DEC-NNNN", intent, note, at}` — người đảo một quyết định tự động.
 
 `revisions/REV-NN.md` (v2):
 ```

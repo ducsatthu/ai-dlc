@@ -42,8 +42,21 @@ function pendingKeys(data) {
   (data.inboxPending || []).forEach(p => {
     if (p.kind === 'answer') s.add('q:' + p.intent + ':' + p.code);
     if (p.kind === 'direction') s.add('esc:' + p.esc);
+    if (p.kind === 'steer' && p.dec) s.add('steer:' + p.dec);
   });
   return s;
+}
+const svgOf = data => (data && data.svg) || {};
+const treeOf = (data, iid, code) => (code && (svgOf(data).questions || {})[iid + ':' + code]) || null;
+
+/* Quyết định AI đã tự ghi mà CHƯA bị đảo (6.4.0, protocol §2.3). Mới nhất lên trước.
+   Không nằm trong buildInbox: đây là việc bạn ĐƯỢC làm, không phải việc đang chờ bạn — không cộng vào
+   con số "N việc đang chờ bạn" ở sidebar. */
+function autoDecisions(data) {
+  const pend = pendingKeys(data);
+  return ((data.autopilot || {}).decisions || [])
+    .filter(d => !d.reversedBy && !d.steer && !pend.has('steer:' + d.id))
+    .slice().reverse();
 }
 
 /* Dựng danh sách thẻ từ state 6.x. Thứ tự theo spec: ký phát hành → đang đứng (escalation)
@@ -53,10 +66,18 @@ function buildInbox(data, gates) {
   const pend = pendingKeys(data);
   (gates || []).forEach(g => {
     const w = GATE_WORDS[g.gate] || { q: g.title, kind: 'Chờ bạn ký', mark: '■' };
+    /* Gate mở vì autopilot BLOCK (status.md `blocked_by`): thẻ đỏ, đứng trên cùng, lý do lên đầu. */
+    const blocked = !!g.blockedBy;
     cards.push({
-      id: g.key, type: 'gate', rank: GATE_RANK[g.gate] !== undefined ? GATE_RANK[g.gate] : 2,
-      mark: w.mark, kind: w.kind, intent: g.target, intentName: intentName(data, g.target),
-      q: w.q, brief: g.brief, silent: 'Đội đang đứng chờ — gate này chưa có mặc định (luật 6.x)',
+      id: g.key, type: 'gate', blocked, blockedBy: g.blockedBy,
+      rank: blocked ? -1 : (GATE_RANK[g.gate] !== undefined ? GATE_RANK[g.gate] : 2),
+      mark: blocked ? '■' : w.mark, kind: blocked ? 'Đang đứng — cần bạn' : w.kind,
+      intent: g.target, intentName: intentName(data, g.target),
+      flow: (svgOf(data).flowByIntent || {})[g.target],
+      q: w.q, brief: g.brief,
+      silent: blocked
+        ? 'Không có mặc định — AI đã dừng vì không tự quyết được. Việc không phụ thuộc gate này vẫn chạy'
+        : 'Đội đang đứng chờ — gate này chưa có mặc định (luật 6.x)',
       options: g.options || [], recommendation: g.recommendation, blockers: g.blockers || [],
       pendingRevision: g.pendingRevision, more: g.doc, moreLabel: g.docTitle || g.doc, gate: g
     });
@@ -90,6 +111,7 @@ function buildInbox(data, gates) {
         brief: [q.who && ('Ai trả lời: ' + q.who), q.due && ('Hạn: ' + q.due), q.impact].filter(Boolean).join(' · '),
         silent: hasDefault(fb) ? fb : 'Chưa ghi mặc định — việc này đứng tới khi có câu trả lời',
         options: [], code: q.code, audience: q.audience, question: q, file: file(q.audience),
+        tree: treeOf(data, iid, q.code),
         more: file(q.audience), moreLabel: q.code || 'danh sách câu hỏi'
       });
     });
@@ -101,7 +123,7 @@ function buildInbox(data, gates) {
         intent: iid, intentName: intentName(data, iid),
         q: rest.length + ' câu hỏi còn mở' + (rest.length > 1 ? ', đội đang đi tiếp bằng phương án chọn sẵn' : ''),
         brief: '', silent: 'Đội giữ phương án chọn sẵn; bạn chốt lúc nào cũng được, không gấp',
-        options: [], questions: rest, fileOf: file,
+        options: [], questions: rest, fileOf: file, treeOf: q => treeOf(data, iid, q.code),
         more: file(auds[0]), moreLabel: 'danh sách câu hỏi'
       });
     }
@@ -114,9 +136,11 @@ const KIND_BG = { gate: 'var(--accent-bg)', esc: 'var(--danger-bg)', q: 'var(--b
 const LABEL = { fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)' };
 
 /* Ô trả lời — gửi là xong, không chuyển màn. `defaultText` có thì thêm nút "Dùng mặc định". */
-function AnswerBox({ placeholder, defaultText, sendLabel, onSend }) {
+function AnswerBox({ placeholder, defaultText, sendLabel, onSend, preset }) {
   const [v, setV] = React.useState('');
   const [busy, setBusy] = React.useState(false);
+  /* Bấm một nhánh trên cây lựa chọn ⇒ điền sẵn phương án đó; người vẫn sửa được trước khi gửi. */
+  React.useEffect(() => { if (preset && preset.text) setV(preset.text); }, [preset]);
   const send = (text, usedDefault) => {
     if (!text || busy) return;
     setBusy(true);
@@ -140,9 +164,39 @@ function AnswerBox({ placeholder, defaultText, sendLabel, onSend }) {
   );
 }
 
-function Card({ c, onOpenGate, onDoc, onAnswer, onSent }) {
-  const color = c.mark === '◉' ? 'var(--ok)' : KIND_COLOR[c.type];
-  const bg = c.mark === '◉' ? 'var(--ok-bg)' : KIND_BG[c.type];
+/* Cây lựa chọn của một câu hỏi + chữ đầy đủ gấp bên dưới. Bấm nhánh ⇒ `onPick(nhãn phương án)`. */
+function QuestionTree({ tree, q, silent, brief, onPick }) {
+  const pick = target => {
+    if (String(target).indexOf('pick:') !== 0) return;
+    const o = (tree.options || []).find(x => x.key === target.slice(5));
+    if (o) onPick(o.label);
+  };
+  const line = (label, text) => text ? (
+    <div><span style={LABEL}>{label} · </span><span style={{ color: 'var(--muted)' }}>{plainTxt(text)}</span></div>
+  ) : null;
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <window.SvgFigure svg={tree.svg} onNav={pick} />
+      <details style={{ fontSize: 13, lineHeight: 1.55 }}>
+        <summary style={{ cursor: 'pointer', color: 'var(--muted)', fontSize: 12.5 }}>Chữ đầy đủ</summary>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 6, maxWidth: '72ch' }}>
+          {brief && <div>{brief}</div>}
+          {line('Bối cảnh', tree.context)}
+          {(tree.options || []).map(o => <React.Fragment key={o.key}>{line(o.label, o.cost ? 'giá: ' + o.cost : '')}</React.Fragment>)}
+          {line('AI đề xuất', tree.recommendWhy)}
+          {line('Nếu bạn im lặng', tree.silentText || silent)}
+          {line('Đã soát mà không thấy đáp án', tree.checked)}
+        </div>
+      </details>
+    </div>
+  );
+}
+
+function Card({ c, onOpenGate, onDoc, onAnswer, onSent, onNav }) {
+  const color = c.blocked ? 'var(--danger)' : c.mark === '◉' ? 'var(--ok)' : KIND_COLOR[c.type];
+  const bg = c.blocked ? 'var(--danger-bg)' : c.mark === '◉' ? 'var(--ok-bg)' : KIND_BG[c.type];
+  const [preset, setPreset] = React.useState(null);    // phương án vừa bấm trên cây lựa chọn
+  const pickInto = text => setPreset({ text, n: Date.now() });
   const [openQ, setOpenQ] = React.useState(null);      // thẻ gom: câu nào đang mở ô trả lời
   const [doneQ, setDoneQ] = React.useState([]);        // câu đã gửi trong thẻ gom (ẩn ngay, chờ state mới)
 
@@ -160,10 +214,15 @@ function Card({ c, onOpenGate, onDoc, onAnswer, onSent }) {
   if (c.type === 'qgroup' && restQ.length === 0) return null;
 
   return (
-    <article style={{
-      border: '1px solid ' + color, background: bg, borderRadius: 'var(--radius-md)',
-      padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 760
+    <article id={'card-' + c.id} style={{
+      border: (c.blocked ? '2px' : '1px') + ' solid ' + color, background: bg, borderRadius: 'var(--radius-md)',
+      padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10, maxWidth: c.flow ? 1000 : 760
     }}>
+      {c.blocked && (
+        <div style={{ fontSize: 14.5, fontWeight: 650, color: 'var(--danger)', lineHeight: 1.45 }}>
+          <span style={{ ...LABEL, color: 'var(--danger)' }}>Vì sao đứng · </span>{plainTxt(c.blockedBy)}
+        </div>
+      )}
       <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', flexWrap: 'wrap' }}>
         <span style={{ fontFamily: 'var(--mono)', color, fontSize: 13 }}>{c.mark}</span>
         <span style={{ ...LABEL, color }}>{c.kind}</span>
@@ -175,12 +234,16 @@ function Card({ c, onOpenGate, onDoc, onAnswer, onSent }) {
       <div style={{ fontSize: 16, fontWeight: 650, letterSpacing: '-0.01em', lineHeight: 1.35 }}>
         {c.type === 'qgroup' ? restQ.length + ' câu hỏi còn mở' + (restQ.length > 1 ? ', đội đang đi tiếp bằng phương án chọn sẵn' : '') : c.q}
       </div>
-      {c.brief && <div style={{ fontSize: 13.5, color: 'var(--ink)', lineHeight: 1.55, maxWidth: '68ch' }}>{c.brief}</div>}
-
-      <div style={{ fontSize: 13, lineHeight: 1.5 }}>
-        <span style={LABEL}>Nếu bạn im lặng · </span>
-        <span style={{ color: 'var(--muted)' }}>{c.silent}</span>
-      </div>
+      {c.flow && <window.SvgFigure svg={c.flow} onNav={onNav} />}
+      {c.tree
+        ? <QuestionTree tree={c.tree} q={c.question} brief={c.brief} silent={c.silent} onPick={pickInto} />
+        : <>
+            {c.brief && <div style={{ fontSize: 13.5, color: 'var(--ink)', lineHeight: 1.55, maxWidth: '68ch' }}>{c.brief}</div>}
+            <div style={{ fontSize: 13, lineHeight: 1.5 }}>
+              <span style={LABEL}>Nếu bạn im lặng · </span>
+              <span style={{ color: 'var(--muted)' }}>{c.silent}</span>
+            </div>
+          </>}
 
       {(c.options || []).length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -206,7 +269,7 @@ function Card({ c, onOpenGate, onDoc, onAnswer, onSent }) {
       {c.type === 'q' && (
         <AnswerBox placeholder="Câu trả lời của bạn — viết bằng lời, đội sẽ áp nguyên văn vào hồ sơ"
           defaultText={hasDefault((c.question.fallback || '').trim()) ? c.question.fallback.trim() : null}
-          sendLabel="Gửi câu trả lời →" onSend={sendAnswer(c.question, c.file)} />
+          preset={preset} sendLabel="Gửi câu trả lời →" onSend={sendAnswer(c.question, c.file)} />
       )}
       {c.type === 'esc' && (
         <AnswerBox placeholder="Chỉ đạo: ai nhận · làm gì · hay bỏ qua vì sao"
@@ -222,7 +285,7 @@ function Card({ c, onOpenGate, onDoc, onAnswer, onSent }) {
                 <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
                   <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)', flex: 'none' }}>{q.code || '·'}</span>
                   <span style={{ fontSize: 13.5, flex: 1, lineHeight: 1.45 }}>{plainTxt(q.q)}</span>
-                  <button onClick={() => setOpenQ(on ? null : k)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--blue)', fontSize: 12.5, flex: 'none' }}>
+                  <button onClick={() => { setPreset(null); setOpenQ(on ? null : k); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--blue)', fontSize: 12.5, flex: 'none' }}>
                     {on ? 'đóng ▴' : 'trả lời ▸'}
                   </button>
                 </div>
@@ -230,10 +293,11 @@ function Card({ c, onOpenGate, onDoc, onAnswer, onSent }) {
                   <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>mặc định: {q.fallback.trim()}</div>
                 )}
                 {on && (
-                  <div style={{ marginTop: 6 }}>
+                  <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {c.treeOf(q) && <QuestionTree tree={c.treeOf(q)} q={q} silent={q.fallback} onPick={pickInto} />}
                     <AnswerBox placeholder="Câu trả lời của bạn" sendLabel="Gửi câu trả lời →"
                       defaultText={hasDefault((q.fallback || '').trim()) ? q.fallback.trim() : null}
-                      onSend={sendAnswer(q, c.fileOf(q.audience))} />
+                      preset={preset} onSend={sendAnswer(q, c.fileOf(q.audience))} />
                   </div>
                 )}
               </div>
@@ -254,8 +318,115 @@ function Card({ c, onOpenGate, onDoc, onAnswer, onSent }) {
   );
 }
 
-function LeadInbox({ data, gates, onOpenGate, onDoc, onAnswer, onBrief }) {
+/* Thẻ "AI đã tự quyết" — một quyết định autopilot, hình hai cột Chọn/Bỏ, nút Đảo hai nhịp
+   (bấm Đảo → viết đổi sang gì → gửi) để không ai đảo nhầm bằng một cú bấm. */
+function AutoCard({ d, data, onDoc, onNav, onSteer, onSent }) {
+  const [open, setOpen] = React.useState(false);
+  const [note, setNote] = React.useState('');
+  const [busy, setBusy] = React.useState(false);
+  const first = (d.rejected || [])[0];
+  const start = () => { setNote(first && first.option ? 'Đảo sang: ' + first.option : ''); setOpen(true); };
+  const send = () => {
+    if (!note.trim() || busy) return;
+    setBusy(true);
+    Promise.resolve(onSteer({ dec: d.id, intent: d.intent, note: note.trim() }))
+      .then(ok => { if (ok) onSent('steer:' + d.id); })
+      .finally(() => setBusy(false));
+  };
+  const line = (label, text) => text ? (
+    <div><span style={LABEL}>{label} · </span><span style={{ color: 'var(--muted)' }}>{plainTxt(text)}</span></div>
+  ) : null;
+  return (
+    <article id={'card-' + d.id} style={{
+      border: '1px dashed var(--ok)', background: 'var(--ok-bg)', borderRadius: 'var(--radius-md)',
+      padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 760
+    }}>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', flexWrap: 'wrap' }}>
+        <span style={{ fontFamily: 'var(--mono)', color: 'var(--ok)', fontSize: 13 }}>◇</span>
+        <span style={{ ...LABEL, color: 'var(--ok)' }}>AI đã tự quyết</span>
+        <span style={{ fontSize: 12.5, color: 'var(--muted)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+          title={d.intent}>{intentName(data, d.intent)}</span>
+        {d.reason && <Chip tone="active">{/silent/i.test(d.reason) ? 'hết hạn chờ, không ai trả lời' : d.reason}</Chip>}
+      </div>
+      <div style={{ fontSize: 16, fontWeight: 650, letterSpacing: '-0.01em', lineHeight: 1.35 }}>{plainTxt(d.what) || d.id}</div>
+      <window.SvgFigure svg={d.svg} onNav={onNav} />
+      {(d.missing || []).length > 0 && (
+        <div style={{ fontSize: 12.5, color: 'var(--danger)' }}>
+          Quyết định này ghi thiếu {d.missing.length} dòng bắt buộc — đội phải bổ sung (xem trong hồ sơ)
+        </div>
+      )}
+      <details style={{ fontSize: 13, lineHeight: 1.55 }}>
+        <summary style={{ cursor: 'pointer', color: 'var(--muted)', fontSize: 12.5 }}>Chữ đầy đủ</summary>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 6, maxWidth: '72ch' }}>
+          {line('Chọn', d.chosen + (d.chosenCost ? ' — giá: ' + d.chosenCost : ''))}
+          {(d.rejected || []).map((r, i) => <React.Fragment key={i}>{line('Bỏ', r.option + (r.why ? ' — vì: ' + r.why : ''))}</React.Fragment>)}
+          {line('Đảo bằng', d.undo)}
+          {line('Ảnh hưởng', d.impact)}
+          {line('Căn cứ', d.basis)}
+          {line('Kiểm điều kiện dừng', d.blockCheck)}
+        </div>
+      </details>
+      {open && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <textarea value={note} onChange={e => setNote(e.target.value)} rows={2} autoFocus
+            placeholder="Đổi sang gì, vì sao — đội làm lại đúng theo lời này"
+            onKeyDown={e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') send(); }}
+            style={{
+              width: '100%', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'var(--sans)', fontSize: 13.5,
+              padding: '8px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--line)',
+              background: 'var(--surface)', color: 'var(--ink)', lineHeight: 1.5
+            }} />
+          {d.undo && <div style={{ fontSize: 12, color: 'var(--muted)' }}>Cái giá của việc đảo: {plainTxt(d.undo)}</div>}
+        </div>
+      )}
+      <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginTop: 2 }}>
+        {open
+          ? <>
+              <Button variant="primary" onClick={send} disabled={!note.trim() || busy}>{busy ? 'Đang gửi…' : 'Gửi yêu cầu đảo →'}</Button>
+              <Button variant="secondary" onClick={() => setOpen(false)} disabled={busy}>Thôi, giữ nguyên</Button>
+            </>
+          : <Button variant="secondary" onClick={start}>Đảo</Button>}
+        <button onClick={() => onDoc('context-memory/governance/decisions-log.md')} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, fontSize: 12.5, color: 'var(--muted)' }}>
+          Xem thêm ▸ <span style={{ fontFamily: 'var(--mono)', fontSize: 11 }}>{d.id}</span>
+        </button>
+      </div>
+    </article>
+  );
+}
+
+function LeadInbox({ data, gates, onOpenGate, onDoc, onAnswer, onBrief, onNav, onSteer, focus }) {
   const [sent, setSent] = React.useState([]);     // khoá việc vừa gửi — ẩn ngay, không đợi /state 5 giây
+  const autos = React.useMemo(() => autoDecisions(data).filter(d => !sent.includes('steer:' + d.id)), [data, sent]);
+  const [allAuto, setAllAuto] = React.useState(false);
+  const AUTO_LIMIT = 3;
+  /* Bấm một gate "tự quyết" trên sơ đồ ⇒ mở đủ nhóm rồi cuộn tới đúng thẻ của DEC đó. */
+  React.useEffect(() => {
+    if (!focus || !focus.id) return;
+    setAllAuto(true);
+    const h = setTimeout(() => {
+      const el = document.getElementById('card-' + focus.id);
+      if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 60);
+    return () => clearTimeout(h);
+  }, [focus]);
+  const autoGroup = autos.length > 0 && (
+    <section style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 }}>
+      <div>
+        <div style={{ ...LABEL, color: 'var(--ok)' }}>AI đã tự quyết — đảo nếu cần</div>
+        <div style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: 3 }}>
+          {autos.length} quyết định đội đã tự chốt và đi tiếp. Đồng ý thì không cần làm gì.
+        </div>
+      </div>
+      {(allAuto ? autos : autos.slice(0, AUTO_LIMIT)).map(d => <AutoCard key={d.id} d={d} data={data} onDoc={onDoc}
+        onNav={onNav} onSteer={onSteer} onSent={id => setSent(s => s.concat(id))} />)}
+      {autos.length > AUTO_LIMIT && (
+        <button onClick={() => setAllAuto(a => !a)} style={{
+          alignSelf: 'flex-start', background: 'transparent', border: '1px solid var(--line)',
+          borderRadius: 'var(--radius-sm)', padding: '7px 12px', cursor: 'pointer', color: 'var(--muted)', fontSize: 13
+        }}>{allAuto ? 'thu gọn ▴' : 'và ' + (autos.length - AUTO_LIMIT) + ' quyết định khác ▸'}</button>
+      )}
+    </section>
+  );
   const keyOf = c => c.type === 'esc' ? 'esc:' + c.esc.id : c.type === 'q' ? 'q:' + c.intent + ':' + (c.code || '') : null;
   const cards = React.useMemo(() => buildInbox(data, gates).filter(c => !sent.includes(keyOf(c))), [data, gates, sent]);
   const [all, setAll] = React.useState(false);
@@ -263,7 +434,7 @@ function LeadInbox({ data, gates, onOpenGate, onDoc, onAnswer, onBrief }) {
   const shown = all ? cards : cards.slice(0, LIMIT);
   const rest = cards.length - shown.length;
   const pending = new Set([...pendingKeys(data), ...sent]).size
-    + (data.inboxPending || []).filter(p => p.kind !== 'answer' && p.kind !== 'direction').length;
+    + (data.inboxPending || []).filter(p => p.kind !== 'answer' && p.kind !== 'direction' && p.kind !== 'steer').length;
   const pendingLine = pending > 0 && (
     <div style={{ fontSize: 12.5, color: 'var(--muted)', padding: '4px 0' }}>
       {pending} việc bạn đã gửi đang chờ phiên Claude Code áp vào hồ sơ — phiên đang chạy bắt ngay;
@@ -271,6 +442,20 @@ function LeadInbox({ data, gates, onOpenGate, onDoc, onAnswer, onBrief }) {
     </div>
   );
 
+  if (cards.length === 0 && autos.length > 0) {
+    return (
+      <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ fontSize: 14.5 }}>
+          <span style={{ fontFamily: 'var(--mono)', color: 'var(--ok)' }}>● </span>
+          <b>Không có gì cần bạn.</b>
+          <span style={{ color: 'var(--muted)' }}> Đội đang làm việc. </span>
+          <span onClick={onBrief} style={{ color: 'var(--blue)', cursor: 'pointer' }}>Bản tin hôm nay ▸</span>
+        </div>
+        {pendingLine}
+        {autoGroup}
+      </div>
+    );
+  }
   if (cards.length === 0) {
     return (
       <div style={{ padding: '72px 24px', textAlign: 'center' }}>
@@ -288,7 +473,7 @@ function LeadInbox({ data, gates, onOpenGate, onDoc, onAnswer, onBrief }) {
     <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
       {pendingLine}
       {shown.map(c => <Card key={c.id} c={c} onOpenGate={onOpenGate} onDoc={onDoc} onAnswer={onAnswer}
-        onSent={id => setSent(s => s.concat(id))} />)}
+        onNav={onNav} onSent={id => setSent(s => s.concat(id))} />)}
       {rest > 0 && (
         <button onClick={() => setAll(true)} style={{
           alignSelf: 'flex-start', background: 'transparent', border: '1px solid var(--line)',
@@ -298,9 +483,10 @@ function LeadInbox({ data, gates, onOpenGate, onDoc, onAnswer, onBrief }) {
       {all && cards.length > LIMIT && (
         <button onClick={() => setAll(false)} style={{ alignSelf: 'flex-start', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: 12.5 }}>thu gọn ▴</button>
       )}
+      {autoGroup}
     </div>
   );
 }
 
-Object.assign(window, { LeadInbox, buildInbox });
+Object.assign(window, { LeadInbox, buildInbox, autoDecisions });
 })();

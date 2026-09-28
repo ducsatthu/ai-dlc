@@ -1,6 +1,6 @@
 ---
 name: dlc-accept
-description: Stage 7–8 AI-DLC — gom Acceptance Evidence + tự chạy lại test thật, security check theo trigger §4.17, mở Gate F (UAT) rồi DỪNG; sau approve thì Release + publish docs theo workspace map + persist Context Memory.
+description: Stage 7–8 AI-DLC — gom Acceptance Evidence + tự chạy lại test thật, security check theo trigger §4.17, mở Gate F (UAT) rồi DỪNG; sau approve thì Release + publish docs theo workspace map + persist Context Memory. (Autopilot §2.3: tự đóng nghiệm thu Unit; deploy luôn dừng.)
 ---
 
 Điều kiện: mọi Bolt của UOW-NN xong Gate E(b).
@@ -16,3 +16,9 @@ description: Stage 7–8 AI-DLC — gom Acceptance Evidence + tự chạy lại 
    (`git_head` = HEAD **lúc AS-IS được đọc** — lấy từ ledger/SES, không phải HEAD hôm nay; `areas_scanned`;
    `ledger` trỏ ledger intent này; thêm dòng *Lịch sử promote*). Codekb cũ bị ghi đè — bản cũ vẫn nằm ở
    `as-is/` của intent trước, không mất. Không "làm đẹp", không viết ngược từ code (CLAUDE.md: không dựng bù hồ sơ).
+
+**Autopilot (protocol §2.3, 6.4.0)**: `governance/autopilot.md` có `mode: autopilot` ⇒ mọi bước trên vẫn chạy đủ, artefact đủ mục;
+chỗ ghi "DỪNG" / "KẾT THÚC LƯỢT" đổi thành: orchestrator chạy **block check** → không block thì tự ghi DEC autopilot
+(có *Chọn / Bỏ / Đảo bằng / Hiện ở*) và **chạy tiếp lệnh kế** trong cùng lượt; block thì ghi `blocked_by` rồi mới dừng.
+Gate F: autopilot chỉ tự đóng phần **nghiệm thu Unit** (evidence đủ + tự chạy lại test + security MUST = 0);
+**deploy môi trường khách/prod là ranh đỏ #4 — luôn dừng chờ người**. Gate G (retro): LL tự ghi, patch gói vẫn cần người ký.

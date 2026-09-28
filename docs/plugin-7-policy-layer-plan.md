@@ -1,6 +1,6 @@
 # Kế hoạch gói `ai-dlc` 7.0.0 — lớp chính sách + tower TRÊN engine AWS `aidlc-workflows` v2 (phương án A)
 
-> Trạng thái: **ĐỀ XUẤT — chờ chủ gói chốt 6 câu ở §7** · Ngày: 2026-09-22
+> Trạng thái: **ĐÃ CHỐT 2026-09-28** — 6 câu §7 chốt theo mặc định (chỉ thị chủ gói: "tự trả lời nếu không gây block, chọn phương án tốt nhất, ghi trade-off để điều chỉnh"). **§9 Autopilot (mới) đổi hai kết luận của file này** — đọc §9 trước. · Ngày viết: 2026-09-22
 > Thay cho §1–§4 của `plugin-transition-plan.md` (file đó tự tuyên bố là lịch sử từ 2026-09-03 và hứa "kế hoạch mới viết ở file riêng" — đây là file đó). Phần kiến trúc gói cũ (override 3 lớp, semver, contribute) vẫn đúng.
 > Căn cứ: `multi-user-shared-space.md` §2.1b (A đã chốt) · `spikes/aws-v2-cross-clone-approval.md` · `plugin/references/aws-v2-workspace.md` · `aws-aidlc-workflows-v2-vs-ai-dlc.md` (đối chiếu engine — **viết trên 2.6.99, template đội pin 2.5.75**, xem §7 câu 4) · `whitepaper-ai-dlc-vi.md` (SSOT v2) · kiểm kê gói 2026-09-22 (16 agent · 16 skill · 3 hook · 7 script · 8 checklist · 27 template).
 > Kỷ luật: file này **không thêm luật gate**. Mỗi lát ở §6 ghi rõ nó là *máy móc* (không cần LL) hay *luật* (phải trả bằng LL của pilot đội, hoặc gỡ).
@@ -169,6 +169,17 @@ Hạn: 2026-09-29. Quá hạn ⇒ áp mặc định, ghi vào `CHANGELOG` *Unrel
 
 ---
 
+### 7.1 Đã chốt 2026-09-28 (theo mặc định — đảo được)
+
+| # | Chốt | Trade-off đã chấp nhận | Đảo bằng |
+|---|---|---|---|
+| 1 | Chấp nhận gate mọi stage của engine AWS v2 — **nhưng xem §9**: gate không còn *chờ người*, autopilot quyết | Engine vẫn ghi 20–30 gate/intent vào audit; nhiễu hơn white paper v2 | Fork engine hoặc quay về B (multi-user §2.1b) |
+| 2 | Engine `ai-dlc` **đóng băng có ngoại lệ**: autopilot + tower SVG vẫn vào engine này (§9) vì đó là nơi chủ gói đang làm việc hằng ngày | Code hai nhánh thêm một chu kỳ; ngoại lệ làm "đóng băng" kém rõ | Gỡ ở 8.0.0 như cũ |
+| 3 | Artefact gói per intent: **record dir engine**, spike trước khi code 7.0.0-b | Nếu guard `produces` từ chối ⇒ mất ½ ngày, chuyển `.ai-dlc/intents/<id>/` | Đổi đường dẫn trong `layout.py` |
+| 4 | Pin engine **2.5.75** | Tính năng 2.6.x trong file đối chiếu phải kiểm lại trước khi dựa vào | Đội vendor lại 2.6.99 |
+| 5 | **Bỏ Showcase** ở 7.0.0 | Mất điểm nhìn trên sản phẩm chạy được — bù bằng thẻ *AI đã tự quyết* có *Hiện ở* | Thêm ở 7.1.0 khi có chỗ treo preview |
+| 6 | `tests/` là **điều kiện** của 7.0.0-a | Chậm 1–2 ngày | — |
+
 ## 8 · Việc phải sửa ở tài liệu khác khi file này được chốt
 
 - `plugin-transition-plan.md`: thêm dòng đầu "§1–§4 lịch sử; kế hoạch hiện hành: `plugin-7-policy-layer-plan.md`".
@@ -176,3 +187,60 @@ Hạn: 2026-09-29. Quá hạn ⇒ áp mặc định, ghi vào `CHANGELOG` *Unrel
 - `whitepaper-ai-dlc-vi.md` §XII: bảng ánh xạ sang gói viết cho engine ai-dlc — thêm một dòng trỏ sang file này cho engine aws-v2. Không sửa §II–§XI.
 - `CLAUDE.md` bảng `docs/`: thêm file này.
 - `MIGRATION.md`: mục 7.0.0 theo §5.
+
+---
+
+## 9 · Autopilot (2026-09-28) — gate không chờ người, chạy đủ bước, dừng khi block
+
+**Chỉ thị chủ gói 2026-09-28** (nguyên ý): chạy gần như tự động; tự trả lời câu hỏi không gây block; case block mà
+người chưa kịp trả lời thì chọn phương án tốt nhất để chạy tiếp, **đủ trade-off để điều chỉnh và có ghi chú**; gate
+không dừng chờ duyệt, chỉ dừng khi thông tin chưa đủ rõ / QA block cần làm rõ; câu hỏi và quyết định đang quá nhiều
+chữ ⇒ tower **mô hình hoá bằng SVG**. Bổ sung cùng ngày: **không phải fast mode bỏ bước** — vẫn chạy đầy đủ, AI phải
+xác định phạm vi đủ nhỏ để làm các bước *vừa đủ*, thay vì bỏ qua rồi kiểm lại.
+
+### 9.1 Đổi gì trong kết luận của file này
+
+| Kết luận cũ | Nay |
+|---|---|
+| §0.4 "gate mọi stage là khoảng cách KHÔNG đóng được" | **Đóng được phần quan trọng nhất**: gate vẫn tồn tại trong engine nhưng **không ai phải chờ** — autopilot chạy block check rồi quyết. `ASM-PKG-01` thu hẹp thành "audit nhiễu", không còn là "flow đứng" |
+| §0.2 "đóng băng engine ai-dlc" | Đóng băng **trừ** autopilot + tower SVG (§7.1 #2) — chúng ra ở **6.4.0** trên engine ai-dlc trước, vì đó là nơi có dự án chạy thật để trả LL |
+| §2 dòng "Mốc CP không chờ: KHÔNG" | Có — `governance/autopilot.md` `mode: autopilot` |
+| §2 dòng "Showcase: bỏ" | Vẫn bỏ; thay một phần bằng dòng *Hiện ở* của DEC autopilot + SVG trên tower |
+| §6 lát 7.0.0-b `asm_timeout.py` | Là trường hợp riêng của autopilot (`wait_hours > 0`) — gộp |
+
+### 9.2 Thiết kế (đã vào gói 6.4.0 — `protocol.md` §2.3, `templates/autopilot.md`)
+
+- **Núm**: `governance/autopilot.md` — `mode: autopilot|lead` · `wait_hours` · `max_units_per_intent` · `max_self_fix`.
+  Không có file ⇒ `lead` (dự án cũ không đổi). `dlc-init` dự án mới ⇒ `autopilot`.
+- **Chạy đủ**: tám stage, mọi artefact đúng template. Bỏ/gộp stage, artefact thiếu mục ⇒ doctor **FIX**.
+- **Cắt phạm vi vừa đủ**: stage 1 tách intent khi Unit Map quá `max_units_per_intent` hoặc Unit không `releasable`
+  một lượt. Tài liệu ngắn vì phạm vi nhỏ, không vì rút mục.
+- **Sáu điều kiện block**: (1) câu chặn không có mặc định khả thi / đảo đắt · (2) thiếu thông tin để viết AC/test ·
+  (3) nguồn P0 không tự đọc được · (4) ranh đỏ: deploy khách/prod, migration phá huỷ, gửi ra ngoài, tiền, quyền ·
+  (5) doctor FIX · (6) tự sửa quá `max_self_fix`.
+- **DEC autopilot**: *Chọn · Bỏ (từng phương án) · Đảo bằng · Hiện ở · Block check* — thiếu dòng nào là FIX.
+- **Đảo**: tower nút *Đảo* ⇒ `inbox/steer-*.json` ⇒ `REV` ⇒ DEC mới `reverses:`.
+- **Tower SVG**: flow intent (stage → gate → unit, màu theo trạng thái, gate tự quyết viền nét đứt) · cây lựa chọn
+  cho mỗi câu hỏi (giá trên nhánh, đề xuất tô đậm, mặc định nét đứt) · thẻ *AI đã tự quyết* hai cột Chọn/Bỏ.
+
+### 9.3 Trade-off đã chấp nhận — ghi để đảo
+
+| Quyết định | Được | Mất / rủi ro | Dấu hiệu phải đảo | Đảo bằng |
+|---|---|---|---|---|
+| Gate A–E, G tự quyết | Flow không đứng vì chờ người (ca PILOT: 13 request / 0 verdict) | Sai hướng chạy xa hơn trước khi người thấy | `autopilot.reversed` > 30% hoặc `reversed_after_release` > 0 | `wait_hours: 4` cho gate A và D; hoặc `mode: lead` |
+| Gate F: tự đóng nghiệm thu Unit, **deploy luôn dừng** | Không ai chờ để đóng Unit | White paper §V muốn Gate R ký toàn văn — ở đây chỉ deploy mới ký | Bug khách tìm sau release | Thêm "đóng Unit cuối của intent" vào block #4 |
+| `autopilot` là mặc định dự án mới | Đúng cách chủ gói làm việc | Đội mới chưa có bảng ranh đỏ riêng sẽ dùng bảng mặc định | Đội báo bị tự quyết thứ họ muốn duyệt | `dlc-init` hỏi một câu chọn mode |
+| Ra trên engine ai-dlc trước (6.4.0), aws-v2 sau | Có dự án thật để đo ngay | Hai actuator (orchestrator ghi DEC · `tower_approve.ts --actor autopilot`) | — | — |
+| aws-v2: autopilot ghi `HUMAN_TURN` với `Actor: autopilot` để qua presence guard | Gate engine không chờ | **Guard "có người" của engine bị đi vòng** — minh bạch trong audit nhưng vẫn là đi vòng; đội phải đồng ý | Đội không chấp nhận | Chỉ dùng Autonomy Mode gốc của engine + scope `poc`; autopilot chỉ *soạn sẵn* quyết định, người bấm một nút |
+| Nợ LL | Làm ngay | Bản thứ 5 liên tiếp không có LL | — | Retro INT-003/intent kế trả bằng KPI `autopilot.*`; không trả được ⇒ `mode: lead` làm mặc định lại |
+
+Dòng aws-v2 ở trên **chưa làm** — nó chạm guard của template đội nên cần đội biết trước; vào 7.0.0-b, mặc định ở đó là
+*soạn sẵn, người bấm một nút*, không tự ghi `HUMAN_TURN`.
+
+### 9.4 Lộ trình sau khi có autopilot
+
+| Lát | Nội dung |
+|---|---|
+| **6.4.0** | Autopilot trên engine ai-dlc (`protocol` §2.3 · template · orchestrator · 5 skill gate · doctor 3b) + tower SVG + thẻ *AI đã tự quyết* / *Đảo* |
+| **7.0.0-a** | như §6 + `tests/` có ca autopilot (block check đúng/sai, DEC thiếu dòng, bỏ bước) |
+| **7.0.0-b** | như §6, `asm_timeout` gộp vào autopilot; aws-v2 ở chế độ *soạn sẵn — một nút* |

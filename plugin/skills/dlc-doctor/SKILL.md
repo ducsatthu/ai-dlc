@@ -109,6 +109,18 @@ Chỉ đọc + báo cáo (sửa gì phải được user đồng ý từng mục
    - NFR không có ngưỡng số hoặc không có cách đo → **WARN**.
 3. **Gate** — `status.md` có `gate_open` mà `gate_doc` null hoặc file không tồn tại → **FIX** (protocol §2.1).
    `revisions/REV-*.md` còn `status: open` quá 2 bản → **WARN** (nên escalation).
+3b. **Autopilot (protocol §2.3, 6.4.0)** — chỉ khi `governance/autopilot.md` có `mode: autopilot`:
+   - DEC `autopilot` thiếu một trong *Chọn · Bỏ · Đảo bằng · Hiện ở · Block check* → **FIX** (quyết định không đảo được
+     là quyết định không được tự ra). *Hiện ở* trỏ mục không tồn tại trong gate_doc → **FIX**.
+   - **Bỏ bước**: gate nằm trong `gates_auto` mà artefact của stage đó thiếu (`intent-plan.md` · `source-ledger.md` ·
+     `open-questions-*.md` · `unit-plan.md` · `logical-design.md` · `evidence/`) hoặc thiếu mục bắt buộc của template →
+     **FIX**, ghi khoảng trống vào LL — không dựng bù.
+   - **Tự quyết qua block**: DEC autopilot ghi *Block check* toàn `pass` mà dấu vết nói khác — câu `CHẶN` cột *Nếu im
+     lặng* rỗng · ledger còn `planned`/`missing` P0 · diff chạm migration/auth/PII/public API · lệnh deploy → **FIX**.
+   - Unit bị hạ tầng review so với trigger §4.17 trong DEC autopilot Gate D → **FIX**.
+   - `gate_open` có `blocked_by` quá 24h chưa ai trả lời → **WARN** kèm tên người cần trả lời.
+   - `inbox/steer-*.json` chưa xử lý → **FIX** (người đã đảo mà AI vẫn chạy hướng cũ).
+   - Tỷ lệ `reversed/decisions` < 10% sau ≥ 10 DEC → **WARN**: có thể không ai nhìn; > 30% → **WARN**: giả định kém.
 4. `.ai-dlc/overrides/**`: thiếu frontmatter reason/source → cảnh báo; nội dung ⊆ bản plugin hiện tại →
    "đã upstream, nên xóa"; xung đột bản mới → in diff.
 5. So version checklist: pinned của intent đang chạy vs plugin hiện tại → liệt kê lệch (chỉ thông tin —

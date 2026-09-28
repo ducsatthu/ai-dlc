@@ -160,6 +160,14 @@ function GateReview({ gate, doc, revisions, onClose, onDecide }) {
             borderLeft: '1px solid var(--line)', background: 'var(--surface)', overflow: 'auto',
             padding: 16, display: 'flex', flexDirection: 'column', gap: 14
           }}>
+            {gate.blockedBy && (
+              <Note tone="danger" title="AI đã dừng ở đây — cần bạn">
+                {gate.blockedBy}
+                <div style={{ marginTop: 6, fontSize: 12.5, color: 'var(--muted)' }}>
+                  Gate này mở vì AI không tự quyết được, không phải vì chờ duyệt thường lệ.
+                </div>
+              </Note>
+            )}
             {hardBlocked && (
               <Note tone="danger" title="Nút Approve đang bị khóa">
                 <div style={{ marginBottom: 6 }}>Tick “đã đọc” là chưa đủ — gate này còn điều kiện chưa đạt:</div>

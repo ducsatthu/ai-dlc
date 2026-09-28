@@ -1,9 +1,66 @@
 # Changelog — ai-dlc plugin
 
-> **Nợ LL tổng (tính tới 6.3.0):** 5.0.0 (bỏ trần 5h) · 6.0.0 (gỡ Review Board) · 6.2.0 (map v2 + codekb) ·
-> 6.3.0 (lớp chính sách trên AWS v2 + layout resolver) đều đi bằng **quyết định chủ gói**, chưa bản nào có LL
+> **Nợ LL tổng (tính tới 6.4.0):** 5.0.0 (bỏ trần 5h) · 6.0.0 (gỡ Review Board) · 6.2.0 (map v2 + codekb) ·
+> 6.3.0 (lớp chính sách trên AWS v2 + layout resolver) · 6.4.0 (autopilot) đều đi bằng **quyết định chủ gói**, chưa bản nào có LL
 > qua Gate G. 4.1.0 nợ `LL-004` (retro INT-003). Trả bằng: retro INT-003 của PILOT (engine ai-dlc) và retro
 > intent pilot đầu tiên của đội (engine aws-v2). Kế hoạch trả và lát kế tiếp: `docs/plugin-7-policy-layer-plan.md` §6.
+
+## 6.4.0 (2026-09-28) — Autopilot: gate không chờ người, chạy đủ bước, dừng khi block · tower mô hình hoá bằng SVG
+
+**Nguồn: quyết định chủ gói 2026-09-28** (`docs/plugin-7-policy-layer-plan.md` §9 — nguyên ý chỉ thị + bảng trade-off
+§9.3) — không phải LL qua Gate G; nợ LL, trả bằng KPI `autopilot.*` ở retro kế. **Opt-in theo dự án**: không có
+`governance/autopilot.md` hoặc `mode: lead` ⇒ hành vi 6.3.0 nguyên vẹn. Minor vì thêm núm + trường tuỳ chọn; luật
+gate A–G, `gate_doc`, preview, request-changes **không đổi** cho `mode: lead`.
+
+### Autopilot (protocol §2.3)
+- **Không phải "fast mode bỏ bước".** Tám stage và mọi artefact vẫn sinh đủ, đúng template. Autopilot đổi **ai quyết
+  ở gate**, không đổi **làm gì**. Bỏ/gộp stage, artefact thiếu mục ⇒ doctor **FIX**.
+- **Cắt phạm vi vừa đủ** (§2.3.2): stage 1 tách intent khi Unit Map vượt `max_units_per_intent` hoặc có Unit không
+  `releasable` một lượt — tài liệu ngắn vì phạm vi nhỏ, không vì rút mục.
+- **Block check sáu điều kiện** tại mỗi gate: câu chặn không có mặc định khả thi / đảo đắt · thiếu thông tin để viết
+  AC/test · nguồn P0 không tự đọc được · ranh đỏ (deploy khách/prod, migration phá huỷ, gửi ra ngoài, tiền, quyền) ·
+  doctor FIX · tự sửa quá `max_self_fix`. Sạch ⇒ DEC autopilot, **chạy tiếp trong cùng lượt**. Block ⇒ `blocked_by`
+  trong `status.md`, dừng; việc không phụ thuộc vẫn chạy.
+- **DEC autopilot** (protocol §5): *Chọn · Bỏ · Đảo bằng · Hiện ở · Block check* (+ `reverses:` · `reason: silent-timeout`).
+  Thiếu dòng nào là FIX — quyết định không đảo được là quyết định không được tự ra.
+- **Gate F**: tự đóng phần nghiệm thu Unit; **deploy luôn dừng** (ranh đỏ #4). **Gate G**: LL tự ghi, patch gói vẫn
+  cần người ký.
+- **Đảo**: tower nút *Đảo* ⇒ `inbox/steer-*.json` ⇒ `REV-NN` from HUMAN ⇒ DEC mới `reverses: DEC-NNNN`.
+  `dlc-resume` xử lý `steer-*` trước mọi thứ.
+- `templates/autopilot.md` (núm `mode · wait_hours · max_units_per_intent · max_self_fix · notify`) · `templates/status.md`
+  thêm `gates_auto` · `blocked_by` (tuỳ chọn; `plugin_version` template sửa từ `3.1.0` cũ).
+- Nối vào: `dlc-orchestrator` (2b + điều cấm sửa lại) · `dlc-intent-analyst` (cắt phạm vi) · `dlc-context-validator`
+  (phân loại `CHẶN` thật) · `dlc-bolt-coordinator` · skill `dlc-intent/validate/units/bolt/accept/retro/resume/init` ·
+  `session_start.sh` (luật 5 đổi theo mode) · `dlc-doctor` **3b** (DEC thiếu dòng · bỏ bước · tự quyết qua block ·
+  hạ tầng review · block quá 24h · steer chưa xử lý · tỷ lệ đảo ngoài 10–30%).
+- `gate_guard.py` **không đổi**: nó đọc `gates_passed`, autopilot ghi Gate D vào đó bằng DEC thật.
+
+### Tower — mô hình hoá bằng SVG, thẻ *AI đã tự quyết*, nút *Đảo*
+Ca gốc (chủ gói 2026-09-28): "câu hỏi và quyết định đang quá nhiều chữ". SVG sinh **server-side** trong
+`tower_generate.py` thành chuỗi trong `data.js` (khoá mới `svg`, `autopilot`) — không thêm thư viện/CDN; mọi chữ lấy
+từ markdown đều escape. Chữ đầy đủ vẫn còn, gấp dưới `<details>`.
+- **Flow intent**: băng ba pha · 8 hộp stage · hình thoi gate **đúng vị trí protocol §2** (A sau 1 · B sau 3 · C sau 4 ·
+  D sau 5 · E trong stage 6 · F sau 7 · G sau 8) · hàng Unit dưới stage 6. Màu: xong (xanh) · **tự quyết (xanh viền
+  nét đứt)** · chờ người (vàng, nhấp nháy, tắt khi reduced-motion) · **đang đứng vì block (đỏ + dải lý do)** · đang làm ·
+  chưa tới. Bấm hộp/gate/Unit ⇒ mở đúng tài liệu/thẻ. Thay dải `StageStrip` ở Tra cứu › intent; có trong Bản tin.
+- **Cây lựa chọn mỗi câu hỏi** (thẻ *Cần tôi trả lời*): gốc = câu hỏi, nhánh = phương án kèm **giá**; *AI đề xuất*
+  viền dày; *nếu im lặng* viền nét đứt; góc có mã + `CHẶN UOW-NN`, hạn, người trả lời. Bấm nhánh ⇒ điền sẵn câu trả
+  lời. Chỉ vẽ khi thẻ `### OQx-NN` có bảng ≥ 2 phương án — thiếu thì hiện chữ như cũ.
+- **Thẻ *AI đã tự quyết — đảo nếu cần*** (tầng 0, **không** cộng vào số "việc đang chờ bạn"): hai cột **Chọn ≠ Bỏ**
+  kèm giá/lý do · dải *Đảo bằng* · huy hiệu block check · *Hiện ở* bấm được. Nút **Đảo** hai nhịp, bắt buộc ghi chú
+  ⇒ `POST /steer` ⇒ `inbox/steer-<ts>.json`. 3 thẻ mới nhất, còn lại gấp.
+- `tower_serve.py`: route `/steer` (token · `note` · `previewed` · mã DEC hợp lệ — thiếu ⇒ 403/400); `/state` gửi
+  thêm `inboxPending` (**sửa lỗi có từ 6.1.0**: UI đọc trường này mà server chưa từng gửi ⇒ thẻ vừa xử lý hiện lại
+  sau F5).
+- Regex tiêu đề DEC nới để nhận đoạn thứ 5 `· autopilot`; tiêu đề 4 đoạn cũ khớp như trước.
+- KPI trong *Tra cứu ▾*: `autopilot.decisions` · `reversed` · `blocked`. **Giới hạn đã biết**: `blocked` đếm gate
+  đang block lúc này, chưa có lịch sử và chưa tách theo #1–#6; bề rộng chữ trong SVG là ước lượng (dư ⇒ xuống dòng
+  sớm, quá dài ⇒ cắt "…", bản đủ trong tooltip/`<details>`).
+- Đã thử: `py_compile` · cú pháp 12 file JSX · `data.js` nạp được bằng `vm` · fixture autopilot (stage 5, gate D block,
+  2 câu hỏi A/B/C, 2 DEC autopilot, 3 Unit) và fixture `lead` — generator bản cũ vs mới trên fixture `lead` cho
+  29/30 khoá cũ giống hệt · tower thật dark + light 0 lỗi console · **ca đối chứng**: tiêm `<script>`/`<img onerror>`/
+  `<foreignObject>` vào tiêu đề câu hỏi, phương án, dòng *Chọn*/*Đảo bằng* của DEC, `blocked_by` ⇒ 0 thẻ thô trong SVG.
+- **Chưa làm**: `tower_aws_v2.py` (engine aws-v2) chưa có SVG/autopilot — kế hoạch §9.3.
 
 ## 6.3.0 (2026-09-23) — Phương án A: gói là lớp chính sách + tower TRÊN engine AWS `aidlc-workflows` v2
 

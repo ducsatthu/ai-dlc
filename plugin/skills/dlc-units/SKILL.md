@@ -1,6 +1,6 @@
 ---
 name: dlc-units
-description: Stage 5 AI-DLC — refine Provisional Unit Map thành unit-plan.md chốt (mỗi Unit tự ra được sản phẩm + gọn một phiên, đủ User Story/NFR/Rủi ro, khai tầng review §4.17), unit-planner tự pre-flight theo checklist, mở Gate D rồi DỪNG.
+description: Stage 5 AI-DLC — refine Provisional Unit Map thành unit-plan.md chốt (mỗi Unit tự ra được sản phẩm + gọn một phiên, đủ User Story/NFR/Rủi ro, khai tầng review §4.17), unit-planner tự pre-flight theo checklist, mở Gate D rồi DỪNG. (Autopilot §2.3: không dừng trừ khi block.)
 ---
 
 Điều kiện: `gates_passed` chứa A, B, C; `as-is/source-ledger.md` không còn dòng `planned`.
@@ -29,3 +29,9 @@ description: Stage 5 AI-DLC — refine Provisional Unit Map thành unit-plan.md 
    dòng đó. DỪNG.
 5. Khi approve: ghi DEC, status stage 6 (`phase: construction`), unlock các Unit được duyệt.
    Đề xuất `/ai-dlc:dlc-bolt UOW-NN`.
+
+**Autopilot (protocol §2.3, 6.4.0)**: `governance/autopilot.md` có `mode: autopilot` ⇒ mọi bước trên vẫn chạy đủ, artefact đủ mục;
+chỗ ghi "DỪNG" / "KẾT THÚC LƯỢT" đổi thành: orchestrator chạy **block check** → không block thì tự ghi DEC autopilot
+(có *Chọn / Bỏ / Đảo bằng / Hiện ở*) và **chạy tiếp lệnh kế** trong cùng lượt; block thì ghi `blocked_by` rồi mới dừng.
+Gate D: bảng tầng review được autopilot chốt theo trigger §4.17 — unit chạm auth/PII/migration/public API **không** được
+hạ xuống `none` để khỏi chờ. Lệnh kế: `/ai-dlc:dlc-bolt` cho Unit đầu đường găng.

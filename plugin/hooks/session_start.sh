@@ -41,7 +41,13 @@ echo "1. Đọc \${CLAUDE_PLUGIN_ROOT}/references/protocol.md trước khi làm 
 echo "2. Override thắng: kiểm tra .ai-dlc/overrides/ trước khi dùng checklist/governance."
 echo "3. Agent trong một intent đọc checklist/governance từ intents/INT-xxx/pinned/."
 echo "4. Output (code/docs) resolve path qua .ai-dlc/workspace-map.md — KHÔNG đoán path."
-echo "5. Không stage/gate nào được vượt khi chưa có DEC. AI đề xuất trước — con người xác nhận trước khi đi tiếp."
+if grep -Eq "^mode:[[:space:]]*autopilot" "$AIDLC/context-memory/governance/autopilot.md" 2>/dev/null; then
+  echo "5. AUTOPILOT (protocol §2.3): chạy ĐỦ mọi stage + artefact, KHÔNG bỏ bước. Gate không chờ người: block check 6 điều kiện →"
+  echo "   sạch thì tự ghi DEC autopilot (Chọn/Bỏ/Đảo bằng/Hiện ở/Block check) và chạy tiếp; block thì ghi blocked_by rồi dừng."
+  echo "   Deploy/gửi ra ngoài/migration phá huỷ luôn dừng. Phạm vi to ⇒ cắt intent, không làm nông. inbox/steer-* xử lý trước tiên."
+else
+  echo "5. Không stage/gate nào được vượt khi chưa có DEC. AI đề xuất trước — con người xác nhận trước khi đi tiếp."
+fi
 echo "6. Giao việc cho agent bằng file handoffs/HOF-NNNN.md, KHÔNG nhồi bối cảnh vào prompt (protocol §9)."
 echo "7. Đọc ít, tra đúng chỗ: dùng context-memory/session/INDEX.md; KHÔNG nạp toàn văn intent-plan/unit-plan/as-is (§10)."
 echo ""
