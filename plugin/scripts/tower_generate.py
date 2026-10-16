@@ -3548,9 +3548,9 @@ def main(argv=None):
     if LAYOUT and LAYOUT["engine"] == "aws-v2":
         sys.exit("Layout AWS aidlc v2 tại %s — engine này đã ARCHIVE ở 7.0.0 (docs/archive/aws-v2/). Không sinh tower." % LAYOUT["root"])
     if LAYOUT and LAYOUT["engine"] == "contracts":
-        # 7.0.0-a: engine của đội (docs/intents/ bốn file). Tower cho engine này chưa có — lát a chỉ brief/doctor đọc-only.
-        sys.exit("engine contracts (template đội) tại %s — tower cho engine này chưa có ở 7.0.0-a. Dùng:\n"
-                 "  python3 %s/contracts_brief.py %s [--doctor]   (hoặc /ai-dlc:dlc-status · /ai-dlc:dlc-doctor)"
+        # 7.0.0-a: engine của đội (docs/intents/ bốn file). Không sinh file tĩnh; tower riêng là tower_contracts.py (serve, không generate).
+        sys.exit("engine contracts (template đội) tại %s. Tower của engine này không có bước generate, chạy thẳng:\n"
+                 "  python3 %s/tower_contracts.py %s        (brief chữ: contracts_brief.py [--doctor])"
                  % (LAYOUT["root"], os.path.dirname(os.path.abspath(__file__)), LAYOUT["root"]))
     if LAYOUT and LAYOUT["engine"] == "ai-dlc":
         ROOT, ASKED = LAYOUT["root"], os.path.abspath(ASKED)

@@ -3,11 +3,18 @@ name: dlc-tower
 description: Control Tower — generate dashboard từ .ai-dlc/ và serve local (LIVE: tự cập nhật khi agent ghi file, nút Approve/Yêu cầu chỉnh sửa/Reject ghi vào inbox).
 ---
 
-0. (6.3.0 · 7.0.0-a) Vị trí state và loại tower do `scripts/layout.py` quyết (`references/layout-config.md`). Engine
-   **`contracts`** (template đội, `docs/intents/` bốn file): tower cho engine này **chưa có** ở lát a — hai lệnh dưới dừng
-   và chỉ đường sang `contracts_brief.py` (`/ai-dlc:dlc-status`, `/ai-dlc:dlc-doctor`). Engine `aws-v2`: đã archive 7.0.0,
-   lệnh dừng. Không chắc gói đang hiểu dự án thế nào: `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/layout.py --explain`.
-   Output/port lấy từ config (`tower.out`, `tower.port`).
+0. (6.3.0 · 7.0.0-a) Vị trí state và loại tower do `scripts/layout.py` quyết (`references/layout-config.md`). Không chắc gói
+   đang hiểu dự án thế nào: `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/layout.py --explain`. Output/port lấy từ config
+   (`tower.out`, `tower.port`). Engine `aws-v2`: đã archive 7.0.0, lệnh dừng.
+
+   Engine `contracts` (template đội, `docs/intents/` bốn file): tower là một script khác, không có bước generate.
+   Chạy nền `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tower_contracts.py <project_root>` (bind 127.0.0.1, port 8644, in URL
+   kèm token). Trang chỉ có một màn chính "Cần tôi quyết": mỗi change chờ gate là một thẻ với bốn file đọc toàn văn, kết
+   quả `validate_workflow.py` của đội, ô tên người và hai nút Duyệt / Yêu cầu sửa. Bấm Duyệt là server gọi
+   `approvals.py --by <tên người gõ>` của đội. Luật đội never infer approval vẫn giữ: agent không bấm thay, không gọi
+   `approvals.py`, không có inbox `gate-*.json` để drain. Việc của agent sau khi người bấm: thấy `approvals.json` đổi
+   (hoặc đọc `contracts_brief.py --short`), commit nó trên nhánh của change rồi làm tiếp theo lifecycle của đội.
+   Bước 1 đến 5 dưới đây chỉ cho engine `ai-dlc`.
 1. Chạy `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tower_generate.py <project_root>` → `.ai-dlc/tower/index.html`.
 2. Args chứa "serve" → chạy nền `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tower_serve.py <project_root>`
    (bind 127.0.0.1, in URL kèm token) và arm Monitor watch `.ai-dlc/inbox/*.json` để xử lý ngay khi tới:

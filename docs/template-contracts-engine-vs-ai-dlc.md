@@ -133,7 +133,7 @@ Khuyến nghị A. Khác lần trước (AWS v2 là engine của bên thứ ba, 
 | `dlc-init` nhánh `contracts` | không tạo `.ai-dlc/context-memory`; chỉ `.ai-dlc/governance/{raci,sizing,autopilot}.md` với autopilot `mode: lead` (§5.3); gitignore `.ai-dlc/tower/` | idempotent |
 | Gỡ đích AWS v2 | `tower_aws_v2.py`, `tower_approve.ts`, `aws_v2_write_receipt.ts`, `references/aws-v2-workspace.md` vào `docs/archive/aws-v2/`; `layout.py` giữ autodetect `aws-v2` nhưng `notes` ghi "đã archive" | tests `test_layout` aws-v2 fixture giữ |
 
-Chưa làm trong lát a: `tower_contracts.py` có nút Duyệt gọi `approvals.py` (lát a-2), bản mô hình `views/` cho `intent.md` và `plan.md`.
+Lát a-2 (cùng ngày): `tower_contracts.py`, tower một file cho engine này. Màn mặc định "Cần tôi quyết", mỗi change chờ gate là một thẻ với bốn file đọc toàn văn và kết quả validator. Nút Duyệt gọi `approvals.py --by <tên người gõ>` của đội; server kiểm gate đang chờ, tên người, previewed và validator sạch trước khi gọi. Gói vẫn không tự ghi gì vào `approvals.json`. Chưa làm trong lát a: bản mô hình `views/` cho `intent.md` và `plan.md`.
 
 ### 5.2 Lát b, luật gói đọc được bởi người và Codex, mức WARN cho tới khi có LL (3 đến 4 ngày)
 

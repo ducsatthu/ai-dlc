@@ -57,7 +57,8 @@ Path tương đối với `root`. File `{}` nghĩa là tự dò nhưng gốc là
 | `scripts/session_brief.py` | brief 6.x | chuyển sang `contracts_brief.py` (`--json`, `--short`, `--doctor`, `--no-validate` đi theo) | aws-v2: báo archive. none: báo chưa init |
 | `scripts/contracts_brief.py` (7.0.0-a) | không có | đọc bốn file mỗi change, `approvals.json` (băm SHA-256 như `approvals.py`), git, và chạy `validate_workflow.py` của đội ở stage suy ra (`draft`, `execute`, `outcome`, `merge`). `--doctor` mã `D01` đến `D21`, exit 1 khi FIX | exit 2 |
 | `scripts/contracts_retro.py` (7.0.0-a) | không có | đọc `approvals.json`, `evidence.md`, log; ra ứng viên LL `R01` đến `R05`, `X01`; `--write` ghi `<governance>/lessons-learned/candidates.md` | exit 2 |
-| `scripts/tower_generate.py`, `tower_serve.py` | tower 6.x tại `tower.out`, port `tower.port` | dừng và chỉ đường sang `contracts_brief.py` (tower cho engine này chưa có ở lát a) | dừng |
+| `scripts/tower_generate.py`, `tower_serve.py` | tower 6.x tại `tower.out`, port `tower.port` | dừng và chỉ đường sang `tower_contracts.py` | dừng |
+| `scripts/tower_contracts.py` (7.0.0-a, lát a-2) | không có | tower một file, không có bước generate, port `tower.port` (8644). Màn mặc định "Cần tôi quyết": mỗi change chờ gate là một thẻ với bốn file đọc toàn văn, validator của đội, nút Duyệt / Yêu cầu sửa. Nút gọi `approvals.py --by <tên người gõ>` của đội; server kiểm gate đang chờ, tên người, previewed, validator sạch trước khi gọi. Mỗi lần gọi ghi một dòng vào `.ai-dlc/log/` (không tên người) | exit 2 |
 
 ## 4. Ví dụ
 

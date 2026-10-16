@@ -51,9 +51,9 @@ except Exception:
 if LAYOUT and LAYOUT["engine"] == "aws-v2":
     sys.exit("Layout AWS aidlc v2 tại %s — engine này đã ARCHIVE ở 7.0.0 (docs/archive/aws-v2/). Không serve." % LAYOUT["root"])
 if LAYOUT and LAYOUT["engine"] == "contracts":
-    # 7.0.0-a: engine của đội (docs/intents/). Tower chưa có — chỉ brief/doctor đọc-only.
-    sys.exit("engine contracts (template đội) tại %s — tower cho engine này chưa có ở 7.0.0-a. Dùng /ai-dlc:dlc-status hoặc\n"
-             "  python3 %s/contracts_brief.py %s --doctor" % (LAYOUT["root"], os.path.dirname(os.path.abspath(__file__)), LAYOUT["root"]))
+    # 7.0.0-a: engine của đội (docs/intents/ bốn file). Tower riêng: tower_contracts.py (thẻ "Cần tôi quyết" + nút gọi approvals.py của đội).
+    sys.exit("engine contracts (template đội) tại %s. Tower của engine này là tower_contracts.py:\n"
+             "  python3 %s/tower_contracts.py %s" % (LAYOUT["root"], os.path.dirname(os.path.abspath(__file__)), LAYOUT["root"]))
 if LAYOUT and LAYOUT["engine"] == "ai-dlc":
     ROOT, ASKED = LAYOUT["root"], os.path.abspath(ASKED)
 elif LAYOUT and LAYOUT["engine"] == "off":

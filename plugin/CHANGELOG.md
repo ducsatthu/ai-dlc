@@ -41,7 +41,7 @@ workspace nào còn chạy nó). Dự án `.ai-dlc/` không đổi gì.
 - `hooks/session_start.sh` nhánh `contracts`: banner bốn dòng (lifecycle của đội, gói chỉ đọc, không `dlc-init`, never infer approval) rồi
   `contracts_brief.py --short`. Nhánh `aws-v2` còn một dòng "đã archive".
 - `session_brief.py` chuyển tiếp sang `contracts_brief.py` (giữ `--json`, `--short`, `--doctor`, `--no-validate`). `tower_generate.py` và
-  `tower_serve.py` dừng và chỉ đường (tower cho engine này là lát sau).
+  `tower_serve.py` dừng và chỉ đường sang `tower_contracts.py`.
 - Skill `dlc-init`, `dlc-status`, `dlc-doctor` (mục 0), `dlc-resume`, `dlc-tower`: thêm đoạn engine `contracts`.
 - `templates/raci.md`: cột gate là `intent|plan|contract|outcome` (bản slug AWS vào archive). `references/layout-config.md` viết lại.
 
@@ -66,6 +66,24 @@ workspace nào còn chạy nó). Dự án `.ai-dlc/` không đổi gì.
   redact `.env`; shell thường không ghi; fail-open với stdin hỏng). `tests/test_contracts_retro.py` (10 ca: một ca sạch và từng mã đột
   biến, X01 xếp đầu, `--since`, `--write`).
 
+### `scripts/tower_contracts.py` (lát a-2, cùng ngày): tower cho engine `contracts`, nút duyệt là người bấm
+- Một file stdlib, trang HTML tự chứa, không có bước generate, không CDN, bind 127.0.0.1 với token như tower 6.x. Port `tower.port` (8644).
+- Màn mặc định chỉ có "Cần tôi quyết": mỗi change đang chờ gate là một thẻ. Trên thẻ: metadata, trạng thái từng gate đọc từ
+  `approvals.json`, units và AC, kết quả `validate_workflow.py` ở stage suy ra, bốn file đọc toàn văn (file gate ràng băm đánh dấu ●),
+  ô tên người (điền sẵn `git config user.name`, sửa được), nút Duyệt và Yêu cầu sửa. Nút Duyệt chỉ mở khi đã mở hết file ● và
+  validator không còn error. Phần "Tra cứu" và "Doctor" ở dưới. Poll `/state` mỗi 5 giây.
+- Bấm Duyệt là server gọi đúng `approvals.py <dir> --gate <g> --decision <d> --by <tên>` của đội. Đây là quyết định chủ gói 2026-10-16
+  câu 2 (soạn sẵn, người bấm): gói vẫn không tự ghi dòng nào vào `approvals.json`. Server kiểm lại lúc bấm: gate phải là gate đang
+  chờ (tính lại từ file), tên phải là tên người (không rỗng, không `ai`, không ngoặc vuông, cùng luật với `approvals.py`), duyệt phải
+  kèm `previewed`, validator phải sạch. Sai thì 400 hoặc 409 kèm lý do, không gọi. Yêu cầu sửa không có ô lý do: `approvals.json`
+  của đội chỉ ghi quyết định, lý do ghi vào PR review hoặc chat.
+- Mỗi lần gọi ghi một dòng `{"ev": "approve", "change", "gate", "decision", "ok", "via": "tower"}` vào `.ai-dlc/log/YYYY-MM.jsonl`,
+  không ghi tên người, cùng dạng với `observe.py` để `contracts_retro.py` đọc chung.
+- Sau khi ghi, thẻ nhắc: commit `approvals.json` trên nhánh của change, không commit trên `main`/`develop`. Đang đứng ở nhánh bảo vệ
+  thì huy hiệu branch đổi màu.
+- `/doc` chỉ trả bốn file của một change trong `docs/intents/`, không đọc chỗ khác. Không có inbox riêng, không có `gate-*.json`.
+- Skill `dlc-tower` nhánh `contracts` trỏ sang script này. `session_start.sh` nhánh `contracts` thêm một dòng lệnh mở tower.
+
 ### Profile tối giản cho engine `contracts` (bước 1 của việc lược skill cho model mới)
 - Chín skill không có việc ở engine này (`dlc-intent`, `discover`, `validate`, `units`, `bolt`, `accept`, `revise`, `tasks`, `map`) nay mở
   đầu bằng một đoạn chốt: không chạy, dùng lệnh nào của `/aidlc` thay. Còn lại 7 skill và 3 script (`contracts_brief`, `contracts_retro`,
@@ -82,8 +100,11 @@ workspace nào còn chạy nó). Dự án `.ai-dlc/` không đổi gì.
   phải change). Ca thật trên template khi đặt `AI_DLC_TEMPLATE_PATH`.
 - `docs/template-contracts-engine-vs-ai-dlc.md` (phân tích, bốn câu chốt, lát a và b, bốn đề xuất gửi team, §9 profile tối giản và evals),
   `CLAUDE.md`, `MIGRATION.md`. Tài liệu mới viết theo hướng dẫn humanizer: câu ngắn, không gạch ngang dài, không chữ đậm trang trí.
-- Chưa làm (lát a-2 và b): `tower_contracts.py` có nút gọi `approvals.py` với tên người; bản mô hình `views/` cho `intent.md` và
-  `plan.md`; luật gói mức WARN (sổ cái nguồn, OQ có mặc định, sizing, tầng review, LL) qua đề xuất vào `docs/memory/` của đội; evals.
+- `tests/test_tower_contracts.py` (mới): server thật trên port tự chọn; `/state` cần token; `/doc` chỉ bốn file; Duyệt bị chặn khi
+  tên là `ai`, khi thiếu `previewed`, khi gate không phải gate đang chờ, khi validator còn error, khi thiếu `approvals.py`; ca xanh gọi
+  stub `approvals.py` đúng tham số và ghi log không có tên; ca thật với `approvals.py` của template khi đặt `AI_DLC_TEMPLATE_PATH`.
+- Chưa làm (lát b): bản mô hình `views/` cho `intent.md` và `plan.md`; luật gói mức WARN (sổ cái nguồn, OQ có mặc định, sizing, tầng
+  review, LL) qua đề xuất vào `docs/memory/` của đội; evals.
 
 ## 6.5.1 (2026-10-16): dòng `Áp` trong DEC autopilot, máy đọc được mặc định đã áp; tower đảo đúng DEC đã quyết
 
