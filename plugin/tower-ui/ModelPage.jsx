@@ -9,6 +9,8 @@ const { Button: MButton } = NSmp;
 
    Mục "Cần bạn quyết" chia hai nhóm để người mở trang thấy 1–3 cây chứ không phải 7:
      · CẦN BẠN   — CHƯA CÓ mặc định (thông tin chưa đủ rõ, đội đang đứng): cây mở sẵn
+     · XÁC NHẬN TRƯỚC MỐC — mặc định đã áp nhưng chỉ đảo rẻ tới một mốc, chưa người nào xác nhận: cây mở sẵn.
+                   Đây là thứ duy nhất người còn nợ sau khi gate sau đã áp mặc định — không được gấp
      · AI TỰ LO  — đã có mặc định: mỗi điểm MỘT dòng, bấm dòng mới mở cây. Rủi ro cao mà đã có mặc định
                    vẫn thuộc nhóm này (AI đi tiếp, người đảo nếu cần) — đứng đầu nhóm, dòng có huy hiệu đỏ
 
@@ -32,9 +34,11 @@ function modelOfDoc(data, docPath) {
 }
 
 /* Ghi chú gom các lựa chọn: mỗi điểm một dòng "D3: đổi sang B. Mọi ca". Chọn lại đúng phương án đang áp
-   thì dòng của điểm đó biến mất — không có gì để đổi. Chữ người tự viết thêm được giữ nguyên. */
-function applyPick(note, d, optLabel, isCurrent) {
-  const head = d.id + ':';
+   thì dòng của điểm đó biến mất — không có gì để đổi. Chữ người tự viết thêm được giữ nguyên.
+   `code` là mã đứng đầu dòng: mã điểm của view (D3), hoặc mã CÂU HỎI của gate sau (OQB-06) khi điểm đó đã
+   được gate sau quyết — vì DEC bị đảo đã chọn trong bộ phương án của câu hỏi ấy. */
+function applyPick(note, code, optLabel, isCurrent) {
+  const head = code + ':';
   const lines = String(note || '').split('\n').filter(l => l.trim() && l.trim().indexOf(head) !== 0);
   if (!isCurrent) lines.push(head + ' đổi sang ' + optLabel);
   return lines.join('\n');
@@ -66,9 +70,11 @@ function Fold({ tone, summary, items }) {
 
 function ModelPage({ model, data, onNav, actions, focusId }) {
   const act = actions || {};
-  const [note, setNote] = React.useState('');
+  /* Ghi chú đảo gom THEO DEC: điểm đã được gate sau quyết thì đảo DEC của gate sau (nơi nó thật sự được
+     quyết), điểm còn lại đảo DEC của tài liệu đang xem. Khoá GATE = lời gửi kèm quyết định (mode lead). */
+  const [notes, setNotes] = React.useState({});
   const [busy, setBusy] = React.useState(false);
-  const [sentSteer, setSentSteer] = React.useState(false);
+  const [sentDecs, setSentDecs] = React.useState([]);
   const [answering, setAnswering] = React.useState(null);   // {id, preset} — điểm đang mở ô trả lời
   const [answered, setAnswered] = React.useState([]);
   const [hint, setHint] = React.useState('');
@@ -97,12 +103,22 @@ function ModelPage({ model, data, onNav, actions, focusId }) {
   }
 
   const live = window.autoDecisions ? window.autoDecisions(data) : [];
-  const steerable = !!(model.dec && act.onSteer && !sentSteer && live.some(d => d.id === model.dec));
+  const GATE = '__gate';
+  const canSteer = id => !!(id && act.onSteer && !sentDecs.includes(id) && live.some(d => d.id === id));
+  const steerable = canSteer(model.dec);
   const commenting = !!act.onComment;
+  const gateOf = id => ((live.find(d => d.id === id) || {}).gate || '').slice(0, 1);
+  const lineOf = code => Object.values(notes).join('\n').split('\n').find(l => l.indexOf(code + ':') === 0);
+  const qTree = code => ((data.svg || {}).questions || {})[model.intent + ':' + code];
   const questions = ((data.questionsByIntent || {})[model.intent]) || [];
   const openQ = code => questions.find(q => q.code === code && !/closed|đã chốt|da chot|đóng|descoped/i.test(q.status || ''));
 
-  const push = next => { setNote(next); if (commenting) act.onComment(next); };
+  const setNoteOf = (k, text) => {
+    setNotes(n => Object.assign({}, n, { [k]: text }));
+    if (k === GATE && commenting) act.onComment(text);
+  };
+  /* Một lựa chọn đi đâu: mode lead ⇒ lời gửi kèm quyết định; autopilot ⇒ ghi chú đảo của đúng DEC. */
+  const route = decId => commenting ? GATE : (canSteer(decId) ? decId : null);
   /* Cuộn trong chính trang mô hình này (trang có thể đang nằm trong lớp phủ hoặc màn duyệt gate). */
   const scrollTo = sel => setTimeout(() => {
     const el = rootRef.current && rootRef.current.querySelector(sel);
@@ -133,17 +149,47 @@ function ModelPage({ model, data, onNav, actions, focusId }) {
       return;
     }
     if (model.stale) { setHint('Mô hình này vẽ từ bản chữ cũ — chờ đội vẽ lại rồi hãy chọn.'); return; }
-    if (steerable || commenting) { push(applyPick(note, d, o.label, o.key === d.default)); return; }
-    setHint(sentSteer || model.dec
+    /* Điểm đã được gate sau quyết mà câu hỏi đó không có cây để chọn: vẫn nhắm đúng DEC của gate sau, nhưng
+       không ghép phương án của cây cũ với phương án của câu hỏi — để người tự viết. */
+    /* DEC áp thẳng lên mã điểm của view (`Áp: D4 = B`): CÙNG bộ phương án với cây này — chọn được ngay trên cây,
+       ghi chú nhắm DEC đang áp điểm đó. */
+    if (d.resolved && d.resolved.parts[0].direct) {
+      const p = d.resolved.parts[0];
+      const k = route(p.dec);
+      if (k) { setNoteOf(k, applyPick(notes[k], d.id, o.label, o.key === p.key)); return; }
+      setHint(p.dec + ' đã được gửi đảo hoặc đã đổi — chờ đội áp rồi chọn tiếp.');
+      return;
+    }
+    if (d.resolved && !d.resolved.closed) {
+      const p = d.resolved.parts[0];
+      const k = route(p.dec);
+      if (k) { setNoteOf(k, applyPick(notes[k], p.oq, '… (viết phương án của ' + p.oq + ' bạn muốn)', false)); return; }
+    }
+    if (d.resolved && d.resolved.closed) { setHint(d.id + ' đã do người chốt — muốn đổi thì trả lời lại câu hỏi ' + d.resolved.oq + '.'); return; }
+    const k = route(model.dec);
+    if (k) { setNoteOf(k, applyPick(notes[k], d.id, o.label, o.key === d.default)); return; }
+    setHint(sentDecs.length || model.dec
       ? 'Quyết định của bước này đã được gửi đảo hoặc đã đổi — chờ đội áp rồi chọn tiếp.'
       : 'Bước này chưa tới lúc quyết trên tower — lựa chọn của bạn chưa gửi đi đâu.');
   };
+  /* Bấm nhánh trên cây của CÂU HỎI gate sau (OQB-06): đảo DEC đã áp câu đó, ghi bằng mã và phương án của nó. */
+  const pickQ = (d, p, qt) => target => {
+    if (String(target).indexOf('pick:') !== 0) { go(target); return; }
+    const o = (qt.options || []).find(x => x.key === target.slice(5));
+    if (!o) return;
+    setHint('');
+    const k = route(p.dec);
+    /* "đang áp" là phương án DEC đã ghi ở dòng Áp (p.key), không nhất thiết là mặc định in trong file câu hỏi */
+    if (k) { setNoteOf(k, applyPick(notes[k], p.oq, o.label, o.key === (p.key || qt.silent))); return; }
+    setHint(p.dec + ' đã được gửi đảo hoặc đã đổi — chờ đội áp rồi chọn tiếp.');
+  };
 
-  const sendSteer = () => {
-    if (!note.trim() || busy) return;
+  const sendSteer = decId => {
+    const text = (notes[decId] || '').trim();
+    if (!text || busy) return;
     setBusy(true);
-    Promise.resolve(act.onSteer({ dec: model.dec, intent: model.intent, note: note.trim() }))
-      .then(ok => { if (ok) { setSentSteer(true); setNote(''); } })
+    Promise.resolve(act.onSteer({ dec: decId, intent: model.intent, note: text }))
+      .then(ok => { if (ok) { setSentDecs(x => x.concat(decId)); setNotes(n => Object.assign({}, n, { [decId]: '' })); } })
       .finally(() => setBusy(false));
   };
   const sendAnswer = d => (text, usedDefault) => {
@@ -254,7 +300,9 @@ function ModelPage({ model, data, onNav, actions, focusId }) {
             {f.key === 'decisions' && (() => {
               const all = model.decisions || [];
               const need = all.filter(d => d.group === 'need');
-              const auto = all.filter(d => d.group !== 'need');
+              const confirm = all.filter(d => d.group === 'confirm');
+              const auto = all.filter(d => d.group !== 'need' && d.group !== 'confirm');
+              const untils = Array.from(new Set(confirm.map(d => d.defaultUntil)));
               const autopilot = ((data.autopilot || {}).mode === 'autopilot');
               const figLabel = { scope: 'model-scope', sources: 'model-sources', risks: 'model-risks' };
               const tree = d => (
@@ -269,22 +317,44 @@ function ModelPage({ model, data, onNav, actions, focusId }) {
                     <div style={{ border: '1px solid var(--ok)', borderLeft: '4px solid var(--ok)', background: 'var(--ok-bg)', borderRadius: 'var(--radius-sm)', padding: '7px 11px', fontSize: 13, lineHeight: 1.5 }}>
                       {d.resolved.parts.map((p, i) => (
                         <div key={p.oq}>
-                          <b style={{ color: 'var(--ok)' }}>{p.closed ? 'Đã chốt' : 'Đã áp ở Gate ' + p.gate + ' (' + p.dec + ')'}:</b>{' '}
+                          <b style={{ color: 'var(--ok)' }}>{p.closed ? 'Đã chốt' : 'Đã áp' + (p.gate ? ' ở Gate ' + p.gate : '') + ' (' + p.dec + ((p.replaces || []).length ? ', thay ' + p.replaces.join(', ') : '') + ')'}:</b>{' '}
                           {txt(p.option)}
                           {p.until && <span style={{ color: 'var(--accent)', fontWeight: 650 }}> · đảo rẻ tới: {txt(p.until)}</span>}
                         </div>
                       ))}
-                      <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>
-                        Hình bên dưới vẽ lúc chưa có quyết định này; phương án trên cây là của lúc đó.
-                      </div>
+                      {d.resolved.confirmed && (
+                        <div style={{ fontSize: 12, color: 'var(--ok)', marginTop: 2 }}>
+                          Đã có người xác nhận{d.resolved.confirmedBy ? ' (' + d.resolved.confirmedBy + ')' : ''}.
+                        </div>
+                      )}
                     </div>
                   )}
-                  {d.svg
-                    ? <window.SvgFigure svg={d.svg} onNav={pick(d)} />
-                    : <div style={{ fontSize: 13.5 }}><b>{d.id}</b> · {txt(d.question)} <span style={{ color: 'var(--danger)' }}>— chưa đủ phương án để vẽ</span></div>}
-                  {(steerable || commenting) && note.split('\n').some(l => l.indexOf(d.id + ':') === 0) && (
+                  {/* Điểm đã được gate sau quyết: CHỌN trên cây của câu hỏi gate sau — đó là bộ phương án mà DEC
+                      ấy đã chọn. Cây lúc gate trước gấp lại làm bối cảnh, không ghép phương án của hai cây. */}
+                  {d.resolved && d.resolved.parts.filter(p => !p.closed && qTree(p.oq)).map(p => (
+                    <div key={p.oq} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      {/* cây câu hỏi vẽ rộng 760 — giữ đúng cỡ, không kéo giãn theo trang 1000 */}
+                      <window.SvgFigure svg={qTree(p.oq).svg} onNav={pickQ(d, p, qTree(p.oq))} style={{ maxWidth: 760 }} />
+                      {lineOf(p.oq) && (
+                        <div style={{ fontSize: 12.5, color: 'var(--accent)' }}>
+                          ↳ {lineOf(p.oq)} — {commenting ? 'đã vào lời gửi kèm quyết định' : 'đã vào ghi chú đảo ' + p.dec + ' ở cuối mục này'}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {d.resolved && d.resolved.parts.some(p => !p.closed && qTree(p.oq))
+                    ? (d.svg && (
+                        <details style={{ fontSize: 12.5 }}>
+                          <summary style={{ cursor: 'pointer', color: 'var(--muted)' }}>Cây lúc Gate {model.gate || 'trước'} — vẽ khi chưa có quyết định này ▸</summary>
+                          <div style={{ marginTop: 6, opacity: 0.85 }}><window.SvgFigure svg={d.svg} onNav={t => { if (String(t).indexOf('pick:') !== 0) go(t); }} /></div>
+                        </details>
+                      ))
+                    : (d.svg
+                        ? <window.SvgFigure svg={d.svg} onNav={pick(d)} />
+                        : <div style={{ fontSize: 13.5 }}><b>{d.id}</b> · {txt(d.question)} <span style={{ color: 'var(--danger)' }}>— chưa đủ phương án để vẽ</span></div>)}
+                  {lineOf(d.id) && (
                     <div style={{ fontSize: 12.5, color: 'var(--accent)' }}>
-                      ↳ {note.split('\n').find(l => l.indexOf(d.id + ':') === 0)} — {commenting ? 'đã vào lời gửi kèm quyết định' : 'đã vào ghi chú đảo ở cuối mục này'}
+                      ↳ {lineOf(d.id)} — {commenting ? 'đã vào lời gửi kèm quyết định' : 'đã vào ghi chú đảo ở cuối mục này'}
                     </div>
                   )}
                   {d.resolved && (
@@ -292,11 +362,11 @@ function ModelPage({ model, data, onNav, actions, focusId }) {
                       trạng thái lấy từ{' '}
                       {d.resolved.parts.map((p, i) => (
                         <React.Fragment key={p.oq}>{i ? ' · ' : ''}
-                          <span onClick={() => onNav && onNav('doc:context-memory/intents/' + model.intent + '/' + p.file)}
+                          {p.file && <span onClick={() => onNav && onNav('doc:context-memory/intents/' + model.intent + '/' + p.file)}
                             style={{ color: onNav ? 'var(--blue)' : 'inherit', cursor: onNav ? 'pointer' : 'default', fontFamily: 'var(--mono)', fontSize: 11.5 }}>
                             {p.file} {[p.oq].concat(p.also || []).join(' ↔ ')}
-                          </span>
-                          {p.dec && <> · <span onClick={() => onNav && onNav('dec:' + p.dec)}
+                          </span>}
+                          {p.dec && <>{p.file ? ' · ' : ''}<span onClick={() => onNav && onNav('dec:' + p.dec)}
                             style={{ color: onNav ? 'var(--blue)' : 'inherit', cursor: onNav ? 'pointer' : 'default', fontFamily: 'var(--mono)', fontSize: 11.5 }}>{p.dec}</span></>}
                         </React.Fragment>
                       ))}
@@ -342,6 +412,16 @@ function ModelPage({ model, data, onNav, actions, focusId }) {
                   <div style={{ fontSize: 13.5, color: 'var(--ok)' }}>Không điểm nào buộc phải chờ bạn — mọi điểm đã có mặc định.</div>
                 )}
 
+                {confirm.length > 0 && (
+                  <div style={{ ...LBL, color: 'var(--accent)', fontWeight: 700, marginTop: 4 }}>
+                    Xác nhận {untils.length === 1 ? txt(untils[0]) : 'trước mốc'} · {confirm.length}
+                    <span style={{ textTransform: 'none', letterSpacing: 0, fontFamily: 'var(--sans)', fontSize: 12.5, fontWeight: 400, color: 'var(--muted)' }}>
+                      {' '}— mặc định đã áp, nhưng qua mốc này là hết đảo rẻ
+                    </span>
+                  </div>
+                )}
+                {confirm.map(tree)}
+
                 {auto.length > 0 && (
                   <div style={{ ...LBL, color: 'var(--muted)', fontWeight: 700, marginTop: 4 }}>
                     {autopilot ? 'AI tự lo — đảo nếu cần' : 'Đã có mặc định — đổi nếu cần'} · {auto.length}
@@ -349,7 +429,7 @@ function ModelPage({ model, data, onNav, actions, focusId }) {
                 )}
                 {auto.map(d => {
                   const on = opened.includes(d.id);
-                  const changed = note.split('\n').some(l => l.indexOf(d.id + ':') === 0);
+                  const changed = !!lineOf(d.id) || !!(d.resolved && d.resolved.parts.some(p => lineOf(p.oq)));
                   return (
                     <div key={d.id} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       <button onClick={() => setOpened(o => on ? o.filter(x => x !== d.id) : o.concat(d.id))}
@@ -374,24 +454,31 @@ function ModelPage({ model, data, onNav, actions, focusId }) {
 
                 {hint && <div style={{ fontSize: 12.5, color: 'var(--accent)' }}>{hint}</div>}
 
-                {steerable && note.trim() !== '' && (
-                  <div style={{ border: '1px dashed var(--accent)', background: 'var(--accent-bg)', borderRadius: 'var(--radius-md)', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <div style={{ ...LBL, color: 'var(--accent)', fontWeight: 700 }}>Đảo quyết định AI đã tự chốt · {model.dec}</div>
-                    <textarea value={note} onChange={e => setNote(e.target.value)} rows={Math.max(2, note.split('\n').length)}
+                {Object.keys(notes).filter(k => k !== GATE && (notes[k] || '').trim() !== '' && canSteer(k)).map(k => (
+                  <div key={k} style={{ border: '1px dashed var(--accent)', background: 'var(--accent-bg)', borderRadius: 'var(--radius-md)', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ ...LBL, color: 'var(--accent)', fontWeight: 700 }}>Đảo quyết định AI đã tự chốt · {k}</div>
+                    {k !== model.dec && (
+                      <div style={{ fontSize: 12, color: 'var(--muted)' }}>
+                        đảo {k}{gateOf(k) ? ' (Gate ' + gateOf(k) + ')' : ''} — nơi điểm này thật sự được quyết
+                      </div>
+                    )}
+                    <textarea value={notes[k]} onChange={e => setNoteOf(k, e.target.value)} rows={Math.max(2, notes[k].split('\n').length)}
                       style={{
                         width: '100%', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'var(--sans)', fontSize: 13.5,
                         padding: '8px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--line)',
                         background: 'var(--surface)', color: 'var(--ink)', lineHeight: 1.5
                       }} />
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-                      <MButton variant="primary" onClick={sendSteer} disabled={busy}>{busy ? 'Đang gửi…' : 'Gửi yêu cầu đảo →'}</MButton>
-                      <MButton variant="secondary" onClick={() => setNote('')} disabled={busy}>Thôi, giữ nguyên</MButton>
+                      <MButton variant="primary" onClick={() => sendSteer(k)} disabled={busy}>{busy ? 'Đang gửi…' : 'Gửi yêu cầu đảo ' + k + ' →'}</MButton>
+                      <MButton variant="secondary" onClick={() => setNoteOf(k, '')} disabled={busy}>Thôi, giữ nguyên</MButton>
                       <span style={{ fontSize: 12, color: 'var(--muted)' }}>Bấm thêm nhánh khác để gom nhiều điểm vào một lần đảo.</span>
                     </div>
                   </div>
-                )}
-                {sentSteer && <div style={{ fontSize: 13, color: 'var(--ok)' }}>Đã gửi yêu cầu đảo {model.dec} — đội làm lại đúng phần đó rồi ghi quyết định mới.</div>}
-                {commenting && note.trim() !== '' && (
+                ))}
+                {sentDecs.map(k => (
+                  <div key={k} style={{ fontSize: 13, color: 'var(--ok)' }}>Đã gửi yêu cầu đảo {k} — đội làm lại đúng phần đó rồi ghi quyết định mới.</div>
+                ))}
+                {commenting && (notes[GATE] || '').trim() !== '' && (
                   <div style={{ fontSize: 12.5, color: 'var(--muted)' }}>
                     Lựa chọn của bạn đã vào ô “gửi kèm quyết định” ở cột bên phải.
                   </div>

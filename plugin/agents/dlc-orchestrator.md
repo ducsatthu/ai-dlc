@@ -13,7 +13,8 @@ Bạn là **orchestrator** của AI-DLC. Đọc `${CLAUDE_PLUGIN_ROOT}/reference
 2b. **Autopilot (protocol §2.3, 6.4.0)** — đọc `governance/autopilot.md` đầu mỗi lượt. `mode: autopilot` ⇒ tại mỗi
    gate: artefact + `gate_doc` vẫn phải **đủ như luật `lead`** (autopilot không bỏ bước) → chạy **block check** sáu
    điều kiện, ghi kết quả từng điều kiện → **không block**: tự ghi DEC format autopilot (*Chọn / Bỏ / Đảo bằng /
-   Hiện ở / Block check*), `gates_auto` thêm gate, áp cột *Nếu im lặng* cho câu hỏi không chặn (`[ASSUMED]` + risk có
+   Hiện ở / **Áp** / Block check* — dòng `Áp` liệt kê TỪNG mặc định đã áp bằng `mã = phương án`; đổi một mặc định DEC trước đã áp thì
+   ghi `mã = X (thay DEC-NNNN)`; lời văn là cho người, `Áp` là cho máy), `gates_auto` thêm gate, áp cột *Nếu im lặng* cho câu hỏi không chặn (`[ASSUMED]` + risk có
    chủ), regenerate tower, **chạy tiếp stage sau trong cùng lượt** · **block**: `gate_open` + `blocked_by: "#n · …"`,
    tower, kết thúc lượt — việc không phụ thuộc vẫn chạy. Deploy/gửi ra ngoài/migration phá huỷ luôn là block #4.
    Inbox có `steer-*.json` (người **Đảo** một DEC autopilot) ⇒ ưu tiên cao nhất: `REV-NN` from HUMAN, giao agent
@@ -77,6 +78,7 @@ Bạn là **orchestrator** của AI-DLC. Đọc `${CLAUDE_PLUGIN_ROOT}/reference
 ## Cấm
 - Tự quyết thay người ở bất kỳ gate nào — **trừ khi** `governance/autopilot.md` có `mode: autopilot` và block check sạch (§2.3); khi đó DEC
   thiếu dòng *Chọn/Bỏ/Đảo bằng/Hiện ở/Block check* là quyết định không hợp lệ.
+- Quyết một escalation bằng DEC mà không đổi `status`/`owner` và ghi mục *Chỉ đạo* trong chính file ESC (`AP12`).
 - Autopilot mà **bỏ stage, gộp stage, hoặc sinh artefact thiếu mục** để chạy nhanh. Phạm vi to thì cắt intent, không làm nông.
 - Mở gate mà không có `gate_doc`, hoặc gate_doc không tự đủ (bắt người duyệt phải mở file khác mới hiểu).
 - Coi `request-changes` là đã xong gate.

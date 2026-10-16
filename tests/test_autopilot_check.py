@@ -46,6 +46,32 @@ class AutopilotCheck(unittest.TestCase):
                 f = self.expect("AP01")
                 self.assertIn(line, f[0]["msg"])
 
+    # ---- AP13 / AP14: mặc định đã áp phải đọc được bằng máy -------------------------------
+    def test_dec_without_applied_line(self):
+        self.sub(self.log, r"- Áp: không có\n", "")
+        self.assertIn("Áp", self.expect("AP13")[0]["msg"])
+
+    def test_two_decs_apply_different_options_to_one_question(self):
+        # ca thật (demo INT-001): DEC-0003 áp OQT-03 = A, DEC-0004 gộp phương án C của đúng câu đó
+        s = read(self.log).replace("- Áp: không có", "- Áp: OQB-01 = A · OQT-03 = A", 1)
+        s = s.replace("- Áp: không có", "- Áp: OQT-03 = C", 1)
+        write(self.log, s)
+        f = self.expect("AP14")
+        self.assertIn("OQT-03", f[0]["where"])
+
+    def test_later_dec_may_replace_explicitly(self):
+        s = read(self.log).replace("- Áp: không có", "- Áp: OQB-01 = A · OQT-03 = A", 1)
+        s = s.replace("- Áp: không có", "- Áp: OQT-03 = C (thay DEC-0001)", 1)
+        write(self.log, s)
+        rc, info, findings = autopilot_check(self.p["root"])
+        self.assertEqual(findings, [])
+
+    def test_same_option_twice_is_not_a_conflict(self):
+        s = read(self.log).replace("- Áp: không có", "- Áp: OQT-03 = A", 2)
+        write(self.log, s)
+        rc, info, findings = autopilot_check(self.p["root"])
+        self.assertEqual(findings, [])
+
     def test_dec_missing_inline_fields(self):
         self.sub(self.log, r"- Đảo bằng: [^\n]*?(?=   - Hiện ở)", "")
         self.assertIn("Đảo bằng", self.expect("AP01")[0]["msg"])

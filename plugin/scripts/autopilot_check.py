@@ -19,6 +19,8 @@ Mã phát hiện:
   AP10 WARN  mode autopilot mà gate mở không có blocked_by/wait_until (dừng không lý do)
   AP11 WARN  có DEC autopilot trong khi mode là lead / không có autopilot.md
   AP12 FIX   DEC autopilot đã quyết một escalation mà file ESC vẫn `status: open` / chưa có `owner`
+  AP13 FIX   DEC autopilot thiếu dòng `Áp` (mã = phương án từng mặc định đã áp; không áp gì thì `không có`)
+  AP14 FIX   hai DEC autopilot áp hai phương án khác nhau cho cùng một mã mà DEC sau không ghi `(thay DEC-NNNN)`
 """
 import glob
 import json
@@ -31,6 +33,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from layout import resolve  # noqa: E402
 
 REQUIRED = ["Chọn", "Bỏ", "Đảo bằng", "Hiện ở", "Block check"]
+APPLY_RE = re.compile(r"\b((?:OQB|OQT|ESC|D|T)-?\d+)\s*(?:=|:|→)\s*([A-Z])\b(?:\s*\(\s*thay\s+(DEC-\d+)\s*\))?")
 # artefact tối thiểu mỗi gate phải có TRƯỚC khi được tự đóng (tương đối thư mục intent)
 GATE_ARTEFACTS = {
     "A": ["intent-plan.md"],
@@ -212,6 +215,23 @@ def check(project_dir):
             elif not st.get("wait_until"):
                 add("WARN", "AP10", "%s gate %s" % (iid, gate_open),
                     "gate mở mà không có blocked_by/wait_until — autopilot dừng không lý do")
+
+    # AP13 / AP14 — mặc định đã áp phải đọc được bằng máy, và không được tự mâu thuẫn
+    applied = {}                                            # (intent, mã) → [(DEC, phương án, thay DEC nào)]
+    for d in auto:
+        lines = d["fields"].get("Áp")
+        if not lines or not any(x.strip() for x in lines):
+            add("FIX", "AP13", d["id"], "thiếu dòng `Áp` — ghi từng mặc định đã áp dạng `OQB-01 = A`, không áp gì thì `không có`")
+            continue
+        for code, opt, repl in APPLY_RE.findall(" ".join(lines)):
+            applied.setdefault((d["intent"], code), []).append((d["id"], opt, repl))
+    for (iid, code), picks in sorted(applied.items()):
+        replaced = {repl for _, _, repl in picks if repl}                 # DEC đã bị một DEC sau ghi `thay`
+        live = [(dec, opt) for dec, opt, _ in picks if dec not in replaced]
+        if len({opt for _, opt in live}) > 1:
+            add("FIX", "AP14", "%s %s" % (iid, code),
+                "%s — DEC sau phải ghi `%s = <phương án> (thay DEC-NNNN)` hoặc sửa cho khớp" % (
+                    " ≠ ".join("%s áp %s" % x for x in live), code))
 
     # AP12 — quyết bằng DEC mà không đổi file ESC: tower vẫn báo "đang đứng — cần bạn" cho việc đã xong
     for d in auto:

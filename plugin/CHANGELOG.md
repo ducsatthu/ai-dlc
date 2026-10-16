@@ -1,9 +1,43 @@
 # Changelog — ai-dlc plugin
 
-> **Nợ LL tổng (tính tới 6.5.0):** 5.0.0 (bỏ trần 5h) · 6.0.0 (gỡ Review Board) · 6.2.0 (map v2 + codekb) ·
-> 6.3.0 (lớp chính sách trên AWS v2 + layout resolver) · 6.4.0 (autopilot) · 6.5.0 (bản mô hình cho người xem) đều đi bằng **quyết định chủ gói**, chưa bản nào có LL
+> **Nợ LL tổng (tính tới 6.5.1):** 5.0.0 (bỏ trần 5h) · 6.0.0 (gỡ Review Board) · 6.2.0 (map v2 + codekb) ·
+> 6.3.0 (lớp chính sách trên AWS v2 + layout resolver) · 6.4.0 (autopilot) · 6.5.0 (bản mô hình cho người xem) · 6.5.1 (dòng `Áp`) đều đi bằng **quyết định chủ gói**, chưa bản nào có LL
 > qua Gate G. 4.1.0 nợ `LL-004` (retro INT-003). Trả bằng: retro INT-003 của PILOT (engine ai-dlc) và retro
 > intent pilot đầu tiên của đội (engine aws-v2). Kế hoạch trả và lát kế tiếp: `docs/plugin-7-policy-layer-plan.md` §6.
+
+## 6.5.1 (2026-10-16): dòng `Áp` trong DEC autopilot, máy đọc được mặc định đã áp; tower đảo đúng DEC đã quyết
+
+Nguồn: phát hiện #36 của lần chạy thử INT-001 (`docs/demo-run-2026-09-28-int-001.md`). DEC-0003 ghi "áp mặc định cho 13 câu hỏi",
+DEC-0004 ghi "hàm thời gian gộp vào phần việc 2". Hai câu mâu thuẫn ở đúng một câu hỏi mà không máy nào thấy, vì không câu nào ghi mã.
+Patch: thêm một dòng vào mẫu DEC, hai mã checker, tower đọc dòng đó. Luật gate không đổi. Nợ LL như các bản trước.
+
+### Mẫu DEC autopilot (protocol §2.4)
+- Dòng `Áp: OQB-01 = A · OQB-06 = A · T4 = A`: từng mặc định đã áp, viết bằng mã = phương án. Không áp gì thì `không có`. Đổi một
+  mặc định DEC trước đã áp: `OQT-03 = C (thay DEC-0003)`; DEC trước vẫn hợp lệ ở các mã còn lại. Lời văn là cho người, `Áp` là cho máy.
+- `dlc-orchestrator` 2b ghi dòng này khi tự quyết. Mục Cấm thêm một dòng: quyết escalation bằng DEC mà không đổi `status`/`owner`
+  trong file ESC (`AP12`).
+
+### `autopilot_check.py`
+- `AP13` FIX: DEC autopilot thiếu dòng `Áp`. `AP14` FIX: hai DEC còn hiệu lực áp hai phương án khác nhau cho một mã mà DEC sau không
+  ghi `(thay DEC-NNNN)`. Mẫu nhận dạng `APPLY_RE` export cho tower dùng chung. Chạy lại trên demo bắt đúng ca #36.
+
+### Tower (`tower_generate.py`, `ModelPage.jsx`, `LeadInbox.jsx`)
+- `applied_index` và `live_applied`: trạng thái đang áp của từng mã, cùng luật với AP14 (DEC bị ghi `thay` hết hiệu lực ở mã đó; DEC
+  đã bị người đảo không còn là trạng thái đang áp). Cảnh báo #36 trong `autopilot.warnings` đọc từ đây thay vì so câu văn.
+  `autopilot.applied[intent][code]` cho UI; thẻ "AI đã tự quyết" liệt kê `appliedCodes`, mã đã bị thay gạch ngang.
+- Phủ quyết định lên cây gate trước: đọc dòng `Áp` trước; DEC viết trước 6.5.1 mới suy từ Căn cứ · Hiện ở (`applying_dec` ưu tiên DEC
+  nêu đích danh, rồi DEC sớm nhất của gate đi qua câu hỏi, không lấy DEC mới nhất). `make_resolver` không phủ khi DEC áp thuộc cùng
+  gate của tài liệu và đúng mặc định hình đang vẽ, so theo gate chứ không so một id DEC (gate A có thể có DEC-0001 áp mặc định rồi
+  DEC-0002 đảo một điểm; điểm chưa bị đảo vẫn là mặc định đang vẽ).
+- Nhóm mới "xác nhận trước mốc": mặc định đã áp mang hạn đảo mà chưa người nào xác nhận (`human_confirmed`: DEC không autopilot, cùng
+  intent, nêu mã). Dòng tóm tắt và `stats.confirm` tách khỏi "AI tự lo".
+- `ModelPage`: ghi chú đảo gom theo DEC. Điểm đã được gate sau quyết thì đảo DEC của gate sau và chọn trên cây câu hỏi của gate đó;
+  điểm còn lại đảo DEC của tài liệu đang xem. `LeadInbox`: câu hỏi hiện "đã áp: C (DEC-0005, thay DEC-0003)".
+
+### Tests
+- 107 → 118 ca. `test_autopilot_check` +4 (AP13; AP14; `thay` tường minh; cùng phương án không phải mâu thuẫn). `test_tower_generate` +7
+  (phủ trỏ đúng DEC đã quyết; dòng `Áp` là nguồn; DEC của chính view; người xác nhận xoá nhóm mốc; mặc định có hạn trong view cũng cần
+  xác nhận; đường lùi câu văn; tower dùng chung mẫu với checker).
 
 ## 6.5.0 (2026-09-28) — Hai bản của một tài liệu gate: chữ cho AI, MÔ HÌNH cho người · agent `dlc-modeler` · 27 sửa từ lần chạy thử đầu tiên của autopilot
 

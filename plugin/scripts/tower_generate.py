@@ -1919,6 +1919,39 @@ def _split_cost(v, word):
     return (_plain(parts[0]), _plain(parts[1]) if len(parts) > 1 else "")
 
 
+# Dòng `- Áp: OQB-01 = A · OQT-03 = C (thay DEC-0003)` (mẫu DEC 6.5.1) là nguồn MÁY ĐỌC của "DEC này áp phương án
+# nào cho mã nào". Mẫu nhận dạng dùng chung với `autopilot_check.py` (AP13/AP14) — import, không chép, để tower và
+# checker không bao giờ đọc cùng một dòng ra hai kết quả.
+try:
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from autopilot_check import APPLY_RE
+except Exception:  # noqa: BLE001 — gói cài thiếu checker: tower vẫn phải chạy, chỉ không đọc được dòng Áp
+    APPLY_RE = None
+
+
+def applied_index():
+    """(intent, mã) → [{dec, gate, opt, repl}] theo thứ tự DEC — từ dòng `Áp`; DEC không có dòng `Áp` thì rơi về
+    bốn mẫu câu văn (`dec_picks`). Cùng cách gom với AP14 của autopilot_check."""
+    out = {}
+    for d in decisions:
+        if not d.get("autopilot"):
+            continue
+        for code, opt, repl in d.get("applied") or []:
+            out.setdefault((d["intent"], code), []).append(
+                {"dec": d["id"], "gate": (d.get("gate") or "")[:1].upper(), "opt": opt, "repl": repl})
+    return out
+
+
+def live_applied(intent_id, code, index=None):
+    """Các lần áp CÒN HIỆU LỰC cho một mã. Luật của AP14: DEC bị một DEC sau ghi `(thay DEC-NNNN)` cho mã đó thì
+    hết hiệu lực Ở MÃ ĐÓ — các mã khác của nó vẫn còn. Thêm một điều tower biết mà checker không: DEC đã bị NGƯỜI
+    đảo (steer / `reverses:`) thì cũng không còn là trạng thái đang áp."""
+    picks = (index if index is not None else applied_index()).get((intent_id, code), [])
+    replaced = {p["repl"] for p in picks if p["repl"]}
+    return [p for p in picks if p["dec"] not in replaced
+            and not _reversed_by.get(p["dec"]) and not STEERS.get(p["dec"])]
+
+
 _CODE = r"(?:OQ[BT]?-\d+|[DT]\d+)"
 PICK_PATTERNS = [
     re.compile(r"(?<![\w-])(" + _CODE + r")\s*(?:=|:|→|->|⇒|—|–)\s*(?:phương\s*án\s*)?\**([A-E])\**(?![\w])"),
@@ -1950,6 +1983,7 @@ def parse_decisions():
         what = re.search(r"Quyết định:\s*(.+)", body)
         basis = re.search(r"Căn cứ:\s*(.+)", body)
         d = {"id": m.group(1), "when": m.group(2).strip(), "gate": m.group(3).replace("Gate", "").strip(),
+             "codes": sorted(set(re.findall(r"(?<![\w-])(?:OQ[BT]?-\d+|[DT]\d+)(?![\w-])", body))),
              "by": "Human supervisor", "what": (what.group(1).strip()[:180] if what else ""),
              "basis": (basis.group(1).strip()[:60] if basis else ""), "_to": m.group(4)}
         f = dec_fields(body)
@@ -1978,10 +2012,17 @@ def parse_decisions():
                 "basisFull": _plain(" · ".join((f.get("căn cứ") or []) + (f.get("hiện ở") or []))),
                 "picks": dec_picks(_plain(" · ".join((f.get("quyết định") or []) + (f.get("chọn") or []) +
                                                      (f.get("căn cứ") or [])))),
+                "hasApply": bool(APPLY_RE) and any(x.strip() for x in f.get("áp") or []),
                 "missing": [k for k, lbl in (("chọn", "Chọn"), ("bỏ", "Bỏ"), ("đảo bằng", "Đảo bằng"),
                                              ("hiện ở", "Hiện ở"), ("block check", "Block check"))
                             if not (f.get(k) or [""])[0]],
             })
+        if d.get("autopilot"):
+            # dòng Áp đọc TRƯỚC; không có thì mới dùng câu văn (khi đó `reverses:` đóng vai `thay` cho mọi mã)
+            if d["hasApply"]:
+                d["applied"] = [list(x) for x in APPLY_RE.findall(" ".join(f.get("áp") or []))]
+            else:
+                d["applied"] = [[c, o, d.get("reverses", "")] for c, o in sorted(d["picks"].items())]
         out.append(d)
     return out
 
@@ -2777,28 +2818,48 @@ def oq_crossmap(base):
 
 
 def applying_dec(intent_id, audience, fname, code):
-    """DEC autopilot MỚI NHẤT, chưa bị đảo, đã áp mặc định cho câu hỏi này: hoặc nó nêu đích danh file/mã câu
-    hỏi trong Căn cứ · Hiện ở, hoặc gate của nó không đứng trước gate của file câu hỏi."""
-    found = None
+    """DEC autopilot đã ÁP mặc định cho câu hỏi này, chưa bị đảo.
+
+    Ưu tiên DEC nêu ĐÍCH DANH file hoặc mã câu hỏi trong Căn cứ · Hiện ở (mới nhất trong số đó) — đó là nơi điểm
+    này thật sự được quyết. Không DEC nào nêu đích danh thì lấy DEC SỚM NHẤT có gate không đứng trước gate của
+    file câu hỏi: gate đầu tiên đi qua câu hỏi là gate đã áp nó. DEC của gate sau nữa (vd Gate D duyệt unit-plan)
+    chỉ xây trên mặc định ấy, không phải nơi quyết — nhắm đảo vào đó là đảo nhầm chỗ."""
+    named, later = None, None
     for d in decisions:
         if not d.get("autopilot") or d.get("intent") != intent_id:
             continue
+        if d.get("hasApply"):
+            continue        # DEC có dòng `Áp` tự khai nó áp gì; mã không có trong dòng đó là mã nó KHÔNG áp
         if _reversed_by.get(d["id"]) or STEERS.get(d["id"]):
             continue
+        basis = d.get("basisFull", "")
+        if fname in basis or re.search(r"(?<![\w-])" + re.escape(code) + r"(?![\w-])", basis):
+            named = d
+            continue
         g = (d.get("gate") or "")[:1].upper()
-        named = fname in d.get("basisFull", "") or re.search(r"(?<![\w-])" + re.escape(code) + r"(?![\w-])",
-                                                             d.get("basisFull", ""))
-        later = g in GATE_ORDER and re.match(r"^[A-G]\b", d.get("gate") or "") and \
-            GATE_ORDER.index(g) >= GATE_ORDER.index(OQ_GATE.get(audience, "C"))
-        if named or later:
-            found = d
-    return found
+        if later is None and re.match(r"^[A-G]\b", d.get("gate") or "") and \
+                GATE_ORDER.index(g) >= GATE_ORDER.index(OQ_GATE.get(audience, "C")):
+            later = d
+    return named or later
 
 
-def make_resolver(intent_id, base, qs):
+def human_confirmed(intent_id, codes):
+    """Đã có NGƯỜI xác nhận: một DEC không phải của autopilot, cùng intent, nêu đích danh một trong các mã đó."""
+    want = {c for c in codes if c}
+    for d in decisions:
+        if d.get("autopilot") or (d.get("_to") or d.get("intent") or intent_id) != intent_id:
+            continue
+        hit = want & set(d.get("codes") or [])
+        if hit:
+            return d["id"]
+    return ""
+
+
+def make_resolver(intent_id, base, qs, own_dec="", own_gate=""):
     by_code = {q["code"]: q for q in qs if q.get("code")}
     details = parse_question_details(base)
     cross = oq_crossmap(base)
+    applied = applied_index()
     file_of = {aud: fname for aud, fname, _l in OQ_FILES}
 
     def groups_for(dc):
@@ -2814,8 +2875,35 @@ def make_resolver(intent_id, base, qs):
             return hit, "dòng Soi chiếu của câu hỏi"
         return cross.get(ref, []), "bảng đối chiếu"
 
+    def direct(dc):
+        """DEC ghi `Áp: D4 = B` — áp thẳng lên MÃ ĐIỂM của view, cùng bộ phương án với cây. Chỉ phủ khi điều đó
+        là tin MỚI so với hình: DEC của gate khác, hoặc phương án khác mặc định hình đang vẽ (vd sau một lần người
+        đảo: `D4 = B (thay DEC-0001)`). So theo GATE của tài liệu, không so một id DEC: gate A có thể có nhiều DEC
+        (DEC-0001 áp mặc định, DEC-0002 đảo một điểm), và điểm chưa bị đảo vẫn là "đúng mặc định đang vẽ"."""
+        did = _s(dc.get("id"))
+        live = live_applied(intent_id, did, applied)
+        if not live:
+            return None
+        last = live[-1]
+        own = last["dec"] == own_dec or (own_gate and last["gate"] == own_gate)
+        if own and last["opt"] == _s(dc.get("default")):
+            return None
+        o = next((x for x in dc.get("options") if isinstance(x, dict) and _s(x.get("key")) == last["opt"]), None) \
+            if isinstance(dc.get("options"), list) else None
+        until = _s(o.get("reversal_until")) if o and _reversal(o.get("reversal")) != "đắt" else ""
+        part = {"oq": did, "file": "", "also": [], "closed": False, "direct": True, "key": last["opt"],
+                "option": last["opt"] + ((" — " + _s(o.get("name"))) if o else ""), "until": until,
+                "dec": last["dec"], "gate": last["gate"], "via": "dòng Áp",
+                "replaces": [p["repl"] for p in applied.get((intent_id, did), []) if p["dec"] == last["dec"] and p["repl"]]}
+        by_human = human_confirmed(intent_id, [did])
+        return {"confirmed": bool(by_human), "confirmedBy": by_human, "dec": part["dec"], "gate": part["gate"],
+                "option": part["option"], "until": until, "oq": did, "closed": False,
+                "how": "dòng Áp của " + part["dec"], "parts": [part], "path": ""}
+
     def resolve(dc):
         groups, how = groups_for(dc)
+        if not groups:
+            return direct(dc)
         parts = []
         for codes in groups:
             known = [c for c in codes if c in by_code]
@@ -2831,18 +2919,40 @@ def make_resolver(intent_id, base, qs):
             label = (((opt["key"] + " — ") if opt["key"] else "") + opt["name"]) if opt else _s(q.get("fallback"))
             if closed:
                 parts.append({"oq": code, "file": fname, "also": [c for c in known if c != code], "closed": True,
-                              "option": _s(q.get("answer")) or label, "until": "", "dec": "", "gate": ""})
+                              "option": _s(q.get("answer")) or label, "until": "", "dec": "", "gate": "",
+                              "replaces": [], "via": ""})
                 continue
+            # (1) DEC ghi rõ `Áp: OQB-06 = A` — phương án và nơi quyết lấy thẳng từ đó, không suy
+            live = live_applied(intent_id, code, applied)
+            if live:
+                last = live[-1]
+                o2 = next((o for o in dt.get("options") or [] if o["key"] == last["opt"]), None)
+                fb = _s(q.get("fallback"))             # thẻ không có bảng phương án: tên lấy từ cột "Nếu im lặng" nếu đúng chữ cái
+                named_fb = fb if re.match(r"^%s(?![\w])" % re.escape(last["opt"]), fb) else ""
+                parts.append({"oq": code, "file": fname, "also": [c for c in known if c != code], "closed": False,
+                              "option": (last["opt"] + " — " + o2["name"]) if o2 else (named_fb or last["opt"]),
+                              "key": last["opt"], "until": (o2 or {}).get("reversal_until", ""),
+                              "dec": last["dec"], "gate": last["gate"],
+                              "replaces": [p["repl"] for p in applied.get((intent_id, code), [])
+                                           if p["dec"] == last["dec"] and p["repl"]],
+                              "via": "dòng Áp"})
+                continue
+            if applied.get((intent_id, code)):
+                return None                            # mọi lần áp cho mã này đều đã bị thay / bị đảo: đang treo
+            # (2) đường lùi cho DEC viết trước 6.5.1: suy từ Căn cứ · Hiện ở + mặc định trong file câu hỏi
             dec = applying_dec(intent_id, q["audience"], fname, code) if label else None
             if not dec:
                 return None                            # câu còn mở và chưa DEC nào áp mặc định: vẫn là chuyện đang treo
             parts.append({"oq": code, "file": fname, "also": [c for c in known if c != code], "closed": False,
-                          "option": label, "until": (opt or {}).get("reversal_until", ""),
-                          "dec": dec["id"], "gate": (dec.get("gate") or "")[:1].upper()})
+                          "option": label, "key": key, "until": (opt or {}).get("reversal_until", ""),
+                          "dec": dec["id"], "gate": (dec.get("gate") or "")[:1].upper(),
+                          "replaces": [], "via": "Căn cứ · Hiện ở"})
         if not parts:
             return None
         first = parts[0]
-        return {"dec": first["dec"], "gate": first["gate"], "option": first["option"],
+        by_human = human_confirmed(intent_id, [_s(dc.get("id"))] + [c for p in parts for c in [p["oq"]] + p["also"]])
+        return {"confirmed": all(p["closed"] for p in parts) or bool(by_human), "confirmedBy": by_human,
+                "dec": first["dec"], "gate": first["gate"], "option": first["option"],
                 "until": next((p["until"] for p in parts if p["until"]), ""), "oq": first["oq"],
                 "closed": all(p["closed"] for p in parts), "how": how, "parts": parts,
                 "path": os.path.relpath(os.path.join(base, first["file"]), A)}
@@ -2926,6 +3036,8 @@ def hv_decisions(hv, table_ids, qs, warns, width=None, resolver=None):
         if not svg:
             warns.append("%s có dưới 2 phương án — không vẽ được cây lựa chọn" % did)
         chosen = next((o for o in opts if o["key"] == (dflt or rec)), None)
+        until_now = resolved["until"] if resolved else ((chosen or {}).get("reversal_until", "") if dflt else "")
+        confirmed = resolved["confirmed"] if resolved else bool(human_confirmed(hv.get("_intent", ""), [did]))
         if resolved:
             chosen_line = "đã áp ở Gate %s: %s" % (resolved["gate"], resolved["option"]) if not resolved["closed"] \
                 else "đã chốt: " + resolved["option"]
@@ -2942,7 +3054,11 @@ def hv_decisions(hv, table_ids, qs, warns, width=None, resolver=None):
                     # Cần NGƯỜI chỉ khi CHƯA CÓ mặc định (thông tin chưa đủ rõ — đội đang đứng). Rủi ro cao mà đã
                     # có mặc định thì AI đi tiếp, người đảo nếu cần: nó đứng ĐẦU nhóm "AI tự lo", dòng có huy hiệu đỏ.
                     # Gate sau đã áp mặc định / đã chốt cho chính chuyện này ⇒ không còn là việc đang chờ người.
-                    "group": "need" if (not dflt and not resolved) else "auto", "line": line,
+                    # Mặc định mang HẠN ĐẢO mà chưa người nào xác nhận: thứ duy nhất người còn nợ sau khi gate sau đã
+                    # áp — nhóm riêng "xác nhận trước mốc", cây mở sẵn, không gấp.
+                    "group": "need" if (not dflt and not resolved) else
+                    ("confirm" if until_now and not confirmed else "auto"), "line": line,
+                    "confirmed": confirmed,
                     **({"resolved": resolved} if resolved else {}),
                     "unlocks": unlocks,
                     "defaultUntil": resolved["until"] if resolved else
@@ -2953,14 +3069,15 @@ def hv_decisions(hv, table_ids, qs, warns, width=None, resolver=None):
                                 for m, o in zip(meta.get("options", []), opts)],
                     "recommended": meta.get("recommend", ""), "default": meta.get("silent", ""),
                     "oq": oq, "svg": svg or "",
-                    "_rank": (0 if (not dflt and not resolved) else 1, 0 if HV_LEVEL.get(risk) == 0 else 1,
+                    "_rank": (0 if (not dflt and not resolved) else (1 if (until_now and not confirmed) else 2),
+                              0 if HV_LEVEL.get(risk) == 0 else 1,
                               0 if (chosen or {}).get("reversal_until") and dflt else 1,
                               0 if costly else 1, HV_LEVEL.get(risk, 3), idx)})
     out.sort(key=lambda x: x.pop("_rank"))
     return out
 
 
-def build_human_view(intent_id, base, doc_rel, srcs, qs):
+def build_human_view(intent_id, base, doc_rel, srcs, qs, dec_of_gate=None):
     """Một tài liệu gate → trang mô hình. None khi tài liệu không có fence human-view."""
     p = os.path.join(base, doc_rel)
     if not os.path.isfile(p):
@@ -3018,7 +3135,8 @@ def build_human_view(intent_id, base, doc_rel, srcs, qs):
     src_fig, sstats = hv_fig_sources(srcs, source_extras(read(os.path.join(base, "intent-plan.md")) + "\n" +
                                                          read(os.path.join(base, "as-is", "source-ledger.md"))),
                                      replaced_by if links_known else None, tree_ids, warns)
-    decs = hv_decisions(hv, table_ids, qs, warns, resolver=make_resolver(intent_id, base, qs))
+    model["dec"] = (dec_of_gate or {}).get(gate, "")
+    decs = hv_decisions(hv, table_ids, qs, warns, resolver=make_resolver(intent_id, base, qs, model["dec"], gate))
     risks = hv_fig_risks(hv, warns, tree_ids)
     for f in (goal, scope, approach, road, src_fig):
         if f:
@@ -3054,14 +3172,18 @@ def build_human_view(intent_id, base, doc_rel, srcs, qs):
                      "applied": [{"id": d["id"], "gate": d["resolved"]["gate"], "dec": d["resolved"]["dec"]}
                                  for d in decs if d.get("resolved") and not d["defaultLabel"]],
                      # mặc định đã áp mang hạn đảo: qua mốc đó là hết đảo rẻ — cần người xác nhận TRƯỚC mốc
-                     "confirm": [{"id": d["id"], "until": d["resolved"]["until"]}
-                                 for d in decs if d.get("resolved") and d["resolved"]["until"]],
+                     "confirm": [{"id": d["id"], "until": d["defaultUntil"]} for d in decs if d["group"] == "confirm"],
                      "minor": len(minor)}
     n_need = sum(1 for d in decs if d["group"] == "need")
-    n_auto = len(decs) - n_need + len(minor)
+    confirm = [d for d in decs if d["group"] == "confirm"]
+    untils = list(dict.fromkeys(d["defaultUntil"] for d in confirm))
+    n_auto = len(decs) - n_need - len(confirm) + len(minor)
     if decs or minor or model["gaps"]:
         figs.append({"key": "decisions", "title": "Cần bạn quyết", "svg": "",
-                     "note": "%d cần bạn · %d đã có mặc định" % (n_need, n_auto)})
+                     "note": " · ".join(x for x in (
+                         "%d cần bạn" % n_need,
+                         ("%d xác nhận %s" % (len(confirm), untils[0] if len(untils) == 1 else "trước mốc")) if confirm else "",
+                         "%d đã có mặc định" % n_auto) if x)})
     if risks:
         figs.append(risks)
     n_units = ustats.get("units", len(table))
@@ -3076,12 +3198,16 @@ def build_human_view(intent_id, base, doc_rel, srcs, qs):
     if sstats.get("sources"):
         parts.append("%d nguồn (%d không đọc được)" % (sstats["sources"], sstats["unreadable"]))
     if n_dec:
-        parts.append("%d điểm cần chốt: %d cần bạn · %d AI tự lo" % (n_dec, n_need, n_auto))
+        parts.append("%d điểm cần chốt: %d cần bạn%s · %d AI tự lo" % (
+            n_dec, n_need,
+            (" · %d xác nhận %s" % (len(confirm), untils[0] if len(untils) == 1 else "trước mốc")) if confirm else "",
+            n_auto))
     seen = set()
     model.update({
         "version": hv.get("version") if isinstance(hv.get("version"), (int, float, str)) else "",
         "headline": _s(hv.get("headline")), "summary": " · ".join(parts),
-        "stats": dict(ustats, **sstats, decisions=n_dec, expensive=n_exp, need=n_need, auto=n_auto),
+        "stats": dict(ustats, **sstats, decisions=n_dec, expensive=n_exp, need=n_need, auto=n_auto,
+                      confirm=len(confirm)),
         "figures": figs, "decisions": decs, "minor": minor,
         "warnings": [w for w in warns if not (w in seen or seen.add(w))][:40]})
     return model
@@ -3092,9 +3218,9 @@ def human_views_of(intent_id, base, gate_doc_rel, srcs, qs, dec_of_gate):
     không thì bản kế hoạch mới nhất (unit-plan trước intent-plan)."""
     docs = {}
     for rel in dict.fromkeys([x for x in (gate_doc_rel, "unit-plan.md", "intent-plan.md") if x]):
-        m = build_human_view(intent_id, base, rel, srcs, qs)
+        m = build_human_view(intent_id, base, rel, srcs, qs, dec_of_gate)
         if m:
-            m["dec"] = dec_of_gate.get(m["gate"], "")
+            m.setdefault("dec", dec_of_gate.get(m["gate"], ""))
             docs[m["doc"]] = m
     if not docs:
         return None
@@ -3801,20 +3927,31 @@ def main(argv=None):
                 _d["modelDoc"] = _m["doc"]
         auto_decisions.append(_d)
 
-    # Hai DEC autopilot cùng quyết một câu mà khác phương án (#36). DEC sinh ra từ một lần đảo (`reverses:`) và
-    # DEC đã bị đảo thì khác nhau là CHỦ ĐÍCH — không tính.
-    for _a_i, _a in enumerate(auto_decisions):
-        for _b in auto_decisions[_a_i + 1:]:
-            if _a["intent"] != _b["intent"] or _b.get("reverses") == _a["id"] or _a.get("reverses") == _b["id"]:
-                continue
-            if _a["reversedBy"] or _a["steer"] or _b["reversedBy"] or _b["steer"]:
-                continue
-            for _code, _opt in sorted(_a.get("picks", {}).items()):
-                _other = _b.get("picks", {}).get(_code)
-                if _other and _other != _opt:
-                    auto_warnings.append({"dec": _b["id"], "with": _a["id"], "code": _code, "intent": _a["intent"],
-                                          "text": "%s và %s cùng quyết %s nhưng khác phương án (%s ≠ %s)"
-                                                  % (_a["id"], _b["id"], _code, _opt, _other)})
+    # Hai DEC autopilot còn hiệu lực áp hai phương án khác nhau cho cùng một mã (#36) — cùng luật với AP14:
+    # đọc dòng `Áp` trước, DEC bị ghi `(thay DEC-NNNN)` hết hiệu lực ở mã đó.
+    _idx = applied_index()
+    for (_iid2, _code), _picks in sorted(_idx.items()):
+        _live = live_applied(_iid2, _code, _idx)
+        if len({p["opt"] for p in _live}) > 1:
+            auto_warnings.append({"dec": _live[-1]["dec"], "with": _live[0]["dec"], "code": _code, "intent": _iid2,
+                                  "text": "%s cùng quyết %s nhưng khác phương án (%s)" % (
+                                      " và ".join(p["dec"] for p in _live), _code,
+                                      " ≠ ".join(dict.fromkeys(p["opt"] for p in _live)))})
+    # Trạng thái ĐANG ÁP của từng mã (câu hỏi, điểm cần chốt, ESC): phương án · DEC · DEC nó thay
+    applied_now = {}
+    for (_iid2, _code), _picks in sorted(_idx.items()):
+        _live = live_applied(_iid2, _code, _idx)
+        if _live and len({p["opt"] for p in _live}) == 1:
+            _last = _live[-1]
+            applied_now.setdefault(_iid2, {})[_code] = {
+                "option": _last["opt"], "dec": _last["dec"], "gate": _last["gate"],
+                "replaces": [p["repl"] for p in _picks if p["dec"] == _last["dec"] and p["repl"]]}
+    # Thẻ "AI đã tự quyết": DEC này đã áp những mã nào, mã nào đã bị DEC sau thay
+    for _d in auto_decisions:
+        _d["appliedCodes"] = [
+            {"code": c, "option": o,
+             "replacedBy": next((p["dec"] for p in _idx.get((_d["intent"], c), []) if p["repl"] == _d["id"]), "")}
+            for c, o, _r in _d.get("applied") or []]
 
     for _iid, _ms in metrics_by_intent.items():
         _mine = [d for d in auto_decisions if d["intent"] == _iid]
@@ -3945,7 +4082,8 @@ def main(argv=None):
     first = intents[0]["id"] if intents else None
     decisions_out = [{k: d[k] for k in _DEC_KEYS} for d in decisions]
     data = {
-        "autopilot": dict(AUTOPILOT, decisions=auto_decisions, blocked=blocked_gates, warnings=auto_warnings),
+        "autopilot": dict(AUTOPILOT, decisions=auto_decisions, blocked=blocked_gates, warnings=auto_warnings,
+                      applied=applied_now),
         "svg": {"css": SVG_CSS, "flowByIntent": svg_flow_by_intent, "questions": svg_questions,
                 "escalations": svg_escalations},
         "humanView": human_view,

@@ -625,10 +625,16 @@ DEC do **autopilot** ghi (§2.3, 6.4.0) — đủ các dòng, thiếu dòng nào
 - Chọn: <phương án> — giá: <giờ / rủi ro>
 - Bỏ: <phương án khác> — vì: <lý do>          # lặp dòng này cho từng phương án bị bỏ
 - Đảo bằng: <việc phải làm lại + chi phí ước>   - Hiện ở: <gate_doc#mục>
+- Áp: OQB-01 = A · OQB-06 = A · T4 = A        # 6.5.1 — TỪNG mặc định đã áp, bằng MÃ = PHƯƠNG ÁN; không áp gì thì ghi `không có`
 - Block check: #1 pass · #2 pass · #3 pass · #4 pass · #5 pass · #6 pass
 - reverses: DEC-NNNN        # chỉ khi DEC này sinh từ một lần người Đảo
 - reason: silent-timeout    # chỉ khi wait_hours > 0 và hết hạn
 ```
+**Dòng `Áp` (6.5.1)** — ca gốc: chạy thử INT-001 dự án demo, DEC-0003 ghi *"áp mặc định cho 13 câu hỏi"* và DEC-0004 ghi *"hàm thời gian
+gộp vào phần việc 2"*; hai câu đó mâu thuẫn nhau ở đúng một câu hỏi mà **không máy nào thấy**, vì không câu nào ghi mã. Lời văn là cho
+người; `Áp` là cho máy. Đổi một mặc định mà DEC trước đã áp: ghi `OQT-03 = C (thay DEC-0003)` — DEC trước vẫn hợp lệ ở các mã còn lại.
+`autopilot_check.py`: `AP13` thiếu dòng `Áp` · `AP14` hai DEC áp hai phương án khác nhau cho một mã mà không ghi `thay`.
+
 `status.md` thêm hai trường (tuỳ chọn, 6.4.0): `gates_auto: [A, B]` (gate đã đóng bằng DEC autopilot) ·
 `blocked_by: "#n · <lý do>"` (gate đang mở vì block, không phải vì chờ duyệt). `inbox/steer-*.json`:
 `{type: "steer", dec: "DEC-NNNN", intent, note, at}` — người đảo một quyết định tự động.

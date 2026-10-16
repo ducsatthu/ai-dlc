@@ -38,6 +38,7 @@ def dec(n, gate, intent="INT-001", shown="intent-plan.md#3", autopilot=True, ext
             "- Chọn: phương án A — giá: 2h · rủi ro thấp\n"
             "- Bỏ: phương án B — vì: tốn thêm 6h\n"
             "- Đảo bằng: viết lại mục đó rồi chạy lại stage kế — khoảng 2h   - Hiện ở: %s\n"
+            "- Áp: không có\n"
             "- Block check: #1 pass · #2 pass · #3 pass · #4 pass · #5 pass · #6 pass\n%s\n"
             % (n, gate, intent, shown, shown, extra))
 

@@ -47,6 +47,11 @@ function pendingKeys(data) {
   return s;
 }
 const svgOf = data => (data && data.svg) || {};
+/* Mã này ĐANG được DEC nào áp phương án gì (dòng `Áp` của DEC autopilot) → "đã áp: C (DEC-0005, thay DEC-0003)". */
+const appliedOf = (data, iid, code) => {
+  const a = ((((data.autopilot || {}).applied) || {})[iid] || {})[code];
+  return a ? 'đã áp: ' + a.option + ' (' + a.dec + ((a.replaces || []).length ? ', thay ' + a.replaces.join(', ') : '') + ')' : '';
+};
 const treeOf = (data, iid, code) => (code && (svgOf(data).questions || {})[iid + ':' + code]) || null;
 
 /* Quyết định AI đã tự ghi mà CHƯA bị đảo (6.4.0, protocol §2.3). Mới nhất lên trước.
@@ -141,7 +146,7 @@ function buildInbox(data, gates) {
     const rest = open.filter(q => !q.blocking && unlocksOf(q).length < 2)
       .map((q, i) => ({ q, i, u: untilOf(q) }))
       .sort((a, b) => (a.u ? 0 : 1) - (b.u ? 0 : 1) || a.i - b.i)
-      .map(x => x.u ? Object.assign({}, x.q, { until: x.u }) : x.q);
+      .map(x => Object.assign({}, x.q, x.u ? { until: x.u } : {}, { applied: appliedOf(data, iid, x.q.code) }));
     if (rest.length) {
       const auds = Array.from(new Set(rest.map(q => q.audience)));
       cards.push({
@@ -337,6 +342,7 @@ function Card({ c, onOpenGate, onDoc, onAnswer, onSent, onNav, onModel }) {
                     {on ? 'đóng ▴' : 'trả lời ▸'}
                   </button>
                 </div>
+                {q.applied && !on && <div style={{ fontSize: 12, color: 'var(--ok)', marginTop: 2 }}>{q.applied}</div>}
                 {hasDefault((q.fallback || '').trim()) && !on && (
                   <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>
                     mặc định: {q.fallback.trim()}
@@ -402,6 +408,23 @@ function AutoCard({ d, data, onDoc, onNav, onSteer, onSent, onModel }) {
       </div>
       <div style={{ fontSize: 16, fontWeight: 650, letterSpacing: '-0.01em', lineHeight: 1.35 }}>{plainTxt(d.what) || d.id}</div>
       <window.SvgFigure svg={d.svg} onNav={onNav} />
+      {/* Mã đã áp (dòng `Áp` của DEC). Mã đã bị một DEC sau thay thì gạch ngang: DEC này KHÔNG còn quyết mã đó. */}
+      {(d.appliedCodes || []).length > 0 && (
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+          <span style={LABEL}>Đã áp</span>
+          {d.appliedCodes.map(a => (
+            <span key={a.code} title={a.replacedBy ? a.code + ' đã được ' + a.replacedBy + ' quyết lại — thẻ này không còn quyết mã đó' : a.code + ' = ' + a.option}
+              style={{
+                fontFamily: 'var(--mono)', fontSize: 11, padding: '1px 7px', borderRadius: 999, whiteSpace: 'nowrap',
+                border: '1px solid ' + (a.replacedBy ? 'var(--line)' : 'var(--ok)'),
+                color: a.replacedBy ? 'var(--muted)' : 'var(--ink)', background: a.replacedBy ? 'transparent' : 'var(--surface)'
+              }}>
+              <span style={{ textDecoration: a.replacedBy ? 'line-through' : 'none' }}>{a.code} = {a.option}</span>
+              {a.replacedBy && <span style={{ color: 'var(--accent)' }}> → {a.replacedBy}</span>}
+            </span>
+          ))}
+        </div>
+      )}
       {(d.missing || []).length > 0 && (
         <div style={{ fontSize: 12.5, color: 'var(--danger)' }}>
           Quyết định này ghi thiếu {d.missing.length} dòng bắt buộc — đội phải bổ sung (xem trong hồ sơ)

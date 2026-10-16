@@ -371,13 +371,15 @@ version: 1
 | 1.7 mục 5 · Q8 | không hỏi | đã để sang đợt sau |
 """
 
-    def later_gate(self, status="open", gates=("A", "C"), view=None):
+    def later_gate(self, status="open", gates=("A", "C"), view=None, apply="- Áp: OQB-06 = A · OQB-03 = B"):
         v = copy.deepcopy(view or HV_VIEW)
         v["decisions"][0].update(ref="1.7 mục 1")                                  # D1 — có mặc định A
         v["decisions"][1].update(ref="1.7 mục 7", default=None, needs="ai xác nhận nơi lưu")   # D2 — đội đang đứng
         write(os.path.join(self.p["intent"], "open-questions-business.md"), self.OQ_LATER % status)
+        # DEC của Gate C khai bằng dòng `Áp` (mẫu DEC 6.5.1) nó đã áp phương án nào cho mã nào
         log = "# Decisions log\n\n" + "".join(
-            dec(i, g, shown={"A": "intent-plan.md#3", "C": "open-questions-business.md#0"}[g])
+            dec(i, g, shown={"A": "intent-plan.md#3", "C": "open-questions-business.md#0"}[g]).replace(
+                "- Áp: không có", apply if g == "C" else "- Áp: không có")
             for i, g in enumerate(gates, 1))
         write(os.path.join(self.p["gov"], "decisions-log.md"), log)
         self.put(v)
@@ -389,18 +391,104 @@ version: 1
         r = d2["resolved"]
         self.assertEqual((r["dec"], r["gate"], r["oq"], r["option"], r["until"]),
                          ("DEC-0002", "C", "OQB-06", "A — Chấp nhận trong đợt này", "trước phát hành"))
+        self.assertEqual(r["parts"][0]["via"], "dòng Áp")
         self.assertEqual(r["parts"][0]["also"], [], "OQT-01 không có trong bảng điều phối thì không kể")
-        self.assertEqual(d2["group"], "auto", "gate sau đã áp ⇒ rời nhóm cần bạn")
+        self.assertEqual(d2["group"], "confirm", "gate sau đã áp ⇒ rời nhóm cần bạn; có hạn đảo ⇒ xác nhận trước mốc")
+        self.assertFalse(d2["confirmed"])
         self.assertNotIn("Chưa có mặc định", d2["svg"])
         self.assertEqual(d2["line"], "đã áp ở Gate C: A — Chấp nhận trong đợt này · đảo rẻ tới: trước phát hành")
         self.assertEqual(m["idle"]["standing"], [])
         self.assertEqual(m["idle"]["applied"], [{"id": "D2", "gate": "C", "dec": "DEC-0002"}])
         self.assertEqual(m["idle"]["confirm"], [{"id": "D2", "until": "trước phát hành"}])
-        self.assertIn("0 cần bạn", m["summary"])
+        self.assertIn("3 điểm cần chốt: 0 cần bạn · 1 xác nhận trước phát hành · 2 AI tự lo", m["summary"])
+        self.assertEqual([x["id"] for x in m["decisions"]], ["D2", "D1"], "nhóm xác nhận đứng trước nhóm AI tự lo")
         self.assertEqual(hv["warnings"], [])
         # điểm đã có mặc định trong view cũng được phủ: người xem thấy gate sau áp gì
         d1 = next(x for x in m["decisions"] if x["id"] == "D1")
         self.assertEqual(d1["resolved"]["option"], "B — quản lý kho và trưởng ca")
+
+    def test_overlay_points_at_the_dec_that_decided_not_the_latest(self):
+        # Gate D (duyệt unit-plan) đến SAU Gate C nhưng không phải nơi quyết câu hỏi — đảo phải nhắm DEC của Gate C
+        m, _, _ = self.later_gate()
+        log = os.path.join(self.p["gov"], "decisions-log.md")
+        write(log, read(log) + dec(3, "D", shown="unit-plan.md#2"))
+        m, _, _ = self.model()
+        r = next(x for x in m["decisions"] if x["id"] == "D2")["resolved"]
+        self.assertEqual((r["dec"], r["gate"]), ("DEC-0002", "C"))
+        # ---- đường lùi: DEC viết TRƯỚC 6.5.1, không có dòng Áp ----
+        old = lambda *a, **k: dec(*a, **k).replace("- Áp: không có\n", "")      # noqa: E731
+        write(log, "# Decisions log\n\n" + old(1, "A") + old(2, "C", shown="open-questions-business.md#0")
+              + old(3, "D", shown="unit-plan.md#2"))
+        m, _, _ = self.model()
+        r = next(x for x in m["decisions"] if x["id"] == "D2")["resolved"]
+        self.assertEqual((r["dec"], r["gate"], r["parts"][0]["via"]), ("DEC-0002", "C", "Căn cứ · Hiện ở"))
+        # không DEC nào nêu đích danh file câu hỏi ⇒ lấy gate ĐẦU TIÊN đi qua câu hỏi, không lấy gate mới nhất
+        write(log, "# Decisions log\n\n" + old(1, "A") + old(2, "C", shown="as-is/source-ledger.md#0")
+              + old(3, "D", shown="unit-plan.md#2"))
+        m, _, _ = self.model()
+        r = next(x for x in m["decisions"] if x["id"] == "D2")["resolved"]
+        self.assertEqual((r["dec"], r["gate"]), ("DEC-0002", "C"))
+
+    def test_apply_line_is_authoritative(self):
+        # DEC có dòng Áp mà KHÔNG liệt kê mã ⇒ nó không áp mã đó, dù Căn cứ có trỏ file câu hỏi
+        m, _, _ = self.later_gate(apply="- Áp: OQB-03 = B")
+        self.assertNotIn("resolved", next(x for x in m["decisions"] if x["id"] == "D2"))
+        # Gate D áp LẠI mã đó bằng phương án khác và ghi `thay` ⇒ phủ theo DEC của Gate D, nêu rõ nó thay DEC nào
+        m, _, _ = self.later_gate()
+        log = os.path.join(self.p["gov"], "decisions-log.md")
+        write(log, read(log) + dec(3, "D", shown="unit-plan.md#2").replace("- Áp: không có", "- Áp: OQB-06 = B (thay DEC-0002)"))
+        m, hv, d = self.model()
+        r = next(x for x in m["decisions"] if x["id"] == "D2")["resolved"]
+        self.assertEqual((r["dec"], r["gate"], r["option"], r["until"], r["parts"][0]["replaces"]),
+                         ("DEC-0003", "D", "B — Không chấp nhận", "", ["DEC-0002"]))
+        self.assertEqual(d["autopilot"]["warnings"], [], "đã ghi `thay` thì hai DEC không còn mâu thuẫn")
+        # thẻ AI đã tự quyết của DEC-0002: OQB-06 đã bị DEC-0003 thay, OQB-03 vẫn còn của nó
+        codes = {x["code"]: x["replacedBy"] for x in next(a for a in d["autopilot"]["decisions"] if a["id"] == "DEC-0002")["appliedCodes"]}
+        self.assertEqual(codes, {"OQB-06": "DEC-0003", "OQB-03": ""})
+
+    def test_apply_line_on_the_views_own_decision_id(self):
+        v = copy.deepcopy(HV_VIEW)
+        self.put(v)
+        log = os.path.join(self.p["gov"], "decisions-log.md")
+        ap = lambda n, g, line, **k: dec(n, g, **k).replace("- Áp: không có", "- Áp: " + line)      # noqa: E731
+        # DEC của chính gate này áp đúng mặc định hình đang vẽ ⇒ không có gì mới, không phủ
+        write(log, "# Decisions log\n\n" + ap(1, "A", "D1 = A · D2 = A"))
+        m, _, d = self.model()
+        self.assertTrue(all("resolved" not in x for x in m["decisions"]))
+        self.assertEqual(d["autopilot"]["applied"]["INT-001"]["D1"], {"option": "A", "dec": "DEC-0001", "gate": "A", "replaces": []})
+        # sau một lần đảo, DEC mới áp D1 = B và ghi `thay` ⇒ hình (chưa vẽ lại) phải nói ra điều đó
+        write(log, read(log) + ap(2, "A", "D1 = B (thay DEC-0001)"))
+        m, _, d = self.model()
+        r = next(x for x in m["decisions"] if x["id"] == "D1")["resolved"]
+        self.assertEqual((r["dec"], r["option"], r["parts"][0]["direct"], r["parts"][0]["replaces"]),
+                         ("DEC-0002", "B — Chỉ quản lý kho", True, ["DEC-0001"]))
+        self.assertNotIn("resolved", next(x for x in m["decisions"] if x["id"] == "D2"))
+        self.assertEqual(d["autopilot"]["applied"]["INT-001"]["D1"]["replaces"], ["DEC-0001"])
+
+    def test_human_confirmation_clears_the_deadline_group(self):
+        self.later_gate()
+        log = os.path.join(self.p["gov"], "decisions-log.md")
+        # (1) DEC do NGƯỜI ghi, nêu đích danh mã câu hỏi ⇒ đã xác nhận
+        write(log, read(log) + "## DEC-0009 · 2026-09-29 · thay đổi · INT-001\n"
+              "- Quyết định: chấp nhận OQB-06 theo mặc định   - Người quyết: HUMAN\n- Căn cứ: MSG-0009   - Ảnh hưởng: không\n\n")
+        m, _, _ = self.model()
+        d2 = next(x for x in m["decisions"] if x["id"] == "D2")
+        self.assertEqual((d2["group"], d2["confirmed"], d2["resolved"]["confirmedBy"]), ("auto", True, "DEC-0009"))
+        self.assertEqual(m["idle"]["confirm"], [])
+        self.assertNotIn("xác nhận", m["summary"])
+        # (2) DEC autopilot nêu mã thì KHÔNG tính là người xác nhận
+        self.later_gate()
+        write(log, read(log) + dec(9, "D", shown="unit-plan.md#2").replace("- Quyết định: duyệt", "- Quyết định: giữ OQB-06"))
+        m, _, _ = self.model()
+        self.assertEqual(next(x for x in m["decisions"] if x["id"] == "D2")["group"], "confirm")
+
+    def test_default_with_deadline_in_the_view_needs_confirmation_too(self):
+        v = copy.deepcopy(HV_VIEW)
+        v["decisions"][0]["options"][0]["reversal_until"] = "trước phát hành"       # D1, mặc định A, rủi ro thấp
+        self.put(v)
+        m, _, _ = self.model()
+        self.assertEqual([(x["id"], x["group"]) for x in m["decisions"]], [("D1", "confirm"), ("D2", "auto")])
+        self.assertIn("0 cần bạn · 1 xác nhận trước phát hành · 2 AI tự lo", m["summary"])
 
     def test_no_match_means_no_overlay_no_guess(self):
         # (1) không có DEC nào áp lên file câu hỏi: câu còn mở ⇒ vẫn là chuyện đang treo
@@ -478,6 +566,7 @@ version: 1
         self.assertEqual(d1["line"], "A. Quản lý + trưởng ca · 0h · đảo rẻ tới: trước phát hành")
         self.assertIn("gỡ 2 điểm khác", d1["svg"])
         self.assertEqual(m["early"], ["D1"], "gỡ ≥ 2 điểm mới lên tầng Nên nhìn sớm")
+        self.assertEqual(d1["group"], "confirm")
         self.assertIn("D2.unlocks trỏ D77", " | ".join(hv["warnings"]))
 
     def test_idle_line_names_where_the_team_stands(self):
@@ -654,24 +743,62 @@ version: 1
         self.assertEqual([(r["sev"], r["level"]) for r in d["risks"]], [("high", "cao"), ("med", "vừa"), ("low", "thấp")])
 
     def test_two_decs_disagreeing_on_one_question_are_flagged(self):
+        from helpers import autopilot_check, codes
         log = os.path.join(self.p["gov"], "decisions-log.md")
-        write(log, "# Decisions log\n\n"
-              + dec(1, "A")
-              + dec(2, "C", shown="open-questions-tech.md#0").replace("- Quyết định: duyệt", "- Quyết định: áp mặc định OQT-03 = A, OQT-01 (B)")
-              + dec(3, "D", shown="unit-plan.md#2").replace("- Chọn: phương án A", "- Chọn: gộp việc thuộc phương án C của OQT-03; OQT-01 chọn B"))
-        w = [x["text"] for x in generate(self.root)["autopilot"]["warnings"]]
-        self.assertEqual(w, ["DEC-0002 và DEC-0003 cùng quyết OQT-03 nhưng khác phương án (A ≠ C)"],
-                         "OQT-01 cùng phương án B ở cả hai thì im")
-        # đọc không rõ phương án ở một bên ⇒ im, không đoán
+        ap = lambda n, g, line, **k: dec(n, g, **k).replace("- Áp: không có", "- Áp: " + line)      # noqa: E731
+
+        def both():
+            tower = [x["text"] for x in generate(self.root)["autopilot"]["warnings"]]
+            ap14 = [f for f in autopilot_check(self.root)[2] if f["code"] == "AP14"]
+            self.assertEqual(len(tower), len(ap14), "tower và autopilot_check (AP14) phải cùng kết luận: %r vs %r" % (tower, ap14))
+            return tower
+
+        # dòng Áp: khác phương án cho OQT-03, cùng phương án cho OQT-01
         write(log, "# Decisions log\n\n" + dec(1, "A")
-              + dec(2, "C").replace("- Quyết định: duyệt", "- Quyết định: áp mặc định OQT-03 = A")
-              + dec(3, "D").replace("- Chọn: phương án A", "- Chọn: làm thêm việc liên quan OQT-03: Anh Tuấn xác nhận sau"))
+              + ap(2, "C", "OQT-03 = A · OQT-01 = B") + ap(3, "D", "OQT-03 = C · OQT-01 = B"))
+        self.assertEqual(both(), ["DEC-0002 và DEC-0003 cùng quyết OQT-03 nhưng khác phương án (A ≠ C)"])
+        # DEC sau ghi `thay` ⇒ DEC trước hết hiệu lực Ở MÃ ĐÓ
+        write(log, "# Decisions log\n\n" + dec(1, "A")
+              + ap(2, "C", "OQT-03 = A · OQT-01 = B") + ap(3, "D", "OQT-03 = C (thay DEC-0002) · OQT-01 = A"))
+        self.assertEqual(both(), ["DEC-0002 và DEC-0003 cùng quyết OQT-01 nhưng khác phương án (B ≠ A)"],
+                         "`thay` chỉ có hiệu lực ở mã nó đứng cạnh — OQT-01 của DEC-0002 vẫn còn")
+        # ca thật của demo: ba DEC, DEC giữa cùng phương án với DEC cuối, DEC cuối thay DEC đầu
+        write(log, "# Decisions log\n\n" + ap(1, "C", "OQT-03 = A") + ap(2, "D", "OQT-03 = C")
+              + ap(3, "D", "OQT-03 = C (thay DEC-0001)"))
+        self.assertEqual(both(), [])
+        # dòng Áp đọc TRƯỚC: DEC có `Áp: không có` thì câu văn "OQT-03 = A" trong Quyết định không được tính
+        write(log, "# Decisions log\n\n" + dec(1, "C").replace("- Quyết định: duyệt", "- Quyết định: áp OQT-03 = A")
+              + ap(2, "D", "OQT-03 = C"))
+        self.assertEqual(both(), [])
+
+    def test_prose_is_the_fallback_when_there_is_no_apply_line(self):
+        log = os.path.join(self.p["gov"], "decisions-log.md")
+        old = lambda n, g, **k: dec(n, g, **k).replace("- Áp: không có\n", "")      # noqa: E731
+        write(log, "# Decisions log\n\n" + old(1, "A")
+              + old(2, "C", shown="open-questions-tech.md#0").replace("- Quyết định: duyệt", "- Quyết định: áp mặc định OQT-03 = A, OQT-01 (B)")
+              + old(3, "D", shown="unit-plan.md#2").replace("- Chọn: phương án A", "- Chọn: gộp việc thuộc phương án C của OQT-03; OQT-01 chọn B"))
+        w = [x["text"] for x in generate(self.root)["autopilot"]["warnings"]]
+        self.assertEqual(w, ["DEC-0002 và DEC-0003 cùng quyết OQT-03 nhưng khác phương án (A ≠ C)"])
+        # đọc không rõ phương án ở một bên ⇒ im, không đoán
+        write(log, "# Decisions log\n\n" + old(1, "A")
+              + old(2, "C").replace("- Quyết định: duyệt", "- Quyết định: áp mặc định OQT-03 = A")
+              + old(3, "D").replace("- Chọn: phương án A", "- Chọn: làm thêm việc liên quan OQT-03: Anh Tuấn xác nhận sau"))
         self.assertEqual(generate(self.root)["autopilot"]["warnings"], [])
         # DEC sau sinh từ một lần người đảo DEC trước ⇒ khác nhau là chủ đích
-        write(log, "# Decisions log\n\n" + dec(1, "A")
-              + dec(2, "C").replace("- Quyết định: duyệt", "- Quyết định: áp mặc định OQT-03 = A")
-              + dec(3, "C", extra="- reverses: DEC-0002\n").replace("- Quyết định: duyệt", "- Quyết định: đổi OQT-03 = C"))
+        write(log, "# Decisions log\n\n" + old(1, "A")
+              + old(2, "C").replace("- Quyết định: duyệt", "- Quyết định: áp mặc định OQT-03 = A")
+              + old(3, "C", extra="- reverses: DEC-0002\n").replace("- Quyết định: duyệt", "- Quyết định: đổi OQT-03 = C"))
         self.assertEqual(generate(self.root)["autopilot"]["warnings"], [])
+
+    def test_tower_reads_the_apply_line_with_the_checkers_pattern(self):
+        import subprocess
+        import sys
+        from helpers import SCRIPTS, clean_env
+        r = subprocess.run([sys.executable, "-c",
+                            "import sys; sys.path.insert(0, %r)\nimport tower_generate as t, autopilot_check as a\n"
+                            "print(t.APPLY_RE is a.APPLY_RE)" % SCRIPTS],
+                           capture_output=True, text=True, env=clean_env())
+        self.assertEqual(r.stdout.strip(), "True", r.stderr)
 
     def test_conflicts_counted_once_per_code(self):
         led = os.path.join(self.p["intent"], "as-is", "source-ledger.md")
