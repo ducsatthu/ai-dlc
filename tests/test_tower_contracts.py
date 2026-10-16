@@ -5,7 +5,6 @@ một stub ghi lại tham số (ca xanh) để test không phụ thuộc checkou
 Mọi ca chặn đi theo đúng một đột biến so với ca xanh (protocol §4.15)."""
 import json
 import os
-import shutil
 import sys
 import tempfile
 import threading
@@ -14,7 +13,7 @@ import urllib.error
 import urllib.request
 
 from helpers import SCRIPTS, write
-from test_contracts_brief import approve, build
+from test_contracts_brief import approve, build, validator_stub
 
 sys.path.insert(0, SCRIPTS)
 import tower_contracts as tc  # noqa: E402
@@ -39,8 +38,6 @@ json.dump(d, open(p, "w"), indent=1)
 print("Recorded %s for %s; no contract file changed." % (a.decision, a.gate))
 '''
 
-STUB_VALIDATOR_RED = "import sys\nprint('ERROR plan.md: Branch missing')\nprint('Result: 1 error, 0 warning')\nsys.exit(1)\n"
-STUB_VALIDATOR_GREEN = "print('Result: 0 errors, 0 warnings')\n"
 
 
 class Tower(unittest.TestCase):
@@ -88,7 +85,10 @@ class Tower(unittest.TestCase):
 
     def called(self):
         p = os.path.join(self.scripts, "called.json")
-        return json.load(open(p)) if os.path.isfile(p) else None
+        if not os.path.isfile(p):
+            return None
+        with open(p) as f:
+            return json.load(f)
 
     def log_events(self):
         d = os.path.join(self.root, ".ai-dlc", "log")
@@ -142,7 +142,7 @@ class Tower(unittest.TestCase):
         self.assertEqual(j["need"][0]["approvals"]["intent"]["state"], "current")
 
     def test_request_changes_does_not_need_preview_or_clean_validator(self):
-        write(os.path.join(self.scripts, "validate_workflow.py"), STUB_VALIDATOR_RED)
+        validator_stub(self.root, cli=1, strict=1)
         code, j = self.post(self.good(decision="request-changes", previewed=False))
         self.assertEqual(code, 200, j)
         self.assertEqual(self.called()["decision"], "request-changes")
@@ -182,14 +182,28 @@ class Tower(unittest.TestCase):
         self.assertIn("không còn gate", j["error"])
 
     def test_red_validator_blocks_approve(self):
-        write(os.path.join(self.scripts, "validate_workflow.py"), STUB_VALIDATOR_RED)
+        validator_stub(self.root, cli=1, strict=1)
         code, j = self.post(self.good())
         self.assertEqual(code, 409)
         self.assertIn("1 error", j["error"])
         self.assertIsNone(self.called())
-        write(os.path.join(self.scripts, "validate_workflow.py"), STUB_VALIDATOR_GREEN)
+        validator_stub(self.root, cli=0, strict=0)
         code, j = self.post(self.good())
         self.assertEqual(code, 200, j)
+
+    def test_lenient_cli_but_strict_errors_blocks_approve_before_calling(self):
+        """Ca thật 2026-10-16: CLI --stage draft sạch, approvals.py validate strict và từ chối. Tower phải chặn trước,
+        nói rõ lý do, không gọi script của đội, không ghi log approve."""
+        validator_stub(self.root, cli=0, strict=1)
+        _, s, _ = self.get("/state")
+        ch = s["need"][0]
+        self.assertEqual((ch["validator"]["errors"], ch["validator_strict"]["errors"]), (0, 1))
+        code, j = self.post(self.good())
+        self.assertEqual(code, 409, j)
+        self.assertIn("approvals.py sẽ từ chối", j["error"])
+        self.assertIn("placeholders", j["error"])
+        self.assertIsNone(self.called())
+        self.assertEqual(self.log_events(), [])
 
     def test_missing_team_script_means_no_write(self):
         os.remove(os.path.join(self.scripts, "approvals.py"))
@@ -197,7 +211,8 @@ class Tower(unittest.TestCase):
         self.assertFalse(s["approvals_py"])
         code, j = self.post(self.good())
         self.assertEqual(code, 501)
-        self.assertEqual(json.load(open(os.path.join(self.change, "approvals.json")))["events"], [])
+        with open(os.path.join(self.change, "approvals.json")) as f:
+            self.assertEqual(json.load(f)["events"], [])
 
     def test_unknown_change_and_bad_body(self):
         code, j = self.post(self.good(change="0002-nope"))
@@ -246,15 +261,16 @@ class RealApprovals(unittest.TestCase):
             code, j = tc.record_decision(root, {"change": cid, "gate": "intent", "decision": "approve",
                                                 "by": "Lan", "previewed": True})
             self.assertEqual(code, 409, j)
-            # validator của đội ở stage draft cho qua, nhưng approvals.py validate strict file gate ràng và từ chối:
-            # lời từ chối của script đội phải lên tới thẻ nguyên văn
-            self.assertIn("approvals.py từ chối", j["error"])
+            # validator của đội ở stage draft cho qua, nhưng approvals.py validate strict file gate ràng và từ chối.
+            # Tower chạy đúng kiểm strict đó trước nên chặn sớm với cùng lý do; script của đội không bị gọi.
+            self.assertIn("approvals.py sẽ từ chối", j["error"])
             self.assertIn("placeholders", j["error"])
             with open(os.path.join(d, "approvals.json")) as f:
                 self.assertEqual(json.load(f)["events"], [], "duyệt bị chặn, sổ không đổi")
             code, j = tc.record_decision(root, {"change": cid, "gate": "intent", "decision": "request-changes", "by": "Lan"})
             self.assertEqual(code, 200, j)
-            ev = json.load(open(os.path.join(d, "approvals.json")))["events"]
+            with open(os.path.join(d, "approvals.json")) as f:
+                ev = json.load(f)["events"]
             self.assertEqual(len(ev), 1)
             self.assertEqual((ev[0]["gate"], ev[0]["decision"], ev[0]["by"], ev[0]["source"]),
                              ("intent", "request-changes", "Lan", "chat"))

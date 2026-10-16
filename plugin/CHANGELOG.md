@@ -33,7 +33,12 @@ workspace nào còn chạy nó). Dự án `.ai-dlc/` không đổi gì.
   `D03` thư mục không theo `NNNN-ten`, `D10` thiếu file, `D11` JSON hỏng, `D12` duyệt mất hiệu lực vì byte đổi, `D13` request-changes,
   `D14` unit Fail khi chờ outcome, `D15` Knowledge impact thiếu unit `[knowledge]`, `D16` file ngoài bốn file chưa khai `Files that change`
   (INFO; spike cho thấy validator không phạt ở draft và execute, chỉ kiểm drift ở outcome và merge), `D20` validator báo error, `D21` Branch
-  không tồn tại. Exit 1 khi FIX, 2 khi không phải workspace contracts.
+  không tồn tại, `D22` validator CLI sạch nhưng `approvals.py` sẽ từ chối. Exit 1 khi FIX, 2 khi không phải workspace contracts.
+- `strict_check` (thêm cùng ngày, từ ca chạy trên template thật): `approvals.py` của đội không gọi CLI `--stage draft` mà gọi
+  `validate(..., strict_files=<file gate ràng>)`, nên một change còn placeholder qua CLI nhưng vẫn bị từ chối lúc approve. Brief chạy
+  đúng kiểm strict đó cho gate đang chờ (tiến trình con, import module của đội từ thư mục scripts của đội) và báo trước: trường
+  `validator_strict`, mã `D22`, dòng CẦN NGƯỜI ghi "approvals.py sẽ từ chối". Tower dùng cùng kiểm này để mở hay khoá nút Duyệt
+  và chặn trước khi gọi script của đội.
 - Không bao giờ gọi `approvals.py`. Luật đội là never infer approval. Autopilot ở engine này là soạn sẵn, người bấm (quyết định §6 câu 2);
   `dlc-init` nhánh contracts seed `autopilot.md` với `mode: lead`.
 
@@ -97,7 +102,7 @@ workspace nào còn chạy nó). Dự án `.ai-dlc/` không đổi gì.
 - `tests/test_contracts_brief.py` (mới, 15 ca): fixture bốn file đúng template đội; ca sạch làm đối chứng rồi đột biến (byte đổi sau
   approve ra `stale`, `D12`, exit 1; request-changes ra `revision`; bugfix ra `contract`; `.ai-dlc/context-memory` cạnh ra `D01`; file lạ
   ra `D16`, khai vào Files that change thì hết; Knowledge impact ra `D15`; dòng cuối evidence thắng; `ideation/` và `_templates/` không
-  phải change). Ca thật trên template khi đặt `AI_DLC_TEMPLATE_PATH`.
+  phải change; CLI sạch mà strict còn error ra `D22`). Ca thật trên template khi đặt `AI_DLC_TEMPLATE_PATH`.
 - `docs/template-contracts-engine-vs-ai-dlc.md` (phân tích, bốn câu chốt, lát a và b, bốn đề xuất gửi team, §9 profile tối giản và evals),
   `CLAUDE.md`, `MIGRATION.md`. Tài liệu mới viết theo hướng dẫn humanizer: câu ngắn, không gạch ngang dài, không chữ đậm trang trí.
 - `tests/test_tower_contracts.py` (mới): server thật trên port tự chọn; `/state` cần token; `/doc` chỉ bốn file; Duyệt bị chặn khi

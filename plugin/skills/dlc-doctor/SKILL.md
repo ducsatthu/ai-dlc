@@ -7,11 +7,12 @@ Chỉ đọc + báo cáo (sửa gì phải được user đồng ý từng mục
 
 0. **Engine `contracts`** (7.0.0-a — template đội, `layout.py --explain` nói vậy): mục 1–7 dưới là của engine `ai-dlc`,
    **không áp**. Chạy `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/contracts_brief.py <root> --doctor` và chép nguyên phát hiện
-   `D01`–`D21`: `D01` `.ai-dlc/context-memory/` nằm cạnh `docs/intents/` (hai nguồn sự thật — FIX) · `D10` change thiếu một
+   `D01`–`D22`: `D01` `.ai-dlc/context-memory/` nằm cạnh `docs/intents/` (hai nguồn sự thật — FIX) · `D10` change thiếu một
    trong bốn file · `D12` gate đã approve nhưng byte contract đổi sau đó (duyệt mất hiệu lực — phải xin duyệt lại, không tự ghi) ·
    `D13` đang request-changes · `D14` unit Fail khi chờ outcome · `D15` Knowledge impact mà không có unit `[knowledge]` ·
    `D16` file ngoài bốn file (validator chỉ kiểm drift ở outcome/merge) · `D20` `validate_workflow.py` của đội báo error ở
-   stage hiện hành · `D21` plan Branch không tồn tại. **Mọi phát hiện đi từ luật của chính template** — gói chưa thêm luật
+   stage hiện hành · `D21` plan Branch không tồn tại · `D22` validator CLI sạch nhưng `approvals.py` sẽ từ chối vì nó kiểm
+   strict file gate ràng (placeholder, Owner). **Mọi phát hiện đi từ luật của chính template** — gói chưa thêm luật
    nào ở engine này (lát b, mức WARN, cần LL).
 
 1. **Coverage nguồn (protocol §4.8)** — với mỗi intent đã qua Gate A:

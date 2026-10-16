@@ -238,6 +238,33 @@ def run_validator(root, ch):
             "lines": [l for l in out if l.startswith(("ERROR", "WARNING"))][:8]}
 
 
+def strict_check(root, ch):
+    """Chạy validate() đúng như approvals.py sẽ chạy lúc người approve gate đang chờ: stage draft (outcome cho gate
+    outcome), strict_files là file gate ràng trừ evidence.md. CLI `--stage draft` nhẹ hơn: một change còn placeholder
+    qua CLI nhưng approvals.py vẫn từ chối (thấy trên template thật 2026-10-16). Hàm này báo trước điều đó.
+    Chạy trong tiến trình con, cwd là root, chỉ import module của đội từ đúng thư mục scripts của đội."""
+    gate = ch["pending"]
+    if not gate or not os.path.isfile(os.path.join(root, VALIDATOR_REL)):
+        return {"available": False}
+    sdir = os.path.join(root, os.path.dirname(VALIDATOR_REL))
+    strict = [f for f in BIND[gate] if f != "evidence.md"]
+    code = ("import json, sys; from pathlib import Path; sys.path.insert(0, %r)\n"
+            "from validate_workflow import validate\n"
+            "f = validate(Path(%r), %r, strict_files=set(%r))\n"
+            "print(json.dumps([[x.level, x.message] for x in f]))"
+            % (sdir, os.path.join(root, ch["dir"]), "outcome" if gate == "outcome" else "draft", strict))
+    try:
+        p = subprocess.run([sys.executable, "-c", code], cwd=root, capture_output=True, text=True, timeout=120)
+        items = json.loads(p.stdout.strip().splitlines()[-1]) if p.returncode == 0 and p.stdout.strip() else None
+        err = (p.stderr or "").strip()[-200:]
+    except (OSError, subprocess.SubprocessError, ValueError) as e:
+        items, err = None, str(e)[:200]
+    if items is None:
+        return {"available": True, "gate": gate, "errors": None, "lines": [err] if err else []}
+    errs = [m for l, m in items if l == "ERROR"]
+    return {"available": True, "gate": gate, "errors": len(errs), "lines": errs[:8]}
+
+
 def git_state(root, ch):
     cur = git(root, "rev-parse", "--abbrev-ref", "HEAD")
     br = ch["branch"]
@@ -284,6 +311,11 @@ def doctor(root, changes):
         if v.get("available") and v.get("errors"):
             f.append(("FIX", "D20", "%s validate_workflow --stage %s: %d error. %s" % (
                 tag, v["stage"], v["errors"], "; ".join(v.get("lines", [])[:3]) or "xem output")))
+        s = ch.get("validator_strict") or {}
+        if s.get("available") and s.get("errors") and not v.get("errors"):
+            f.append(("WARN", "D22", "%s: validator CLI sạch nhưng approvals.py sẽ từ chối `%s` vì nó kiểm strict file gate ràng "
+                                     "(%d error: %s). Sửa trước khi xin duyệt" % (
+                                         tag, SAY[s["gate"]], s["errors"], "; ".join(s.get("lines", [])[:3]))))
         g = ch.get("git") or {}
         if g.get("available") and ch["pending"] in ("outcome", None) and not g["change_branch_exists"]:
             f.append(("WARN", "D21", "%s plan Branch `%s` không tồn tại trong repo này" % (tag, ch["branch"] or "?")))
@@ -328,9 +360,16 @@ def brief_lines(root, changes, short=False):
         L.append("  không gate nào chờ")
     for ch in need:
         v = ch.get("validator") or {}
-        ok = v.get("errors") == 0
-        L.append("  %s → nói `%s` trong chat; agent ghi bằng approvals.py --by <tên bạn>%s" % (
-            ch["id"], ch["say"], "" if ok else (". Validator chưa sạch, duyệt sẽ bị từ chối" if v.get("errors") else ". Chưa kiểm validator")))
+        s = ch.get("validator_strict") or {}
+        if s.get("available") and s.get("errors"):
+            tail = ". approvals.py sẽ từ chối (%d error strict: %s)" % (s["errors"], (s.get("lines") or ["?"])[0][:70])
+        elif v.get("errors"):
+            tail = ". Validator chưa sạch, duyệt sẽ bị từ chối"
+        elif v.get("errors") == 0:
+            tail = ""
+        else:
+            tail = ". Chưa kiểm validator"
+        L.append("  %s → nói `%s` trong chat; agent ghi bằng approvals.py --by <tên bạn>%s" % (ch["id"], ch["say"], tail))
     if not short:
         L.append("")
         L.append("Gói ai-dlc chỉ đọc ở engine này. Lifecycle theo AGENTS.md và docs/intents/README.md của đội. Doctor: --doctor.")
@@ -352,6 +391,7 @@ def main(argv):
         ch["git"] = git_state(root, ch)
         if "--no-validate" not in flags:
             ch["validator"] = run_validator(root, ch)
+            ch["validator_strict"] = strict_check(root, ch)
     findings = doctor(root, changes) if "--doctor" in flags else []
     if "--json" in flags:
         print(json.dumps({"engine": "contracts", "root": root, "changes": changes,

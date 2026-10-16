@@ -11,7 +11,7 @@ với tên người đã gõ. Gói không tự ghi gì vào approvals.json, khô
 
 Server kiểm trước khi gọi: gate phải là gate đang chờ (tính lại từ approvals.json lúc bấm), tên phải là tên người
 (không rỗng, không "ai", không ngoặc vuông), duyệt phải kèm previewed=true (đã mở tài liệu gate trên thẻ), và
-validator của đội phải sạch ở stage hiện tại. Mỗi lần gọi ghi một sự kiện vào `.ai-dlc/log/YYYY-MM.jsonl`
+validator của đội phải sạch ở stage hiện tại, kể cả kiểm strict đúng như approvals.py sẽ kiểm (contracts_brief.strict_check). Mỗi lần gọi ghi một sự kiện vào `.ai-dlc/log/YYYY-MM.jsonl`
 (change, gate, decision, kết quả; không ghi tên người) để `contracts_retro.py` đọc.
 
 Usage: python3 tower_contracts.py [root] [port]      (port mặc định: tower.port của layout, 8644)
@@ -51,6 +51,7 @@ def collect(root, validate=True):
     for ch in changes:
         ch["git"] = cb.git_state(root, ch)
         ch["validator"] = cb.run_validator(root, ch) if validate else None
+        ch["validator_strict"] = cb.strict_check(root, ch) if validate else None
         ch["bind"] = cb.BIND.get(ch["pending"], []) if ch["pending"] else []
     return changes
 
@@ -113,6 +114,10 @@ def record_decision(root, data):
         if v.get("available") and v.get("exit") not in (0, None) and v.get("errors") is None:
             return 409, {"ok": False, "error": "validator của đội thoát mã %s mà không ra Result, không duyệt mù" % v.get("exit"),
                          "validator": v}
+        s = cb.strict_check(root, ch)
+        if s.get("available") and s.get("errors"):
+            return 409, {"ok": False, "error": "approvals.py sẽ từ chối `%s`: nó kiểm strict file gate ràng, còn %d error: %s"
+                                               % (cb.SAY[gate], s["errors"], "; ".join(s.get("lines", [])[:3])), "validator_strict": s}
     script = os.path.join(root, APPROVALS_REL)
     if not os.path.isfile(script):
         return 501, {"ok": False, "error": "không thấy %s trong workspace, gói không tự ghi approvals.json thay" % APPROVALS_REL}
@@ -193,16 +198,25 @@ function validator(ch) {
   if (v.available === false) return '<span class="tag warn">validator: không có trong workspace</span>';
   if (v.errors == null) return '<span class="tag warn">validator: chưa ra Result' + (v.error ? ' (' + esc(v.error) + ')' : '') + '</span>';
   const cls = v.errors ? 'bad' : (v.warnings ? 'warn' : 'ok');
-  return '<span class="tag ' + cls + '">validate --stage ' + esc(v.stage) + ': ' + v.errors + ' error · ' + v.warnings + ' warning</span>'
-    + (v.lines && v.lines.length ? '<div class="val">' + esc(v.lines.join('\n')) + '</div>' : '');
+  const s = ch.validator_strict || {};
+  const strict = !s.available ? '' : (s.errors == null ? ' <span class="tag warn">kiểm strict không chạy được</span>'
+    : (s.errors ? ' <span class="tag bad">approvals.py sẽ từ chối: ' + s.errors + ' error strict</span>' : ' <span class="tag ok">strict như approvals.py: sạch</span>'));
+  return '<span class="tag ' + cls + '">validate --stage ' + esc(v.stage) + ': ' + v.errors + ' error · ' + v.warnings + ' warning</span>' + strict
+    + (v.lines && v.lines.length ? '<div class="val">' + esc(v.lines.join('\n')) + '</div>' : '')
+    + (s.errors ? '<div class="val">' + esc(s.lines.join('\n')) + '</div>' : '');
+}
+function cleanFor(ch) {
+  const v = ch.validator || {}, s = ch.validator_strict || {};
+  if (v.available === false) return true;                 // không có validator trong workspace: approvals.py cũng không có
+  if (v.errors !== 0) return false;
+  return !s.available || s.errors === 0;
 }
 function card(ch) {
   const id = ch.id, g = ch.pending, bind = ch.bind || [];
   const s = seen[id] || (seen[id] = new Set());
   const allSeen = bind.every(f => s.has(f));
-  const v = ch.validator || {};
-  const clean = v.available === false || v.errors === 0;
-  const docs = ['intent.md', 'plan.md', 'evidence.md', 'approvals.json'].map(f =>
+  const clean = cleanFor(ch);
+  const docs =['intent.md', 'plan.md', 'evidence.md', 'approvals.json'].map(f =>
     '<button class="' + (s.has(f) ? 'seen' : '') + '" onclick="openDoc(\'' + id + '\',\'' + f + '\')">' + (bind.includes(f) ? '● ' : '') + f + '</button>').join('');
   const name = names[id] != null ? names[id] : (S.user || '');
   return '<div class="card" id="c-' + id + '"><div class="t"><b>' + esc(id) + '</b><span>' + esc(ch.title) + '</span><span class="tag">' + esc(ch.scope) + '</span><span class="tag">chờ <code>' + esc(ch.say) + '</code></span></div>'
@@ -216,7 +230,7 @@ function card(ch) {
     + '<div class="act"><input placeholder="Tên bạn (người quyết)" value="' + esc(name) + '" oninput="names[\'' + id + '\']=this.value">'
     + '<button class="primary" ' + (allSeen && clean ? '' : 'disabled') + ' onclick="decide(\'' + id + '\',\'' + g + '\',\'approve\')">Duyệt ' + g + '</button>'
     + '<button onclick="decide(\'' + id + '\',\'' + g + '\',\'request-changes\')">Yêu cầu sửa</button></div>'
-    + '<div class="hint" id="h-' + id + '">' + (!clean ? 'Validator chưa sạch: duyệt sẽ bị từ chối cho tới khi hết error.' : (!allSeen ? 'Chưa mở đủ file ●.' : 'Sẵn sàng. Bấm Duyệt là gọi approvals.py với tên ở ô bên.')) + '</div></div>';
+    + '<div class="hint" id="h-' + id + '">' + (!clean ? 'Validator chưa sạch (kể cả kiểm strict như approvals.py): duyệt sẽ bị từ chối cho tới khi hết error.' :(!allSeen ? 'Chưa mở đủ file ●.' : 'Sẵn sàng. Bấm Duyệt là gọi approvals.py với tên ở ô bên.')) + '</div></div>';
 }
 function render() {
   document.getElementById('proj').textContent = S.project;

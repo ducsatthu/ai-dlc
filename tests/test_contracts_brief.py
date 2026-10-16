@@ -105,6 +105,27 @@ EVIDENCE = """# Evidence: Sample change
 """
 
 
+VALIDATOR_STUB = '''"""Stub validate_workflow.py: CLI (--stage) và validate() với strict_files, như script của đội."""
+import json, sys
+from collections import namedtuple
+Finding = namedtuple("Finding", "level message")
+CLI_ERRORS, STRICT_ERRORS = %(cli)d, %(strict)d
+def validate(spec_dir, stage="draft", *, strict_files=None, repositories=None):
+    n = STRICT_ERRORS if strict_files else CLI_ERRORS
+    return [Finding("ERROR", "intent.md still contains placeholders")] * n
+if __name__ == "__main__":
+    for f in validate(None):
+        print("ERROR " + f.message)
+    print("Result: %%d errors, 0 warnings" %% CLI_ERRORS)
+    sys.exit(1 if CLI_ERRORS else 0)
+'''
+
+
+def validator_stub(root, cli=0, strict=0):
+    write(os.path.join(root, ".agents", "skills", "aidlc", "scripts", "validate_workflow.py"),
+          VALIDATOR_STUB % {"cli": cli, "strict": strict})
+
+
 def sha(p):
     return hashlib.sha256(open(p, "rb").read()).hexdigest()
 
@@ -274,6 +295,24 @@ class ContractsBrief(unittest.TestCase):
         code, j = brief(self.root, "--doctor")
         self.assertIn("D10", [f["code"] for f in j["doctor"]])
         self.assertEqual(code, 1)
+
+    def test_strict_check_mirrors_approvals_py(self):
+        """Thấy trên template thật 2026-10-16: change mới toàn placeholder qua CLI --stage draft nhưng approvals.py
+        validate strict file gate ràng và từ chối. Brief phải báo trước (D22), không bảo người đi xin duyệt."""
+        build(self.root)
+        validator_stub(self.root, cli=0, strict=1)
+        code, j = brief(self.root, "--doctor")
+        ch = j["changes"][0]
+        self.assertEqual(ch["validator"]["errors"], 0)
+        self.assertEqual((ch["validator_strict"]["gate"], ch["validator_strict"]["errors"]), ("intent", 1))
+        self.assertIn("placeholders", ch["validator_strict"]["lines"][0])
+        self.assertIn("D22", [f["code"] for f in j["doctor"]])
+        _, out, _ = run(self.root)
+        self.assertIn("approvals.py sẽ từ chối", out)
+        validator_stub(self.root, cli=0, strict=0)
+        _, j = brief(self.root, "--doctor")
+        self.assertEqual(j["changes"][0]["validator_strict"]["errors"], 0)
+        self.assertNotIn("D22", [f["code"] for f in j["doctor"]])
 
     def test_ideation_and_templates_dirs_are_not_changes(self):
         build(self.root)
