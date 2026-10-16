@@ -3,6 +3,9 @@ name: dlc-validate
 description: Stage 3–4 AI-DLC — Context Validation (Gate B, tài liệu là source-ledger.md) rồi Clarification (Gate C). Mỗi gate mở là DỪNG chờ người quyết trên Control Tower. (Autopilot §2.3: không dừng — chỉ câu chặn không có mặc định mới lên thẻ.)
 ---
 
+> Engine `contracts` (template đội): skill này **không chạy**. Câu hỏi làm rõ nằm ở `## Open questions` của `intent.md`
+> và chốt tại `approve intent`. Gói chỉ có `dlc-status`, `dlc-doctor`, `dlc-retro` ở engine này.
+
 Điều kiện: `gates_passed` chứa A; `as-is/` tồn tại; **`source-ledger.md` không còn dòng `planned`**
 (còn → quay lại `/ai-dlc:dlc-discover`, không được validate trên bối cảnh đọc dở).
 

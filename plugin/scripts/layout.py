@@ -2,24 +2,32 @@
 """AI-DLC layout resolver — MỘT chỗ duy nhất trả lời "state của dự án nằm ở đâu, engine nào, tower kiểu gì".
 
 Tới 6.2.0 mỗi hook/script tự dò `.ai-dlc/context-memory` theo luật riêng (đi lên 2 cấp, đi lên vô hạn, đi lên
-6 cấp cho `aidlc/spaces`…). Dự án đặc thù (template có sẵn `aidlc/spaces/<space>`, đội đặt state ở thư mục
-khác, nhiều space trong một repo) không cấu hình được. Nay mọi script/hook gọi `resolve()` ở đây.
+6 cấp cho `aidlc/spaces`…). Dự án đặc thù (template của đội, đội đặt state ở thư mục khác, nhiều space trong
+một repo) không cấu hình được. Nay mọi script/hook gọi `resolve()` ở đây.
+
+Ba engine (7.0.0-a):
+  ai-dlc     state `.ai-dlc/context-memory/` — engine của gói (đóng băng cho dự án đang chạy)
+  contracts  template đội `project-starter-template-ai`: skill `.agents/skills/aidlc/`, change = `docs/intents/NNNN-name/`
+             bốn file (intent.md · plan.md · approvals.json · evidence.md). Gói chỉ là lớp đọc/tower; lifecycle của đội.
+  aws-v2     `aidlc/spaces/` + `.claude/tools/aidlc-audit.ts` — ARCHIVE 7.0.0 (docs/archive/aws-v2/): vẫn dò ra để
+             báo, không script nào còn chạy trên nó.
 
 Thứ tự nguồn cấu hình (nguồn trước THẮNG, chỉ key có mặt mới đè):
   1. env: AI_DLC_CONFIG=<file json> · AI_DLC_ROOT=<dir> · AI_DLC_ENGINE · AI_DLC_STATE · AI_DLC_SPACE
           AI_DLC_GOVERNANCE · AI_DLC_TOWER_OUT · AI_DLC_TOWER_PORT · AI_DLC_TOWER_MODE
   2. file `ai-dlc.config.json` hoặc `.ai-dlc/config.json` — tìm từ cwd đi lên (≤ search_up cấp)
   3. fence ```ai-dlc trong CLAUDE.md hoặc AGENTS.md cùng thư mục — JSON, hoặc `key: value` phẳng (dotted key)
-  4. tự dò: `.ai-dlc/context-memory/` (engine ai-dlc) · `aidlc/spaces/` + `.claude/tools/aidlc-audit.ts`
-     (engine aws-v2) · `.ai-dlc/` trống ở cwd (ai-dlc, tương thích 6.1)
+  4. tự dò: `.ai-dlc/context-memory/` (ai-dlc) · bộ ba `.agents/skills/aidlc/SKILL.md` + `docs/memory/project.md` +
+     `docs/intents/_templates/intent.md` (contracts — đúng bộ ba `start_change.py` của đội dùng) ·
+     `aidlc/spaces/` + `.claude/tools/aidlc-audit.ts` (aws-v2) · `.ai-dlc/` trống ở cwd (ai-dlc, tương thích 6.1)
 
 Key (mọi key tuỳ chọn; path tương đối với `root`, `root` tương đối với thư mục chứa file config):
-  engine      auto | ai-dlc | aws-v2 | off
+  engine      auto | ai-dlc | contracts | aws-v2 | off
   root        "."                      thư mục workspace
-  state       ".ai-dlc" | "aidlc" | … thư mục state của engine
+  state       ".ai-dlc" | "docs/intents" | "aidlc" | … thư mục state của engine
   space       "auto" | <tên>           aws-v2: space nào (auto = cursor `aidlc/active-space` → space duy nhất → default)
-  governance  thư mục luật của gói (raci.md, test-viewpoints.md, sizing.md…)
-  tower       {out, port, mode: auto|ai-dlc|aws-v2|off}
+  governance  thư mục luật của gói (raci.md, sizing.md, autopilot.md…)
+  tower       {out, port, mode: auto|ai-dlc|contracts|aws-v2|off}
   search_up   6
 
 Kết quả `resolve()` là dict path TUYỆT ĐỐI + `config_source` + `notes` (giải thích từng lựa chọn).
@@ -32,9 +40,15 @@ import sys
 
 CONFIG_FILES = ("ai-dlc.config.json", os.path.join(".ai-dlc", "config.json"))
 FENCE_FILES = ("CLAUDE.md", "AGENTS.md")
-ENGINES = ("auto", "ai-dlc", "aws-v2", "off")
+ENGINES = ("auto", "ai-dlc", "contracts", "aws-v2", "off")
 DEFAULT_SEARCH_UP = 6
-DEFAULT_PORT = {"ai-dlc": 8642, "aws-v2": 8643}
+DEFAULT_PORT = {"ai-dlc": 8642, "aws-v2": 8643, "contracts": 8644}
+DEFAULT_STATE = {"ai-dlc": ".ai-dlc", "aws-v2": "aidlc", "contracts": os.path.join("docs", "intents")}
+CONTRACTS_MARKERS = (
+    os.path.join(".agents", "skills", "aidlc", "SKILL.md"),
+    os.path.join("docs", "memory", "project.md"),
+    os.path.join("docs", "intents", "_templates", "intent.md"),
+)
 
 # ---------- đọc config thô ----------
 
@@ -153,13 +167,29 @@ def _is_ai_dlc(d, state=".ai-dlc"):
     return os.path.isdir(os.path.join(d, state, "context-memory"))
 
 
+def _is_contracts(d):
+    return all(os.path.isfile(os.path.join(d, m)) for m in CONTRACTS_MARKERS)
+
+
 def _is_aws_v2(d, state="aidlc"):
     return os.path.isdir(os.path.join(d, state, "spaces")) and \
         os.path.isfile(os.path.join(d, ".claude", "tools", "aidlc-audit.ts"))
 
 
+def _detect_at(d, state=None):
+    """Engine tại đúng thư mục d (không đi lên). Thứ tự: ai-dlc · contracts · aws-v2."""
+    if _is_ai_dlc(d, state or ".ai-dlc"):
+        return "ai-dlc"
+    if _is_contracts(d):
+        return "contracts"
+    if _is_aws_v2(d, state or "aidlc"):
+        return "aws-v2"
+    return None
+
+
 def _strip_inside_state(p, state_names=(".ai-dlc", "aidlc")):
-    """Đứng bên trong cây state ⇒ nhảy ra thư mục chứa nó (luật tower_generate 4.0.0)."""
+    """Đứng bên trong cây state ⇒ nhảy ra thư mục chứa nó (luật tower_generate 4.0.0).
+    Engine contracts không cần: bộ ba marker nằm ở gốc, đi lên là tới."""
     parts = os.path.abspath(p).split(os.sep)
     for name in state_names:
         if name in parts:
@@ -169,15 +199,27 @@ def _strip_inside_state(p, state_names=(".ai-dlc", "aidlc")):
     return os.path.abspath(p)
 
 
+def _two_engines_note(d, engine, notes):
+    """Một thư mục vừa là workspace contracts vừa có .ai-dlc/context-memory = hai nguồn sự thật (doctor D01)."""
+    if engine == "ai-dlc" and _is_contracts(d):
+        notes.append("CẢNH BÁO: %s cũng là workspace engine contracts (docs/intents/) — hai nguồn sự thật; "
+                     "đặt `engine: contracts` hoặc `engine: off` cho .ai-dlc cũ" % d)
+    elif engine == "contracts" and os.path.isdir(os.path.join(d, ".ai-dlc", "context-memory")):
+        notes.append("CẢNH BÁO: %s có cả .ai-dlc/context-memory — hai nguồn sự thật, xem dlc-doctor D01" % d)
+
+
 def _autodetect(start, search_up, notes):
     cur = _strip_inside_state(start)
     for _ in range(search_up + 1):
-        if _is_ai_dlc(cur):
+        det = _detect_at(cur)
+        if det == "ai-dlc":
             notes.append("tự dò: %s/.ai-dlc/context-memory ⇒ engine ai-dlc" % cur)
-            return "ai-dlc", cur
-        if _is_aws_v2(cur):
-            notes.append("tự dò: %s/aidlc/spaces + .claude/tools ⇒ engine aws-v2" % cur)
-            return "aws-v2", cur
+        elif det == "contracts":
+            notes.append("tự dò: %s có .agents/skills/aidlc + docs/memory + docs/intents/_templates ⇒ engine contracts (template đội)" % cur)
+        elif det == "aws-v2":
+            notes.append("tự dò: %s/aidlc/spaces + .claude/tools ⇒ engine aws-v2 (ĐÃ ARCHIVE 7.0.0 — gói không chạy trên engine này)" % cur)
+        if det:
+            return det, cur
         nxt = os.path.dirname(cur)
         if nxt == cur:
             break
@@ -263,26 +305,22 @@ def resolve(start=None, env=True):
 
     if engine == "auto":
         if root is not None:
-            state = cfg.get("state")
-            if _is_ai_dlc(root, state or ".ai-dlc"):
-                engine = "ai-dlc"
-            elif _is_aws_v2(root, state or "aidlc"):
-                engine = "aws-v2"
-            else:
+            det = _detect_at(root, cfg.get("state"))
+            if det is None:
                 det, _r = _autodetect(root, 0, notes)
-                engine = det or "none"
+            engine = det or "none"
             if engine != "none":
                 notes.append("engine tự dò tại root config: %s" % engine)
         else:
             det, r = _autodetect(start, search_up, notes)
             engine, root = (det or "none"), (r or start)
     elif root is None:
-        # engine khai rõ nhưng không có root ⇒ tìm thư mục có state tương ứng
-        state = cfg.get("state") or (".ai-dlc" if engine == "ai-dlc" else "aidlc")
+        # engine khai rõ nhưng không có root ⇒ tìm thư mục có state (hoặc bộ marker) tương ứng
+        state = cfg.get("state") or DEFAULT_STATE[engine]
         cur = _strip_inside_state(start)
         found = None
         for _ in range(search_up + 1):
-            if os.path.isdir(os.path.join(cur, state)):
+            if os.path.isdir(os.path.join(cur, state)) or (engine == "contracts" and _is_contracts(cur)):
                 found = cur
                 break
             nxt = os.path.dirname(cur)
@@ -295,8 +333,11 @@ def resolve(start=None, env=True):
 
     if engine == "none":
         return _result("none", root, cfg, source, notes, None, [])
+    _two_engines_note(root, engine, notes)   # cả khi tự dò lẫn khi config khai tường minh
+    if engine == "aws-v2" and not any("ARCHIVE" in n for n in notes):
+        notes.append("engine aws-v2 ĐÃ ARCHIVE 7.0.0 — không script nào của gói còn chạy trên nó (docs/archive/aws-v2/)")
 
-    state_rel = cfg.get("state") or (".ai-dlc" if engine == "ai-dlc" else "aidlc")
+    state_rel = cfg.get("state") or DEFAULT_STATE[engine]
     state_dir = os.path.abspath(os.path.join(root, state_rel))
     space, spaces = (None, [])
     if engine == "aws-v2":
@@ -319,6 +360,8 @@ def _result(engine, root, cfg, source, notes, state_dir, spaces, space=None):
         "inbox": None,
         "governance": None,
         "workspace_map": None,
+        "skill": None,
+        "memory": None,
         "tower": {"out": None, "port": None, "mode": "off"},
         "notes": notes,
     }
@@ -332,11 +375,15 @@ def _result(engine, root, cfg, source, notes, state_dir, spaces, space=None):
         out["inbox"] = os.path.join(state_dir, "inbox")
         out["workspace_map"] = os.path.join(state_dir, "workspace-map.md")
         tower_out_default = os.path.join(state_dir, "tower")
+    elif engine == "contracts":
+        out["skill"] = os.path.join(root, ".agents", "skills", "aidlc")
+        out["memory"] = os.path.join(root, "docs", "memory")
+        tower_out_default = os.path.join(root, ".ai-dlc", "tower")
     else:
         out["space_dir"] = os.path.join(state_dir, "spaces", space) if space else None
         tower_out_default = os.path.join(root, ".ai-dlc", "tower")
     mode = str(tower_cfg.get("mode", "auto")).lower()
-    if mode not in ("auto", "ai-dlc", "aws-v2", "off"):
+    if mode not in ("auto", "ai-dlc", "contracts", "aws-v2", "off"):
         notes.append("tower.mode '%s' không hợp lệ ⇒ auto" % mode)
         mode = "auto"
     if mode == "auto":
@@ -373,6 +420,8 @@ def main(argv):
             "AI_DLC_L_CONTEXT_MEMORY=%s" % _shell_quote(r["context_memory"] or ""),
             "AI_DLC_L_INBOX=%s" % _shell_quote(r["inbox"] or ""),
             "AI_DLC_L_GOVERNANCE=%s" % _shell_quote(r["governance"] or ""),
+            "AI_DLC_L_SKILL=%s" % _shell_quote(r["skill"] or ""),
+            "AI_DLC_L_MEMORY=%s" % _shell_quote(r["memory"] or ""),
             "AI_DLC_L_TOWER_OUT=%s" % _shell_quote(t["out"] or ""),
             "AI_DLC_L_TOWER_PORT=%s" % _shell_quote(t["port"] or ""),
             "AI_DLC_L_TOWER_MODE=%s" % _shell_quote(t["mode"]),
@@ -382,7 +431,7 @@ def main(argv):
         return 0
     if "--explain" in flags:
         print("engine: %s   root: %s   (config: %s)" % (r["engine"], r["root"], r["config_source"]))
-        for k in ("state", "space", "space_dir", "context_memory", "inbox", "governance", "workspace_map"):
+        for k in ("state", "space", "space_dir", "context_memory", "inbox", "governance", "workspace_map", "skill", "memory"):
             if r.get(k):
                 print("  %-15s %s" % (k, r[k]))
         print("  %-15s %s (port %s, mode %s)" % ("tower", r["tower"]["out"], r["tower"]["port"], r["tower"]["mode"]))

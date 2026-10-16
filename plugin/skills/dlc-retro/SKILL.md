@@ -3,6 +3,20 @@ name: dlc-retro
 description: Learning loop AI-DLC — retro sau release (hoặc theo yêu cầu): rút lesson learned từ dấu vết intent, đề xuất patch checklist/DoD, mở Gate G rồi DỪNG; approve thì apply vào overrides + nhắc contribute.
 ---
 
+**Engine `contracts`** (7.0.0-a, template đội): không có HOF, MSG, RV để đọc. Retro dựa trên dấu vết máy ghi.
+1. Chạy `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/contracts_retro.py <root> --write` (thêm `--since YYYY-MM-DD` cho một đợt).
+   Script đọc `docs/intents/*/approvals.json`, `evidence.md` và `.ai-dlc/log/*.jsonl` (hook `observe.py` ghi), đếm mẫu lặp,
+   ghi `<governance>/lessons-learned/candidates.md`. Mã: `R01` gate bị trả lại nhiều vòng · `R02` cùng lệnh test đỏ liên tiếp ·
+   `R03` validator error lặp sau khi đã duyệt · `R04` unit Fail nhiều lần · `R05` gate chờ lâu sau khi validator sạch ·
+   `X01` cùng mẫu ở nhiều change (đọc trước).
+2. Spawn `ai-dlc:dlc-retro-keeper` với `candidates.md` và PR comment của change (nếu lấy được). Kết quả: `LL-NNN.md` trong
+   `<governance>/lessons-learned/`, mỗi LL trỏ ít nhất một mã ứng viên và bằng chứng của mã đó. Không có ứng viên thì không
+   có LL. Không bịa lesson từ cảm giác.
+3. Gate G: người nói approve trong chat, ghi DEC vào `<governance>/decisions-log.md`.
+4. Patch: gói không sửa luật của đội. LL thành đề xuất PR vào `docs/memory/` (hoặc `REVIEW.md`, `docs/intents/_templates/`).
+   Lesson thuộc về gói thì `/ai-dlc:dlc-contribute`.
+Log là bằng chứng retro nên commit `.ai-dlc/log/`; chỉ ignore `.ai-dlc/tower/`. Các bước dưới là của engine `ai-dlc`.
+
 1. Spawn `ai-dlc:dlc-retro-keeper` cho intent vừa đóng (hoặc intent user chỉ định) → LL-NNN + patch đề xuất (diff cụ thể, version cũ→mới).
    Nguồn bằng chứng của retro, theo thứ tự: **`handoffs/HOF-*.md`** (việc đi qua tay ai, bao nhiêu vòng,
    `returned` vì thiếu gì, HOF nào treo lâu) · `revisions/REV-*.md` (gate phải sửa mấy vòng, vì sao) ·

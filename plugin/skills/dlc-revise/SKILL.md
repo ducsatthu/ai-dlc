@@ -3,6 +3,9 @@ name: dlc-revise
 description: Xử lý verdict "Yêu cầu chỉnh sửa" (request-changes) từ Control Tower — ghi REV-NN, giao đúng agent sửa đúng phần, bump version tài liệu gate rồi mở lại gate với bản mới. Dùng khi inbox có verdict request-changes hoặc user nêu điểm cần sửa trong tài liệu gate.
 ---
 
+> Engine `contracts` (template đội): skill này **không chạy**. Yêu cầu sửa ghi bằng `approvals.py --decision request-changes`
+> của đội (`request changes <feedback>` trong `/aidlc`), rồi sửa contract và xin duyệt lại.
+
 Đọc `${CLAUDE_PLUGIN_ROOT}/references/protocol.md` §2.2. **`request-changes` KHÔNG đóng gate** — gate vẫn
 mở, chỉ là tài liệu đi một vòng sửa.
 

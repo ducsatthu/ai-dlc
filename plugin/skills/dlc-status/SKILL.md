@@ -4,6 +4,12 @@ description: Báo cáo nhanh trạng thái AI-DLC của project — intents ở 
 ---
 
 Chạy `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/session_brief.py <project_root>` và thuật lại stdout.
+
+**Engine `contracts`** (7.0.0-a — template đội; `layout.py --explain` nói vậy): script tự chuyển sang `contracts_brief.py`.
+Brief gồm: mỗi change `docs/intents/NNNN-*/` một dòng (scope · duyệt từng gate `✓` hiện hành / `✗cũ` byte đã đổi / `↺`
+request-changes / `·` chưa · gate đang chờ · kết quả `validate_workflow.py` của đội ở stage tương ứng) + mục **CẦN NGƯỜI**.
+Thuật lại bằng **từ vựng của đội** (`approve intent`, `execute ready units`, `review outcome`). **Không bao giờ** tự ghi
+`approvals.py` — người nói trong chat, agent của đội ghi với tên người. Phần dưới là của engine `ai-dlc`.
 Script làm toàn bộ phần quét (frontmatter status.md · `handoffs/` · `inbox/` · session log) và kết xuất lại
 `context-memory/session/board.md` — **đừng tự đi đọc lại các file đó** (protocol §10).
 

@@ -3,6 +3,9 @@ name: dlc-bolt
 description: Stage 6 AI-DLC — chạy một Bolt cho một Unit (args UOW-NN [BOLT-NN]) qua bolt-coordinator, soát design/code theo TẦNG review của Unit (§4.17) + checkpoint Gate E. Unit có thể chạy nhiều Bolt song song/tuần tự. (Autopilot §2.3: Gate E tự đóng khi có bằng chứng thật.)
 ---
 
+> Engine `contracts` (template đội): skill này **không chạy**. Đội không có Bolt; unit đi thẳng từ `plan.md` sang code bằng
+> `execute ready units` của `/aidlc`, tự sửa tối đa 3 lần rồi dừng. Gói chỉ có `dlc-status`, `dlc-doctor`, `dlc-retro`.
+
 Điều kiện: gates_passed chứa D; Unit thuộc danh sách được duyệt; DoR pass; `spec.md` có `review:` tầng đã duyệt.
 1. Spawn `ai-dlc:dlc-bolt-coordinator` cho UOW-NN → đi đúng trình tự trong định nghĩa agent (Domain →
    Logical + ADR → soát design **theo tầng** `none`/`peer`/`specialist` → **Gate E(a) DỪNG** → task board →

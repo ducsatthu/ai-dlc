@@ -10,3 +10,19 @@ Các file ở đây mô tả AI-DLC theo **bản v1**: bảy gate A–G chặn c
 | `simulation-phase2-pilot-v1.html` | Dry-run PILOT Phase 2 qua 7 gate | Minh hoạ cho mô hình cũ; dữ liệu mẫu vẫn được design system tham chiếu |
 
 `control-tower-design-prompt.md` (design prompt cho UI tower 5 màn, gate-centric) đã **gỡ khỏi repo** theo quyết định chủ gói 2026-08-21 — xem git history (`fc42411` trở về trước) nếu cần.
+
+## `aws-v2/`: nhánh "lớp chính sách và tower trên engine AWS `aidlc-workflows` v2" (6.3.0 đến 6.5.0), archive 2026-10-16
+
+Phương án A (2026-09-03) giả định template của đội vendor AWS v2 2.5.75. Template @ `c75f50d` (2026-10-14) không còn `aidlc/spaces/`,
+`.claude/tools/aidlc-audit.ts`, `upstream-lock.json`. Đội viết engine riêng (`docs/intents/` bốn file). 7.0.0-a nhắm lại vào engine đó
+(`../template-contracts-engine-vs-ai-dlc.md`). Bốn file dưới không còn đích để chạy, giữ để truy vết. `scripts/layout.py` vẫn dò ra
+`aws-v2` để báo "đã archive".
+
+| File | Là gì |
+|---|---|
+| `aws-v2-workspace.md` | Bản đồ workspace AWS v2 gói đọc/ghi: control plane + sibling repo, `aidlc-state.md` checkbox, event audit, 6 guard trước gate |
+| `tower_aws_v2.py` | Tower ba loại thẻ (quyết · trả lời · kiểm) theo vai người xem, đọc `aidlc-state.md` + `audit/*.md`, `--serve` POST /decision |
+| `tower_approve.ts` | Một nút = một quyết định gate bằng commit của đúng người (RACI `.ai-dlc/governance/raci.md`), bun |
+| `aws_v2_write_receipt.ts` | Hook PostToolUse ghi receipt `File` tương đối cho mọi clone (fail-open) — đã gỡ khỏi `plugin/hooks/hooks.json` |
+
+Spike còn giá trị tham khảo: `../spikes/aws-v2-cross-clone-approval.md` (duyệt từ clone khác được engine nhận).

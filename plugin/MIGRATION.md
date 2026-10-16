@@ -1,5 +1,23 @@
 # MIGRATION — ai-dlc
 
+## 6.5.0 đến 7.0.0-a: engine `contracts` (template đội), nhánh AWS v2 archive
+
+Dự án `.ai-dlc/` hiện có: không phải làm gì. Engine `ai-dlc` không đổi luật, không đổi layout (đóng băng cho dự án đang chạy).
+
+Workspace từ template `project-starter-template-ai` (có `.agents/skills/aidlc/` và `docs/intents/_templates/`): gói tự dò ra engine
+`contracts` và chỉ đọc.
+1. Kiểm: `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/layout.py --explain` phải in `engine: contracts`.
+2. Nếu repo còn `.ai-dlc/context-memory/` từ lần `dlc-init` nhầm trước đây thì xoá, hoặc chốt bằng `ai-dlc.config.json`
+   `{"engine": "contracts"}` (hoặc `{"engine": "off"}` để gói im lặng). Để nguyên thì `ai-dlc` thắng và doctor báo `D01`.
+3. Dùng `/ai-dlc:dlc-status`, `/ai-dlc:dlc-doctor`, `/ai-dlc:dlc-retro`. Lifecycle (`start`, `approve ...`, `execute ready units`,
+   `review outcome`) vẫn là skill `aidlc` của đội. Không chạy `/ai-dlc:dlc-init` hay `dlc-intent` ở đây.
+4. Muốn `.ai-dlc/governance/` (sizing, autopilot `mode: lead`) thì `/ai-dlc:dlc-init` nhánh contracts chỉ seed đúng thư mục đó.
+5. Hook `observe.py` ghi `.ai-dlc/log/`. Commit thư mục này (bằng chứng retro); chỉ gitignore `.ai-dlc/tower/`. Tắt bằng `AI_DLC_OBSERVE=off`.
+
+Workspace AWS `aidlc-workflows` v2 (`aidlc/spaces/`): gói không còn hỗ trợ. `tower_aws_v2.py`, `tower_approve.ts`, `aws_v2_write_receipt.ts`,
+`aws-v2-workspace.md` nằm ở `docs/archive/aws-v2/` của repo gói; hook PostToolUse receipt đã gỡ. Gói chỉ in một dòng "đã archive" lúc
+SessionStart. Cần lại thì copy từ archive, không có đường nâng cấp.
+
 ## 6.4.x → 6.5.0 — bản mô hình cho người xem (additive)
 
 **Không làm gì ⇒ không đổi gì.** Tài liệu gate chưa có `views/*.view.json` được tower hiện toàn văn như cũ.

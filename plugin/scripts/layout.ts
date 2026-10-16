@@ -1,25 +1,32 @@
 #!/usr/bin/env bun
 // layout.ts — bản bun của scripts/layout.py, CÙNG luật, CÙNG kết quả (kiểm chéo bằng
-// `python3 layout.py --json` vs `bun layout.ts --json` trên cùng fixture). Dùng cho tower_approve.ts và
-// hook aws_v2_write_receipt.ts (không gọi python từ hook để khỏi thêm một tiến trình mỗi lần ghi file).
+// `python3 layout.py --json` vs `bun layout.ts --json` trên cùng fixture). Giữ cho script/hook bun nào của gói
+// cần resolve layout mà không muốn thêm một tiến trình python (7.0.0-a: không hook bun nào còn dùng — nhánh
+// aws-v2 đã archive; file giữ để tests kiểm chéo và cho tower tương lai).
 // Mọi giải thích về nguồn cấu hình / key / thứ tự ưu tiên: đọc docstring của layout.py — không lặp ở đây.
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 
-export type Engine = "ai-dlc" | "aws-v2" | "off" | "none";
+export type Engine = "ai-dlc" | "contracts" | "aws-v2" | "off" | "none";
 export type Layout = {
   engine: Engine; root: string; config_source: string; state: string | null; space: string | null;
   spaces: string[]; space_dir: string | null; context_memory: string | null; inbox: string | null;
-  governance: string | null; workspace_map: string | null;
+  governance: string | null; workspace_map: string | null; skill: string | null; memory: string | null;
   tower: { out: string | null; port: number | null; mode: string }; notes: string[];
 };
 type Cfg = Record<string, any>;
 
 const CONFIG_FILES = ["ai-dlc.config.json", join(".ai-dlc", "config.json")];
 const FENCE_FILES = ["CLAUDE.md", "AGENTS.md"];
-const ENGINES = ["auto", "ai-dlc", "aws-v2", "off"];
+const ENGINES = ["auto", "ai-dlc", "contracts", "aws-v2", "off"];
 const DEFAULT_SEARCH_UP = 6;
-const DEFAULT_PORT: Record<string, number> = { "ai-dlc": 8642, "aws-v2": 8643 };
+const DEFAULT_PORT: Record<string, number> = { "ai-dlc": 8642, "aws-v2": 8643, contracts: 8644 };
+const DEFAULT_STATE: Record<string, string> = { "ai-dlc": ".ai-dlc", "aws-v2": "aidlc", contracts: join("docs", "intents") };
+const CONTRACTS_MARKERS = [
+  join(".agents", "skills", "aidlc", "SKILL.md"),
+  join("docs", "memory", "project.md"),
+  join("docs", "intents", "_templates", "intent.md"),
+];
 
 const isDir = (p: string) => { try { return statSync(p).isDirectory(); } catch { return false; } };
 const isFile = (p: string) => { try { return statSync(p).isFile(); } catch { return false; } };
@@ -93,7 +100,15 @@ function merge(base: Cfg, over: Cfg | null): Cfg {
 }
 
 const isAiDlc = (d: string, state = ".ai-dlc") => isDir(join(d, state, "context-memory"));
+const isContracts = (d: string) => CONTRACTS_MARKERS.every((m) => isFile(join(d, m)));
 const isAwsV2 = (d: string, state = "aidlc") => isDir(join(d, state, "spaces")) && isFile(join(d, ".claude", "tools", "aidlc-audit.ts"));
+
+function detectAt(d: string, state?: string): Engine | null {
+  if (isAiDlc(d, state || ".ai-dlc")) return "ai-dlc";
+  if (isContracts(d)) return "contracts";
+  if (isAwsV2(d, state || "aidlc")) return "aws-v2";
+  return null;
+}
 
 function stripInsideState(p: string): string {
   const parts = resolve(p).split("/");
@@ -104,11 +119,22 @@ function stripInsideState(p: string): string {
   return resolve(p);
 }
 
+function twoEnginesNote(d: string, engine: string, notes: string[]) {
+  if (engine === "ai-dlc" && isContracts(d)) {
+    notes.push(`CẢNH BÁO: ${d} cũng là workspace engine contracts (docs/intents/) — hai nguồn sự thật; đặt \`engine: contracts\` hoặc \`engine: off\` cho .ai-dlc cũ`);
+  } else if (engine === "contracts" && isDir(join(d, ".ai-dlc", "context-memory"))) {
+    notes.push(`CẢNH BÁO: ${d} có cả .ai-dlc/context-memory — hai nguồn sự thật, xem dlc-doctor D01`);
+  }
+}
+
 function autodetect(start: string, searchUp: number, notes: string[]): [Engine | null, string | null] {
   let cur = stripInsideState(start);
   for (let i = 0; i <= searchUp; i++) {
-    if (isAiDlc(cur)) { notes.push(`tự dò: ${cur}/.ai-dlc/context-memory ⇒ engine ai-dlc`); return ["ai-dlc", cur]; }
-    if (isAwsV2(cur)) { notes.push(`tự dò: ${cur}/aidlc/spaces + .claude/tools ⇒ engine aws-v2`); return ["aws-v2", cur]; }
+    const det = detectAt(cur);
+    if (det === "ai-dlc") notes.push(`tự dò: ${cur}/.ai-dlc/context-memory ⇒ engine ai-dlc`);
+    else if (det === "contracts") notes.push(`tự dò: ${cur} có .agents/skills/aidlc + docs/memory + docs/intents/_templates ⇒ engine contracts (template đội)`);
+    else if (det === "aws-v2") notes.push(`tự dò: ${cur}/aidlc/spaces + .claude/tools ⇒ engine aws-v2 (ĐÃ ARCHIVE 7.0.0 — gói không chạy trên engine này)`);
+    if (det) return [det, cur];
     const up = dirname(cur); if (up === cur) break; cur = up;
   }
   const s = resolve(start);
@@ -163,20 +189,19 @@ export function resolveLayout(start?: string, env = true): Layout {
 
   if (engine === "auto") {
     if (root !== null) {
-      const state = cfg.state as string | undefined;
-      if (isAiDlc(root, state || ".ai-dlc")) engine = "ai-dlc";
-      else if (isAwsV2(root, state || "aidlc")) engine = "aws-v2";
-      else { const [det] = autodetect(root, 0, notes); engine = det ?? "none"; }
+      let det = detectAt(root, cfg.state as string | undefined);
+      if (det === null) [det] = autodetect(root, 0, notes);
+      engine = det ?? "none";
       if (engine !== "none") notes.push(`engine tự dò tại root config: ${engine}`);
     } else {
       const [det, r] = autodetect(start, searchUp, notes);
       engine = det ?? "none"; root = r ?? start;
     }
   } else if (root === null) {
-    const state = (cfg.state as string) || (engine === "ai-dlc" ? ".ai-dlc" : "aidlc");
+    const state = (cfg.state as string) || DEFAULT_STATE[engine];
     let cur = stripInsideState(start); let found: string | null = null;
     for (let i = 0; i <= searchUp; i++) {
-      if (isDir(join(cur, state))) { found = cur; break; }
+      if (isDir(join(cur, state)) || (engine === "contracts" && isContracts(cur))) { found = cur; break; }
       const up = dirname(cur); if (up === cur) break; cur = up;
     }
     root = found ?? start;
@@ -184,7 +209,11 @@ export function resolveLayout(start?: string, env = true): Layout {
   }
 
   if (engine === "none") return result("none", root!, cfg, source, notes, null, []);
-  const stateRel = (cfg.state as string) || (engine === "ai-dlc" ? ".ai-dlc" : "aidlc");
+  twoEnginesNote(root!, engine, notes); // cả khi tự dò lẫn khi config khai tường minh
+  if (engine === "aws-v2" && !notes.some((n) => n.includes("ARCHIVE"))) {
+    notes.push("engine aws-v2 ĐÃ ARCHIVE 7.0.0 — không script nào của gói còn chạy trên nó (docs/archive/aws-v2/)");
+  }
+  const stateRel = (cfg.state as string) || DEFAULT_STATE[engine];
   const stateDir = resolve(root!, stateRel);
   let space: string | null = null; let spaces: string[] = [];
   if (engine === "aws-v2") [space, spaces] = pickSpace(stateDir, cfg.space, notes);
@@ -196,7 +225,7 @@ function result(engine: Engine, root: string, cfg: Cfg, source: string, notes: s
   const towerCfg: Cfg = cfg.tower && typeof cfg.tower === "object" ? cfg.tower : {};
   const out: Layout = {
     engine, root, config_source: source, state: stateDir, space, spaces, space_dir: null, context_memory: null,
-    inbox: null, governance: null, workspace_map: null, tower: { out: null, port: null, mode: "off" }, notes,
+    inbox: null, governance: null, workspace_map: null, skill: null, memory: null, tower: { out: null, port: null, mode: "off" }, notes,
   };
   if (engine === "off" || engine === "none") return out;
   const govDefault = engine === "ai-dlc" ? join(stateDir!, "context-memory", "governance") : join(root, ".ai-dlc", "governance");
@@ -207,12 +236,16 @@ function result(engine: Engine, root: string, cfg: Cfg, source: string, notes: s
     out.inbox = join(stateDir!, "inbox");
     out.workspace_map = join(stateDir!, "workspace-map.md");
     towerOutDefault = join(stateDir!, "tower");
+  } else if (engine === "contracts") {
+    out.skill = join(root, ".agents", "skills", "aidlc");
+    out.memory = join(root, "docs", "memory");
+    towerOutDefault = join(root, ".ai-dlc", "tower");
   } else {
     out.space_dir = space ? join(stateDir!, "spaces", space) : null;
     towerOutDefault = join(root, ".ai-dlc", "tower");
   }
   let mode = String(towerCfg.mode ?? "auto").toLowerCase();
-  if (!["auto", "ai-dlc", "aws-v2", "off"].includes(mode)) { notes.push(`tower.mode '${mode}' không hợp lệ ⇒ auto`); mode = "auto"; }
+  if (!["auto", "ai-dlc", "contracts", "aws-v2", "off"].includes(mode)) { notes.push(`tower.mode '${mode}' không hợp lệ ⇒ auto`); mode = "auto"; }
   if (mode === "auto") mode = engine;
   const port = Number.isInteger(Number(towerCfg.port)) && towerCfg.port !== undefined && towerCfg.port !== null && String(towerCfg.port) !== ""
     ? Number(towerCfg.port) : DEFAULT_PORT[engine];
@@ -232,7 +265,7 @@ if (import.meta.main) {
   const r = resolveLayout(args[0]);
   if (flags.has("--explain")) {
     console.log(`engine: ${r.engine}   root: ${r.root}   (config: ${r.config_source})`);
-    for (const k of ["state", "space", "space_dir", "context_memory", "inbox", "governance", "workspace_map"] as const) if (r[k]) console.log(`  ${k.padEnd(15)} ${r[k]}`);
+    for (const k of ["state", "space", "space_dir", "context_memory", "inbox", "governance", "workspace_map", "skill", "memory"] as const) if (r[k]) console.log(`  ${k.padEnd(15)} ${r[k]}`);
     console.log(`  ${"tower".padEnd(15)} ${r.tower.out} (port ${r.tower.port}, mode ${r.tower.mode})`);
     for (const n of r.notes) console.log("  · " + n);
   } else {

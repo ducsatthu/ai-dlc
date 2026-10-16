@@ -3,6 +3,9 @@ name: dlc-discover
 description: Stage 2 AI-DLC — Context Discovery sau khi Gate A approve. Đọc ĐÚNG các nguồn trong Source Reading Plan đã duyệt, dựng AS-IS model + source-ledger (mọi nguồn phải có trạng thái cuối) rồi chuyển sang validate.
 ---
 
+> Engine `contracts` (template đội): skill này **không chạy**. Đội không có stage Discovery riêng; `start` của `/aidlc`
+> đọc memory, knowledge, codekb và source. Gói chỉ có `dlc-status`, `dlc-doctor`, `dlc-retro` ở engine này.
+
 Điều kiện: `gates_passed` chứa A (kiểm tra `status.md` — chưa có thì dừng, nêu gate đang chờ).
 
 1. Ghi DEC Gate A nếu vừa nhận quyết định từ user/inbox; move file inbox sang `processed/`.

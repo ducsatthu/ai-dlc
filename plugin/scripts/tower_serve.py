@@ -49,11 +49,11 @@ try:
 except Exception:
     LAYOUT = None
 if LAYOUT and LAYOUT["engine"] == "aws-v2":
-    # 7.0.0: workspace AWS aidlc v2 ⇒ tower ba loại thẻ của gói (tower_aws_v2.py --serve), cùng lệnh /ai-dlc:dlc-tower serve
-    port = sys.argv[2] if len(sys.argv) > 2 else str(LAYOUT["tower"]["port"])
-    print("engine aws-v2 tại %s — chuyển sang tower_aws_v2.py --serve --port %s" % (LAYOUT["root"], port), file=sys.stderr)
-    os.execv(sys.executable, [sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "tower_aws_v2.py"),
-                              "--project-dir", LAYOUT["root"], "--serve", "--port", port, "--out", LAYOUT["tower"]["out"]])
+    sys.exit("Layout AWS aidlc v2 tại %s — engine này đã ARCHIVE ở 7.0.0 (docs/archive/aws-v2/). Không serve." % LAYOUT["root"])
+if LAYOUT and LAYOUT["engine"] == "contracts":
+    # 7.0.0-a: engine của đội (docs/intents/). Tower chưa có — chỉ brief/doctor đọc-only.
+    sys.exit("engine contracts (template đội) tại %s — tower cho engine này chưa có ở 7.0.0-a. Dùng /ai-dlc:dlc-status hoặc\n"
+             "  python3 %s/contracts_brief.py %s --doctor" % (LAYOUT["root"], os.path.dirname(os.path.abspath(__file__)), LAYOUT["root"]))
 if LAYOUT and LAYOUT["engine"] == "ai-dlc":
     ROOT, ASKED = LAYOUT["root"], os.path.abspath(ASKED)
 elif LAYOUT and LAYOUT["engine"] == "off":

@@ -1,19 +1,17 @@
-# RACI — ai được quyết gate nào (workspace AWS v2 · phương án A)
+# RACI: ai được quyết gate nào (gói ai-dlc, engine `contracts`, 7.0.0-a)
 
-> Đặt tại `<workspace>/.ai-dlc/governance/raci.md`. Engine AWS v2 chỉ kiểm "có người tại gate", **không kiểm ai** —
-> `tower_approve.ts` và tower đọc file này để (1) chỉ hiện thẻ *Cần tôi quyết* cho đúng người, (2) từ chối bấm sai vai.
-> Cột **gate** = slug stage (`intent-capture`, `units-generation`, `code-generation`…) hoặc glob (`*`, `units-*`).
-> Cột **quyết** = email git (hoặc tên) — dòng đầu khớp thắng, `*` là mặc định. Cột **kiểm** (tuỳ chọn) = người soát trước
-> khi người quyết bấm (Tester, tech lead) — hiện thẻ *Cần tôi kiểm*. Vai không có người ⇒ ghi Lead, không để trống.
-> Không thêm điểm dừng: file này chỉ điền TÊN vào gate đã có của engine.
+Đặt tại `<workspace>/.ai-dlc/governance/raci.md`.
+
+Engine của đội (`approvals.py`) ghi tên người vào `approvals.json` nhưng không kiểm ai được quyết gate nào. File này là chỗ đội khai điều đó. Tower (lát sau) dùng nó để chỉ hiện thẻ "cần tôi quyết" cho đúng người. Doctor dùng nó để đối chiếu `by:` trong `approvals.json` với cột quyết. Gói không gọi `approvals.py` thay ai.
+
+Cột gate là gate của engine `contracts`: `intent`, `plan`, `contract` (Intent và Plan một lần, cho bugfix và refactor), `outcome`, hoặc `*`. Cột quyết là tên đúng như sẽ ghi `--by` (hoặc email git); dòng đầu khớp thắng. Cột kiểm (tuỳ chọn) là người soát trước khi người quyết nói approve, ví dụ Tester hay tech lead. Vai không có người thì ghi Lead, không để trống. File này không thêm điểm dừng, chỉ điền tên vào gate đã có của engine.
+
+Bản 6.3.0 cho engine AWS v2 (cột gate là slug stage) nằm ở `docs/archive/aws-v2/`.
 
 | gate | quyết | kiểm |
 |---|---|---|
-| intent-capture | pm@example.com | — |
-| requirements-analysis | pm@example.com | apo@example.com |
-| user-stories | pm@example.com | tester@example.com |
-| units-generation | lead@example.com | tester@example.com |
-| delivery-planning | lead@example.com | — |
-| code-generation | lead@example.com | dev2@example.com |
-| build-and-test | lead@example.com | tester@example.com |
-| * | lead@example.com | — |
+| intent | pm@example.com | |
+| plan | lead@example.com | tester@example.com |
+| contract | lead@example.com | |
+| outcome | lead@example.com | tester@example.com |
+| * | lead@example.com | |

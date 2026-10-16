@@ -3,7 +3,87 @@
 > **Nợ LL tổng (tính tới 6.5.1):** 5.0.0 (bỏ trần 5h) · 6.0.0 (gỡ Review Board) · 6.2.0 (map v2 + codekb) ·
 > 6.3.0 (lớp chính sách trên AWS v2 + layout resolver) · 6.4.0 (autopilot) · 6.5.0 (bản mô hình cho người xem) · 6.5.1 (dòng `Áp`) đều đi bằng **quyết định chủ gói**, chưa bản nào có LL
 > qua Gate G. 4.1.0 nợ `LL-004` (retro INT-003). Trả bằng: retro INT-003 của PILOT (engine ai-dlc) và retro
-> intent pilot đầu tiên của đội (engine aws-v2). Kế hoạch trả và lát kế tiếp: `docs/plugin-7-policy-layer-plan.md` §6.
+> intent pilot đầu tiên của đội (nay là engine `contracts`, không còn aws-v2). Kế hoạch trả và lát kế tiếp:
+> `docs/template-contracts-engine-vs-ai-dlc.md` §5 (thay `plugin-7-policy-layer-plan.md` §6 từ 2026-10-16).
+
+## Unreleased, 7.0.0-a (2026-10-16): engine `contracts`, gói là lớp đọc trên engine `docs/intents/` của đội; nhánh AWS v2 archive
+
+Nguồn: quyết định chủ gói 2026-10-16, bốn câu trong `docs/template-contracts-engine-vs-ai-dlc.md` §6. Phát hiện gốc: template
+`project-starter-template-ai` @ `c75f50d` không còn file nào của AWS `aidlc-workflows` v2. Thay vào là engine tự viết (`.agents/skills/aidlc/`,
+change là `docs/intents/NNNN-name/` bốn file, `approvals.json` băm SHA-256, `validate_workflow.py` bốn stage và CI). `layout.py --explain`
+trên template trả `engine: none`, tức gói chạy 0% ở đó. Tiền đề của 7.0.0 (`plugin-7-policy-layer-plan.md`) lỗi. Kiến trúc phương án A giữ
+nguyên, đổi đích. Máy móc, không luật mới, không cần LL. Gỡ hook PostToolUse receipt và ba script, một reference của nhánh AWS v2 (không
+workspace nào còn chạy nó). Dự án `.ai-dlc/` không đổi gì.
+
+### Engine thứ ba `contracts` (`scripts/layout.py` và `layout.ts`)
+- Tự dò bằng đúng bộ ba `start_change.py` của đội dùng: `.agents/skills/aidlc/SKILL.md`, `docs/memory/project.md`,
+  `docs/intents/_templates/intent.md`. `state` là `docs/intents`. Hai key mới `skill` và `memory` (`null` ở engine khác).
+  `governance` là `.ai-dlc/governance/` (gói ghi; luật đội ở `docs/memory/` chỉ đọc). Tower port 8644.
+- Thứ tự dò: `ai-dlc`, rồi `contracts`, rồi `aws-v2`. Một thư mục có cả hai thì `notes` cảnh báo hai nguồn sự thật (doctor `D01`).
+- `engine: contracts` tường minh trong config, fence hoặc env. `--env` thêm `AI_DLC_L_SKILL` và `AI_DLC_L_MEMORY`.
+
+### `scripts/contracts_brief.py` (mới, stdlib, chỉ đọc)
+- Mỗi change: metadata (`Scope`, `Owner`, `Implementation repository`, `Backlog`, `Security triggers`, `Branch`); gate theo scope
+  (`intent`, `plan`, `outcome`; bugfix và refactor là `contract`, `outcome`); trạng thái duyệt từng gate đọc từ `approvals.json` bằng cách
+  băm lại toàn bộ byte như `approvals.py` (`current`, `stale` khi byte đã đổi, `revision`, `none`); gate đang chờ và câu người phải nói
+  (`approve intent`...); Work Units từ `plan.md` (`[gate]`, `[knowledge]`, `[owner:]`, `[repo:]`); dòng cuối mỗi unit trong `evidence.md`;
+  AC; Open questions khác None; Knowledge impact so với unit `[knowledge]`; file ngoài bốn file; git branch; và chạy `validate_workflow.py`
+  của đội ở stage suy ra (`draft`, `execute`, `outcome`, `merge`).
+- `--short` cho banner SessionStart. `--json` cho tower sau và test. `--doctor` với mã: `D01` hai nguồn sự thật, `D02` thiếu validator,
+  `D03` thư mục không theo `NNNN-ten`, `D10` thiếu file, `D11` JSON hỏng, `D12` duyệt mất hiệu lực vì byte đổi, `D13` request-changes,
+  `D14` unit Fail khi chờ outcome, `D15` Knowledge impact thiếu unit `[knowledge]`, `D16` file ngoài bốn file chưa khai `Files that change`
+  (INFO; spike cho thấy validator không phạt ở draft và execute, chỉ kiểm drift ở outcome và merge), `D20` validator báo error, `D21` Branch
+  không tồn tại. Exit 1 khi FIX, 2 khi không phải workspace contracts.
+- Không bao giờ gọi `approvals.py`. Luật đội là never infer approval. Autopilot ở engine này là soạn sẵn, người bấm (quyết định §6 câu 2);
+  `dlc-init` nhánh contracts seed `autopilot.md` với `mode: lead`.
+
+### Nối vào
+- `hooks/session_start.sh` nhánh `contracts`: banner bốn dòng (lifecycle của đội, gói chỉ đọc, không `dlc-init`, never infer approval) rồi
+  `contracts_brief.py --short`. Nhánh `aws-v2` còn một dòng "đã archive".
+- `session_brief.py` chuyển tiếp sang `contracts_brief.py` (giữ `--json`, `--short`, `--doctor`, `--no-validate`). `tower_generate.py` và
+  `tower_serve.py` dừng và chỉ đường (tower cho engine này là lát sau).
+- Skill `dlc-init`, `dlc-status`, `dlc-doctor` (mục 0), `dlc-resume`, `dlc-tower`: thêm đoạn engine `contracts`.
+- `templates/raci.md`: cột gate là `intent|plan|contract|outcome` (bản slug AWS vào archive). `references/layout-config.md` viết lại.
+
+### Archive nhánh AWS v2 vào `docs/archive/aws-v2/`
+- `scripts/tower_aws_v2.py`, `scripts/tower_approve.ts`, `hooks/aws_v2_write_receipt.ts` (gỡ khỏi `hooks.json`), `references/aws-v2-workspace.md`.
+  `layout.py` vẫn dò ra `aws-v2` để báo (notes "đã archive"), không script nào chạy trên nó.
+
+### Hook ghi log và retro trên dấu vết máy (lát a-3, cùng ngày)
+- `hooks/observe.py`: hook ghi, không chặn. Nối vào SessionStart, PostToolUse (`Bash|Write|Edit|MultiEdit`), Stop, SessionEnd. Ghi
+  `.ai-dlc/log/YYYY-MM.jsonl` (engine `contracts`; engine `ai-dlc` ghi `<state>/log/`): validator chạy stage nào và ra mấy error;
+  `approvals.py` gọi gate và decision nào (không ghi tên người); lệnh test giữ hai token đầu và kết quả đỏ hay xanh (bỏ mọi token có `=`);
+  `git` và `gh` chỉ subcommand; file sửa trong `docs/intents/` (đường dẫn, không nội dung; file bí mật ghi «redacted»); lượt kết thúc.
+  Lệnh shell khác không ghi. `AI_DLC_OBSERVE=off` để tắt. Lý do: tới 6.5.0 mọi nguồn retro là lời khai của agent, chưa có dấu vết máy nào.
+- `scripts/contracts_retro.py`: sinh ứng viên lesson learned từ `approvals.json`, `evidence.md` và log. Mã `R01` gate bị request-changes
+  từ 2 lần; `R02` cùng lệnh test đỏ liên tiếp từ `max_self_fix` lần; `R03` validator error lặp ở execute, outcome, merge; `R04` unit Fail
+  từ 2 dòng; `R05` approve sau hơn 24h kể từ validator sạch (INFO); `X01` cùng mã ở từ 2 change (xếp đầu, FIX). `--write` ghi
+  `<governance>/lessons-learned/candidates.md` (file sinh). Đây là cơ chế "sai hai lần thì thành ứng viên LL"
+  (`anthropic-ai-native-sdlc-playbook-vs-ai-dlc.md` #5), lần đầu có dữ liệu máy.
+- Skill `dlc-retro` nhánh `contracts`: candidates, rồi retro-keeper viết LL trỏ mã, rồi Gate G người ký, rồi đề xuất PR vào `docs/memory/`
+  của đội. Gói không sửa luật đội.
+- Tests: `tests/test_observe.py` (11 ca: parse validator, approvals, test; không lọt tên người; không lọt token `=`; không lọt nội dung file;
+  redact `.env`; shell thường không ghi; fail-open với stdin hỏng). `tests/test_contracts_retro.py` (10 ca: một ca sạch và từng mã đột
+  biến, X01 xếp đầu, `--since`, `--write`).
+
+### Profile tối giản cho engine `contracts` (bước 1 của việc lược skill cho model mới)
+- Chín skill không có việc ở engine này (`dlc-intent`, `discover`, `validate`, `units`, `bolt`, `accept`, `revise`, `tasks`, `map`) nay mở
+  đầu bằng một đoạn chốt: không chạy, dùng lệnh nào của `/aidlc` thay. Còn lại 7 skill và 3 script (`contracts_brief`, `contracts_retro`,
+  `observe`). Agent dùng được: `retro-keeper` (và `modeler` khi có `views/`).
+- Bước 2 (chưa làm): evals từ LL chạy trên model mới để quyết giữ hay gỡ từng luật của engine `ai-dlc`
+  (`docs/template-contracts-engine-vs-ai-dlc.md` §9). Agent khai `model:` bằng alias `opus`, `sonnet`, `haiku` nên đã trỏ model mới nhất.
+
+### Tests và tài liệu
+- `tests/test_layout.py`: thêm 6 ca contracts (tự dò; từ thư mục con `docs/intents/0001-x`; thiếu một marker thì `none`; config tường minh
+  khi còn `.ai-dlc` cũ; hai engine cùng chỗ thì `ai-dlc` thắng và cảnh báo; aws-v2 gắn cờ archive).
+- `tests/test_contracts_brief.py` (mới, 15 ca): fixture bốn file đúng template đội; ca sạch làm đối chứng rồi đột biến (byte đổi sau
+  approve ra `stale`, `D12`, exit 1; request-changes ra `revision`; bugfix ra `contract`; `.ai-dlc/context-memory` cạnh ra `D01`; file lạ
+  ra `D16`, khai vào Files that change thì hết; Knowledge impact ra `D15`; dòng cuối evidence thắng; `ideation/` và `_templates/` không
+  phải change). Ca thật trên template khi đặt `AI_DLC_TEMPLATE_PATH`.
+- `docs/template-contracts-engine-vs-ai-dlc.md` (phân tích, bốn câu chốt, lát a và b, bốn đề xuất gửi team, §9 profile tối giản và evals),
+  `CLAUDE.md`, `MIGRATION.md`. Tài liệu mới viết theo hướng dẫn humanizer: câu ngắn, không gạch ngang dài, không chữ đậm trang trí.
+- Chưa làm (lát a-2 và b): `tower_contracts.py` có nút gọi `approvals.py` với tên người; bản mô hình `views/` cho `intent.md` và
+  `plan.md`; luật gói mức WARN (sổ cái nguồn, OQ có mặc định, sizing, tầng review, LL) qua đề xuất vào `docs/memory/` của đội; evals.
 
 ## 6.5.1 (2026-10-16): dòng `Áp` trong DEC autopilot, máy đọc được mặc định đã áp; tower đảo đúng DEC đã quyết
 

@@ -3546,10 +3546,12 @@ def main(argv=None):
     except Exception:
         LAYOUT = None
     if LAYOUT and LAYOUT["engine"] == "aws-v2":
-        # Workspace AWS aidlc v2 (phương án A): tower của gói là tower_aws_v2.py — chuyển tiếp, không tạo .ai-dlc/context-memory
-        print("engine aws-v2 tại %s — dùng tower_aws_v2.py" % LAYOUT["root"], file=sys.stderr)
-        os.execv(sys.executable, [sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "tower_aws_v2.py"),
-                                  "--project-dir", LAYOUT["root"]] + argv[2:])
+        sys.exit("Layout AWS aidlc v2 tại %s — engine này đã ARCHIVE ở 7.0.0 (docs/archive/aws-v2/). Không sinh tower." % LAYOUT["root"])
+    if LAYOUT and LAYOUT["engine"] == "contracts":
+        # 7.0.0-a: engine của đội (docs/intents/ bốn file). Tower cho engine này chưa có — lát a chỉ brief/doctor đọc-only.
+        sys.exit("engine contracts (template đội) tại %s — tower cho engine này chưa có ở 7.0.0-a. Dùng:\n"
+                 "  python3 %s/contracts_brief.py %s [--doctor]   (hoặc /ai-dlc:dlc-status · /ai-dlc:dlc-doctor)"
+                 % (LAYOUT["root"], os.path.dirname(os.path.abspath(__file__)), LAYOUT["root"]))
     if LAYOUT and LAYOUT["engine"] == "ai-dlc":
         ROOT, ASKED = LAYOUT["root"], os.path.abspath(ASKED)
     elif LAYOUT and LAYOUT["engine"] == "off":

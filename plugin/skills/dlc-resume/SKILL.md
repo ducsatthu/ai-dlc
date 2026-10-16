@@ -6,6 +6,11 @@ description: Vào lại một dự án AI-DLC đã có bằng phiên mới — d
 Đọc `${CLAUDE_PLUGIN_ROOT}/references/protocol.md` §9 (handoff) và §10 (ngân sách context) — hai mục đó là
 luật của lệnh này. Yêu cầu `.ai-dlc/` đã tồn tại (chưa có → `/ai-dlc:dlc-init`).
 
+**Engine `contracts`** (7.0.0-a — template đội): không có HOF / inbox / session log của gói. Chạy
+`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/contracts_brief.py <root>`, thuật lại, rồi **làm tiếp bằng skill `aidlc` của đội**
+(`status` / `resume` của họ đọc contracts + `approvals.json` + `evidence.md` + PR). Không chạy `dlc-init`. Các bước dưới là
+của engine `ai-dlc`.
+
 ## Luật context của lệnh này (quan trọng hơn tốc độ)
 
 Bạn đang vào một dự án có thể đã chạy nhiều tuần. **KHÔNG nạp lại cả dự án.**

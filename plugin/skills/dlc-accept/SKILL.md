@@ -3,6 +3,9 @@ name: dlc-accept
 description: Stage 7–8 AI-DLC — gom Acceptance Evidence + tự chạy lại test thật, security check theo trigger §4.17, mở Gate F (UAT) rồi DỪNG; sau approve thì Release + publish docs theo workspace map + persist Context Memory. (Autopilot §2.3: tự đóng nghiệm thu Unit; deploy luôn dừng.)
 ---
 
+> Engine `contracts` (template đội): skill này **không chạy**. Nghiệm thu là `review outcome` rồi `approve outcome` của
+> `/aidlc`, bằng chứng trong `evidence.md`. Gói chỉ có `dlc-status`, `dlc-doctor`, `dlc-retro` ở engine này.
+
 Điều kiện: mọi Bolt của UOW-NN xong Gate E(b).
 1. Spawn `ai-dlc:dlc-acceptance-recorder` (stage 7) → evidence/ theo pinned/dod.md; recorder **tự chạy lại
    test thật** + một ca đối chứng (§4.15), ghi output vào evidence.

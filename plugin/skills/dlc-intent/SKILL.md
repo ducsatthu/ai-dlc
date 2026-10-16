@@ -3,6 +3,9 @@ name: dlc-intent
 description: Bắt đầu một Intent AI-DLC mới từ yêu cầu của user (stage 1 · Inception) — tạo INT-NNN, snapshot pinned, dựng intent-plan.md hoàn chỉnh (Intent + Source Reading Plan + Provisional Units tự ra được sản phẩm, gọn một phiên), mở Gate A rồi DỪNG chờ duyệt trên Control Tower. (Autopilot §2.3: không dừng — tự quyết có trade-off, chỉ dừng khi block.)
 ---
 
+> Engine `contracts` (template đội; `layout.py --explain` nói vậy): skill này **không chạy**. Lifecycle là của đội,
+> dùng `/aidlc` của họ: `start <outcome>`. Gói chỉ có `dlc-status`, `dlc-doctor`, `dlc-retro` ở engine này.
+
 Đọc `${CLAUDE_PLUGIN_ROOT}/references/protocol.md` (§1.1, §2.1, §4.8, §4.9). Yêu cầu `.ai-dlc/` đã init
 (chưa có → chạy `/ai-dlc:dlc-init` trước).
 

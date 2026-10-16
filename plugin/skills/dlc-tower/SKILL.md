@@ -3,10 +3,11 @@ name: dlc-tower
 description: Control Tower — generate dashboard từ .ai-dlc/ và serve local (LIVE: tự cập nhật khi agent ghi file, nút Approve/Yêu cầu chỉnh sửa/Reject ghi vào inbox).
 ---
 
-0. (6.3.0) Vị trí state và loại tower do `scripts/layout.py` quyết (`references/layout-config.md`): dự án chạy engine
-   AWS `aidlc-workflows` v2 (`aidlc/spaces/`) thì hai lệnh dưới **tự chuyển sang** `tower_aws_v2.py` (ba loại thẻ,
-   POST /decision → `tower_approve.ts`) — không cần lệnh khác. Không chắc gói đang hiểu dự án thế nào:
-   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/layout.py --explain`. Output/port lấy từ config (`tower.out`, `tower.port`).
+0. (6.3.0 · 7.0.0-a) Vị trí state và loại tower do `scripts/layout.py` quyết (`references/layout-config.md`). Engine
+   **`contracts`** (template đội, `docs/intents/` bốn file): tower cho engine này **chưa có** ở lát a — hai lệnh dưới dừng
+   và chỉ đường sang `contracts_brief.py` (`/ai-dlc:dlc-status`, `/ai-dlc:dlc-doctor`). Engine `aws-v2`: đã archive 7.0.0,
+   lệnh dừng. Không chắc gói đang hiểu dự án thế nào: `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/layout.py --explain`.
+   Output/port lấy từ config (`tower.out`, `tower.port`).
 1. Chạy `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tower_generate.py <project_root>` → `.ai-dlc/tower/index.html`.
 2. Args chứa "serve" → chạy nền `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tower_serve.py <project_root>`
    (bind 127.0.0.1, in URL kèm token) và arm Monitor watch `.ai-dlc/inbox/*.json` để xử lý ngay khi tới:

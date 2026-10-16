@@ -30,10 +30,12 @@ try:  # 7.0.0: state ở đâu do scripts/layout.py trả lời (config file · 
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from layout import resolve as _resolve_layout
     _LAY = _resolve_layout(ROOT)
+    if _LAY["engine"] == "contracts":
+        # 7.0.0-a: engine của đội (docs/intents/ bốn file) — brief riêng, chỉ đọc, gọi validator của đội.
+        _cb = os.path.join(os.path.dirname(os.path.abspath(__file__)), "contracts_brief.py")
+        os.execv(sys.executable, [sys.executable, _cb, _LAY["root"]] + [a for a in FLAGS if a in ("--json", "--short", "--doctor", "--no-validate")])
     if _LAY["engine"] == "aws-v2":
-        print("Workspace AWS aidlc v2 tại %s (space %s) — brief của gói là tower: "
-              "python3 %s/tower_aws_v2.py --project-dir %s" % (_LAY["root"], _LAY["space"],
-                                                               os.path.dirname(os.path.abspath(__file__)), _LAY["root"]))
+        print("Layout AWS aidlc v2 tại %s — engine này đã ARCHIVE ở 7.0.0 (docs/archive/aws-v2/); gói không có brief ở đây." % _LAY["root"])
         sys.exit(0)
     if _LAY["engine"] == "ai-dlc":
         ROOT, A = _LAY["root"], _LAY["state"]

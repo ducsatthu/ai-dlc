@@ -11,13 +11,19 @@ if command -v python3 >/dev/null 2>&1 && [ -f "$_LAYOUT" ]; then
 fi
 case "$AI_DLC_L_ENGINE" in
   off) exit 0 ;;
+  contracts)
+    # 7.0.0-a: workspace chạy engine của đội (template project-starter-template-ai: skill .agents/skills/aidlc,
+    # change = docs/intents/NNNN-name/ bốn file, duyệt bằng approvals.py băm SHA-256). Gói CHỈ ĐỌC ở đây.
+    echo "# AI-DLC (plugin ai-dlc): workspace chạy engine \`contracts\` của đội tại $AI_DLC_L_ROOT (cấu hình: $AI_DLC_L_SOURCE)"
+    echo "- Lifecycle do skill aidlc của đội giữ: \`start <outcome>\`, \`approve intent|plan\`, \`execute ready units\`, \`review outcome\`, \`approve outcome\` (AGENTS.md, docs/intents/README.md)."
+    echo "- Gói ai-dlc 7.0.0-a chỉ đọc: /ai-dlc:dlc-status, /ai-dlc:dlc-doctor, /ai-dlc:dlc-retro. Không chạy /ai-dlc:dlc-init hay dlc-intent ở đây vì sẽ tạo nguồn sự thật thứ hai cạnh docs/intents/."
+    echo "- Duyệt gate là người nói trong chat, agent ghi \`approvals.py --by <tên người>\`. Gói không gọi thay (luật đội: never infer approval). Autopilot ở engine này chỉ soạn sẵn, người bấm."
+    echo "- Hook observe.py ghi dấu vết máy vào .ai-dlc/log/ (không ghi nội dung) để retro có dữ liệu."
+    echo ""
+    python3 "$(dirname "$0")/../scripts/contracts_brief.py" "$AI_DLC_L_ROOT" --short 2>/dev/null
+    exit 0 ;;
   aws-v2)
-    echo "# AI-DLC (plugin ai-dlc) — workspace AWS aidlc-workflows v2 tại $AI_DLC_L_ROOT (space: $AI_DLC_L_SPACE; cấu hình: $AI_DLC_L_SOURCE)"
-    echo "Gói là LỚP CHÍNH SÁCH + TOWER trên engine AWS v2 (\${CLAUDE_PLUGIN_ROOT}/references/aws-v2-workspace.md):"
-    echo "- Lifecycle do engine AWS giữ (/aidlc, aidlc-orchestrate.ts) — gói KHÔNG tạo .ai-dlc/context-memory ở đây."
-    echo "- Luật gói (RACI, test-viewpoints, im lặng = mặc định): $AI_DLC_L_GOVERNANCE/"
-    echo "- Tower: python3 \${CLAUDE_PLUGIN_ROOT}/scripts/tower_aws_v2.py --serve (hoặc /ai-dlc:dlc-tower serve, port $AI_DLC_L_TOWER_PORT)."
-    echo "- Người duyệt ngoài phiên: bun \${CLAUDE_PLUGIN_ROOT}/scripts/tower_approve.ts --stage <slug> --result approved|rejected --input \"...\""
+    echo "# AI-DLC (plugin ai-dlc): dò ra layout AWS aidlc-workflows v2 tại $AI_DLC_L_ROOT — engine này đã ARCHIVE ở 7.0.0 (repo gói: docs/archive/aws-v2/). Gói im lặng."
     exit 0 ;;
   ai-dlc)
     ROOT="$AI_DLC_L_ROOT"; AIDLC="$AI_DLC_L_STATE" ;;

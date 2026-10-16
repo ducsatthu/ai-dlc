@@ -3,6 +3,9 @@ name: dlc-units
 description: Stage 5 AI-DLC — refine Provisional Unit Map thành unit-plan.md chốt (mỗi Unit tự ra được sản phẩm + gọn một phiên, đủ User Story/NFR/Rủi ro, khai tầng review §4.17), unit-planner tự pre-flight theo checklist, mở Gate D rồi DỪNG. (Autopilot §2.3: không dừng trừ khi block.)
 ---
 
+> Engine `contracts` (template đội): skill này **không chạy**. Work Unit nằm trong `plan.md` (`U-*`, `[owner:]`, `[repo:]`)
+> và chốt tại `approve plan`. Gói chỉ có `dlc-status`, `dlc-doctor`, `dlc-retro` ở engine này.
+
 Điều kiện: `gates_passed` chứa A, B, C; `as-is/source-ledger.md` không còn dòng `planned`.
 
 1. Spawn `ai-dlc:dlc-unit-planner`:

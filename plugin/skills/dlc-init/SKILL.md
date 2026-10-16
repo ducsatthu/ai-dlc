@@ -5,9 +5,13 @@ description: Khởi tạo AI-DLC cho project hiện tại — seed .ai-dlc/ (con
 
 Đọc `${CLAUDE_PLUGIN_ROOT}/references/protocol.md` trước. Các bước:
 
-0. (6.3.0) Chạy `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/layout.py --explain` trước. Engine `aws-v2` (workspace có
-   `aidlc/spaces/` — template của đội) ⇒ **KHÔNG tạo `.ai-dlc/context-memory`**; chỉ tạo `<governance>/raci.md` từ
-   `templates/raci.md` nếu thiếu và nhắc gitignore `.ai-dlc/tower/`, rồi dừng. Engine `off` ⇒ dừng. Dự án muốn state
+0. (7.0.0-a) Chạy `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/layout.py --explain` trước. Engine **`contracts`** (template của
+   đội `project-starter-template-ai`: `.agents/skills/aidlc/` + `docs/memory/` + `docs/intents/_templates/`) ⇒ **KHÔNG tạo
+   `.ai-dlc/context-memory`** — lifecycle là của đội (`/aidlc`: `start` · `approve intent|plan` · `execute ready units` ·
+   `review outcome`), gói chỉ đọc (`/ai-dlc:dlc-status`, `/ai-dlc:dlc-doctor`). Chỉ tạo `<governance>/` (`.ai-dlc/governance/`)
+   với `sizing.md` + `autopilot.md` **`mode: lead`** (luật đội *never infer approval* — autopilot ở engine này chỉ soạn sẵn,
+   người bấm) từ templates nếu thiếu, rồi dừng. Gitignore: chỉ `.ai-dlc/tower/`; `.ai-dlc/log/` (hook `observe.py` ghi) và
+   `.ai-dlc/governance/` nên commit vì đó là bằng chứng retro. Engine `aws-v2` ⇒ đã archive 7.0.0, báo rồi dừng. Engine `off` ⇒ dừng. Dự án muốn state
    ở chỗ khác `.ai-dlc/` (ví dụ `docs/state`) ⇒ hỏi user rồi ghi `ai-dlc.config.json` (`templates/ai-dlc.config.json`)
    hoặc fence ```` ```ai-dlc ```` trong CLAUDE.md, và dùng đường dẫn `state` đó cho mọi bước dưới thay vì `.ai-dlc/`.
 1. Nếu `.ai-dlc/` đã tồn tại → KHÔNG overwrite; báo trạng thái hiện có và dừng (chỉ bổ sung file thiếu).

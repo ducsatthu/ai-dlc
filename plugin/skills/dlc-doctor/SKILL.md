@@ -5,6 +5,15 @@ description: Audit sức khỏe AI-DLC của project — coverage nguồn (dòng
 
 Chỉ đọc + báo cáo (sửa gì phải được user đồng ý từng mục):
 
+0. **Engine `contracts`** (7.0.0-a — template đội, `layout.py --explain` nói vậy): mục 1–7 dưới là của engine `ai-dlc`,
+   **không áp**. Chạy `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/contracts_brief.py <root> --doctor` và chép nguyên phát hiện
+   `D01`–`D21`: `D01` `.ai-dlc/context-memory/` nằm cạnh `docs/intents/` (hai nguồn sự thật — FIX) · `D10` change thiếu một
+   trong bốn file · `D12` gate đã approve nhưng byte contract đổi sau đó (duyệt mất hiệu lực — phải xin duyệt lại, không tự ghi) ·
+   `D13` đang request-changes · `D14` unit Fail khi chờ outcome · `D15` Knowledge impact mà không có unit `[knowledge]` ·
+   `D16` file ngoài bốn file (validator chỉ kiểm drift ở outcome/merge) · `D20` `validate_workflow.py` của đội báo error ở
+   stage hiện hành · `D21` plan Branch không tồn tại. **Mọi phát hiện đi từ luật của chính template** — gói chưa thêm luật
+   nào ở engine này (lát b, mức WARN, cần LL).
+
 1. **Coverage nguồn (protocol §4.8)** — với mỗi intent đã qua Gate A:
    - `intent-plan.md` phần 2 có bao nhiêu nguồn; `as-is/source-ledger.md` đóng được bao nhiêu.
    - Dòng còn `planned` → **FIX** (chặn Gate B/D). Dòng `read` mà thiếu evidence → **FIX** (coi như chưa đọc).
@@ -115,6 +124,7 @@ Chỉ đọc + báo cáo (sửa gì phải được user đồng ý từng mục
    phát hiện vào báo cáo. Các gạch đầu dòng dưới là **nghĩa** của từng mã; hai mục cuối bảng (hạ tầng review so với trigger
    §4.17 · diff chạm migration/auth/PII/public API/lệnh deploy) script **chưa** kiểm — vẫn phải soát tay.
    Chỉ khi `governance/autopilot.md` có `mode: autopilot`:
+   - DEC `autopilot` thiếu dòng `Áp`, hoặc hai DEC còn hiệu lực áp hai phương án khác nhau cho cùng một mã (`AP13` · `AP14`) → **FIX**.
    - DEC `autopilot` thiếu một trong *Chọn · Bỏ · Đảo bằng · Hiện ở · Block check* → **FIX** (quyết định không đảo được
      là quyết định không được tự ra). *Hiện ở* trỏ mục không tồn tại trong gate_doc → **FIX**.
    - **Bỏ bước**: gate nằm trong `gates_auto` mà artefact của stage đó thiếu (`intent-plan.md` · `source-ledger.md` ·
