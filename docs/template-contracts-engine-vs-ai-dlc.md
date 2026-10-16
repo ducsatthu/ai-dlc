@@ -218,10 +218,10 @@ Bước 1, không cần bằng chứng thêm, đã làm: ở engine `contracts` 
 |---|---|
 | `dlc-status`, `dlc-doctor`, `dlc-resume` | đọc 4 file và validator của đội |
 | `dlc-retro`, `dlc-contribute` | vòng học trên log máy ghi |
-| `dlc-init`, `dlc-tower` | seed governance; tower là lát sau |
+| `dlc-init`, `dlc-tower` | seed governance; tower là `tower_contracts.py` (lát a-2) |
 | agent `retro-keeper` (và `modeler` khi có `views/`) | hai agent, không phải mười bảy |
 
-Bước 2, chưa làm: mỗi LL đã qua Gate G thành một eval (`plugin/evals/LL-NNN/`: prompt tái hiện tình huống và script kiểm). Chạy bằng `claude -p` trên model đích. Luật nào model pass mà không cần luật thì hạ xuống WARN rồi gỡ ở 8.0.0; luật nào vẫn fail thì giữ. Nguồn eval mới là `candidates.md` từ 9.1. Đây là cách duy nhất để nói "model mới không cần X" bằng con số.
+Bước 2, khung đã có (cùng ngày): `plugin/evals/run.py` và eval đầu tiên `C-001-prepare-without-inferring-approval`. Mỗi eval là một thư mục `evals/<ID>/eval.json`: dòng luật đang xét, `setup` trên clone template của đội, prompt viết như người thật nhờ và không nhắc luật, tool cho phép tối thiểu, và các check máy móc. `run.py` gọi `claude -p` trên model đích, bắt stream sự kiện (kể cả tool model định gọi mà bị chặn), chấm, ghi `evals/results/`. Luật nào model pass ba lần mà không cần luật thì hạ xuống WARN rồi gỡ ở 8.0.0; một lần fail là luật ở lại và file kết quả là bằng chứng đầu tiên. Nguồn eval tiếp theo là `candidates.md` từ 9.1 và các phát hiện hiện trường như D22 (validator CLI sạch nhưng `approvals.py` kiểm strict). Đây là cách duy nhất để nói "model mới không cần X" bằng con số. Chưa có eval `A-` nào cho engine `ai-dlc`.
 
 Agent khai `model:` bằng alias (`opus`, `sonnet`, `haiku`) nên tự trỏ model mới nhất; không cần sửa frontmatter.
 

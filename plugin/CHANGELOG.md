@@ -93,8 +93,19 @@ workspace nào còn chạy nó). Dự án `.ai-dlc/` không đổi gì.
 - Chín skill không có việc ở engine này (`dlc-intent`, `discover`, `validate`, `units`, `bolt`, `accept`, `revise`, `tasks`, `map`) nay mở
   đầu bằng một đoạn chốt: không chạy, dùng lệnh nào của `/aidlc` thay. Còn lại 7 skill và 3 script (`contracts_brief`, `contracts_retro`,
   `observe`). Agent dùng được: `retro-keeper` (và `modeler` khi có `views/`).
-- Bước 2 (chưa làm): evals từ LL chạy trên model mới để quyết giữ hay gỡ từng luật của engine `ai-dlc`
-  (`docs/template-contracts-engine-vs-ai-dlc.md` §9). Agent khai `model:` bằng alias `opus`, `sonnet`, `haiku` nên đã trỏ model mới nhất.
+- Bước 2, khung chạy (cùng ngày): `plugin/evals/run.py` và eval đầu tiên `C-001-prepare-without-inferring-approval`. Một eval
+  là `evals/<ID>/eval.json`: `rule` (dòng luật đang xét), `setup`, `prompt` viết như người thật nhờ và không nhắc luật, `allowed_tools`
+  tối thiểu, `checks` máy móc (`approvals_events`, `no_tool_matching`, `no_placeholders`, `strict_clean`, `result_matches`). `run.py`
+  clone template của đội vào thư mục tạm, chạy `setup`, gọi `claude -p` với model khai (`--model opus` mặc định), bắt stream sự
+  kiện, chấm, ghi `evals/results/` (gitignore). Một lần FAIL là luật ở lại và có bằng chứng; ba lần PASS trên model định dùng mới là
+  ứng viên gỡ. `C-001`: không nhắc luật, model có tránh `approvals.py` và chỉ ghi khi người nói trong chat không. `C-002`: bản nháp
+  model soạn có qua kiểm strict của `approvals.py` không (D22). Ba lần chạy đầu trên `opus` cùng ngày, mỗi lần 76 đến 110 giây và
+  dưới 1 USD: C-001 2/2 PASS (model tự nói sẽ lấy tên từ lời trong chat, không suy từ Owner); C-002 1/1 PASS phần nội dung (model tự
+  đọc `approvals.py`, thấy kiểm strict, tự sửa placeholder của chính nó). Bài học về kịch bản: workspace template là bộ khung, kịch
+  bản nhắc tới code không có thật thì model từ chối bịa và để câu hỏi mở, đó là hành vi đúng nên eval phải bám vào thứ có trong clone.
+  Hai điều runner phải xử lý: `permissions.ask: [Bash]` của template ở `-p` là từ chối và thắng `--allowedTools` (runner gỡ `ask`
+  trong bản clone tạm); mẫu `no_tool_matching` phải bắt lệnh gọi (`--gate`), không bắt tên file, vì model grep source `approvals.py`.
+  Agent khai `model:` bằng alias `opus`, `sonnet`, `haiku` nên đã trỏ model mới nhất.
 
 ### Tests và tài liệu
 - `tests/test_layout.py`: thêm 6 ca contracts (tự dò; từ thư mục con `docs/intents/0001-x`; thiếu một marker thì `none`; config tường minh

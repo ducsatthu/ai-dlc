@@ -6,3 +6,6 @@ __pycache__/
 .gstack/
 
 .DS_Store
+
+# Kết quả chạy eval trên model thật (plugin/evals/run.py): dữ liệu một lần chạy, không phải nguồn
+plugin/evals/results/
