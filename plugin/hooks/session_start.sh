@@ -93,7 +93,7 @@ fi
 # Gate đang mở
 for st in "$AIDLC"/context-memory/intents/*/status.md; do
   [ -f "$st" ] || continue
-  GO=$(grep -m1 '^gate_open:' "$st" | sed 's/gate_open: *//')
+  GO=$(grep -m1 '^gate_open:' "$st" | sed -e 's/gate_open: *//' -e 's/[[:space:]]*#.*$//' -e 's/[[:space:]]*$//')   # bỏ chú thích cuối dòng (6.6.0)
   IN=$(grep -m1 '^intent:' "$st" | sed 's/intent: *//')
   if [ -n "$GO" ] && [ "$GO" != "null" ]; then
     echo ""

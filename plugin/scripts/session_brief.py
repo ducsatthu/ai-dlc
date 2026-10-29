@@ -354,7 +354,8 @@ if not os.path.isfile(index_p):
 # ---------- mở phiên mới ----------
 new_session = None
 if "--open-session" in FLAGS:
-    n = len(logs) + 1
+    # số lớn nhất + 1, không phải len()+1: thư mục log có lỗ số thì len()+1 rơi trúng tệp đã có và lặng lẽ không tạo gì (6.6.0)
+    n = max([int(m.group(1)) for m in (re.search(r"SES-(\d+)\.md$", x) for x in logs) if m] or [0]) + 1
     new_session = os.path.join(SESS, "log", "SES-%03d.md" % n)
     if not os.path.isfile(new_session):
         tpl = read(os.path.join(TPL, "session-log.md")) or "---\nid: SES-%03d\n---\n"

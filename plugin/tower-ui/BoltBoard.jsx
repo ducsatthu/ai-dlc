@@ -173,7 +173,7 @@ function BoltBoard({ data, intentId, unitId, onOpenTask, onOpenUnit, onDoc, onSe
             {byUnit.map((b, i) => (
               <span key={b.path} onClick={() => setBoltIdx(i)} style={{ cursor: 'pointer' }}
                 title={b.path + ' · ' + b.stepsDone + '/' + b.stepsTotal + ' chặng có thật'}>
-                <Chip tone={i === boltIdx ? 'agent' : 'pending'}>{b.id} · {b.stepsDone}/{b.stepsTotal}</Chip>
+                <Chip tone={i === boltIdx ? 'agent' : b.closed ? 'done' : 'pending'}>{b.id} · {b.closed ? 'đã đóng' : b.stepsDone + '/' + b.stepsTotal}</Chip>
               </span>
             ))}
             <span style={{ width: 1, height: 16, background: 'var(--line)', margin: '0 4px' }} />
@@ -247,6 +247,7 @@ function BoltBoard({ data, intentId, unitId, onOpenTask, onOpenUnit, onDoc, onSe
               <Chip tone={unit.nfrs ? 'done' : 'blocked'}>{unit.nfrs} NFR</Chip>
               <Chip tone={unit.riskCount ? 'done' : 'blocked'}>{unit.riskCount} rủi ro</Chip>
               {unit.descoped && <Chip tone="blocked">ngoài phạm vi</Chip>}
+              {unit.closedBy && <Chip tone="done">đã đóng · {unit.closedBy}</Chip>}
             </div>
             <div style={{ fontFamily: 'var(--mono)', fontSize: 11.5, color: 'var(--muted)', lineHeight: 1.9 }}>
               <div>trạng thái · {unit.status}{unit.rawStatus ? ' (spec.md ghi "' + unit.rawStatus + '")' : ''}</div>
@@ -270,8 +271,8 @@ function BoltBoard({ data, intentId, unitId, onOpenTask, onOpenUnit, onDoc, onSe
                 <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
                   <IdCode variant="inline">{b.id}</IdCode>
                   <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }} title={b.path}>{b.path}</span>
-                  <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: b.stepsDone === b.stepsTotal ? 'var(--ok)' : 'var(--accent)' }}>
-                    {b.stepsDone}/{b.stepsTotal} chặng
+                  <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: b.closed || b.stepsDone === b.stepsTotal ? 'var(--ok)' : 'var(--accent)' }}>
+                    {b.closed ? 'đã đóng · ' + b.closedBy : b.stepsDone + '/' + b.stepsTotal + ' chặng'}
                   </span>
                 </div>
                 <div style={{ fontSize: 11.5, color: 'var(--muted)', marginTop: 2 }}>

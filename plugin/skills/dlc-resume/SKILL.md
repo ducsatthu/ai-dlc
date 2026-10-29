@@ -33,6 +33,15 @@ Bạn đang vào một dự án có thể đã chạy nhiều tuần. **KHÔNG n
    `context-memory/session/board.md`; seed `session/INDEX.md` nếu thiếu; tạo `session/log/SES-NNN.md` cho
    phiên này; in briefing. **Đọc stdout, đừng đi đọc lại các file nó vừa quét.**
 
+1b. **Đóng intent đã release** (6.6.0, protocol §2.5) — sau khi drain inbox ở bước 3, chạy:
+   ```
+   python3 ${CLAUDE_PLUGIN_ROOT}/scripts/close_sweep.py <project_root> --apply
+   ```
+   Intent nào đủ C1–C3 (mọi commit đã vào nhánh phát hành · không gate mở · không escalation high) thì tự đóng
+   bằng một DEC autopilot — **không hỏi người** về review bù, kiểm tay, `[LEAD-CHOSE]`, ký E/F/G. Báo người một dòng
+   ("đã đóng INT-…"). Intent bị **giữ** thì đưa đúng câu script in ra vào mục trình bày ở bước 2 — mỗi intent một câu.
+   `closure: ask` ⇒ bỏ `--apply`, chỉ trình danh sách.
+
 2. **Trình bày cho người** — thuật lại briefing gọn, đúng thứ tự ưu tiên:
    gate đang chờ người quyết → inbox chưa drain → HOF `returned` → HOF `accepted` treo lâu (dấu hiệu phiên
    trước chết giữa chừng) → cảnh báo nguồn `planned` / unit thiếu `releasable`·`session_fit`·`review:` → intent chưa có gate chờ.

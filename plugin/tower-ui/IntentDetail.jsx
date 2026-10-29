@@ -29,7 +29,7 @@ function UnitCard({ u, onOpenUnit, onDoc }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <IdCode style={{ fontSize: 12 }}>{u.id}</IdCode>
         <Chip tone={u.descoped ? 'pending' : u.provisional ? 'agent' : tone}>
-          {u.descoped ? 'ngoài phạm vi đợt này' : u.provisional ? 'dự kiến' : u.status}
+          {u.descoped ? 'ngoài phạm vi đợt này' : u.provisional ? 'dự kiến' : u.closedBy ? 'đã đóng' : u.status}
         </Chip>
         <span style={{
           marginLeft: 'auto', fontFamily: 'var(--mono)', fontSize: 11,

@@ -1,6 +1,6 @@
 ---
 doc: autopilot
-version: 2
+version: 3
 mode: autopilot            # autopilot | lead
 # autopilot: chạy ĐỦ mọi stage và artefact; gate KHÔNG chờ người — orchestrator tự quyết bằng DEC có trade-off,
 #            chỉ dừng khi chạm một trong các điều kiện block dưới. Người xem và ĐẢO trên tower.
@@ -9,6 +9,7 @@ wait_hours: 0              # >0: tại gate, chờ N giờ làm việc cho ngư�
 max_units_per_intent: 8    # stage 1 cắt phạm vi: quá số này ⇒ đề xuất tách intent (ghi DEC autopilot), không làm to
 max_self_fix: 2            # cùng một chỗ tự sửa quá N lần vẫn fail ⇒ block, không lặp
 notify: []                 # kênh gọi người khi block (PushNotification/Slack — tuỳ dự án; rỗng = chỉ tower)
+closure: auto              # auto: intent đã release (close_sweep C1–C3) tự đóng, khoảng trống hành chính không chờ người · ask: chỉ đo, trình người (protocol §2.5)
 ---
 
 # Autopilot — gate không chờ, nhưng KHÔNG bỏ bước
@@ -57,3 +58,4 @@ Hiện ở / Block check*, `gates_auto` thêm gate đó, đi tiếp ngay trong c
 
 - v1: bản đầu (gói 6.4.0) — quyết định chủ gói 2026-09-28, nợ LL.
 - v2 (gói 6.5.0): điều kiện #3 chặn **đúng phần việc phụ thuộc**, không chặn cả intent — từ chạy thử INT-001 dự án demo: luật cũ không nói kiểm ở gate nào.
+- v3 (gói 6.6.0): núm `closure` — đóng intent theo sự thật đo được (protocol §2.5); áp cả khi `mode: lead`.

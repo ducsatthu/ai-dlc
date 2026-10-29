@@ -640,9 +640,12 @@ BOLT_STEPS = [("domain-design.md", "Domain Design", "mô hình nghiệp vụ, đ
               ("evidence/", "Evidence", "bằng chứng AC đã pass — nguồn của Gate F")]
 
 
-def parse_bolts(upath, unit_id):
+def parse_bolts(upath, unit_id, closed_by=""):
     """Liệt kê bolt TỪ THƯ MỤC UNIT — không suy từ chỗ khác. Unit không có bolt nào thì trả [],
-    và đó là một sự thật cần hiện ra, không phải chỗ để mượn số của unit khác."""
+    và đó là một sự thật cần hiện ra, không phải chỗ để mượn số của unit khác.
+
+    `closed_by` (6.6.0, §2.5): unit đã đóng hành chính thì bolt của nó đóng theo — số chặng vẫn đếm
+    thật, nhưng chặng thiếu không còn là việc đang chờ ai."""
     bdir = os.path.join(upath, "bolts")
     if not os.path.isdir(bdir):
         return []
@@ -663,12 +666,31 @@ def parse_bolts(upath, unit_id):
         tasks = parse_tasks_md(read(os.path.join(bb, "tasks.md")))
         out.append({"id": bn, "unit": unit_id, "path": os.path.relpath(bb, A),
                     "steps": steps, "stepsDone": done_steps, "stepsTotal": len(BOLT_STEPS),
+                    "closed": bool(closed_by), "closedBy": closed_by,
                     "tasks": tasks, "tasksFile": os.path.relpath(os.path.join(bb, "tasks.md"), A)
                     if os.path.isfile(os.path.join(bb, "tasks.md")) else None})
     return out
 
 
 def parse_units(base, intent_id, stage):
+    """Unit của một intent. Intent đã `phase: closed` (§2.5) thì mọi unit/bolt còn lại đóng theo nó —
+    unit `planned`/`proposed` của một intent đã đóng không còn là việc chờ ai, hiện nó là "chờ" là khai sai."""
+    units = _parse_units(base, intent_id, stage)
+    st = fm(read(os.path.join(base, "status.md")))
+    if (st.get("phase") or "").split("#")[0].strip() != "closed":
+        return units
+    by = (st.get("closed_by") or "").split("#")[0].strip() or "intent đã đóng"
+    for u in units:
+        if u.get("descoped"):
+            continue
+        u["closedBy"] = u.get("closedBy") or by
+        u["status"], u["problems"], u["provisional"] = "done", [], False
+        for b in u.get("boltDetails") or []:
+            b["closed"], b["closedBy"] = True, b.get("closedBy") or u["closedBy"]
+    return units
+
+
+def _parse_units(base, intent_id, stage):
     units = []
     proposal = parse_plan_rows(base)
     descoped_ids = parse_descoped(base)
@@ -730,8 +752,10 @@ def parse_units(base, intent_id, stage):
         srcs = [s.strip() for s in us.get("sources", "").strip("[]").split(",") if s.strip()]
         ustatus, raw_status = norm_unit_status(us.get("status"), bool(nb))
         status = "descoped" if descoped else ustatus
-        problems = sizing_problems(est, us, descoped)
-        if not descoped:
+        # `status: closed` = đóng hành chính theo DEC (§2.5): unit không còn chạy nên không soi DoR nữa
+        closed_by = (us.get("closed_by") or "").split("#")[0].strip() if raw_status == "closed" else ""
+        problems = [] if closed_by else sizing_problems(est, us, descoped)
+        if not descoped and not closed_by:
             for label, ok in (("user-stories", has_us and stories), ("nfr", has_nfr and nfrs),
                               ("risks", has_risk and risks)):
                 if not ok:
@@ -739,7 +763,7 @@ def parse_units(base, intent_id, stage):
         units.append({
             "id": un, "name": us.get("title", un), "status": status,
             "bolt": bolts[-1] if bolts else "—", "bolts": bolts, "done": pct,
-            "boltDetails": parse_bolts(upath, un),
+            "boltDetails": parse_bolts(upath, un, closed_by), "closedBy": closed_by,
             "estimate": est, "stories": stories, "nfrs": nfrs, "risks": [],
             "riskCount": risks, "sources": srcs, "problems": problems, "provisional": False,
             "descoped": descoped, "addedAfterPlan": added_after_plan, "rawStatus": raw_status,

@@ -831,6 +831,23 @@ version: 1
         self.assertEqual([(x["id"], x["estimate"], x["problems"]) for x in u], [("UOW-07", 9.5, [])])
 
 
+    def test_closed_intent_closes_its_units_and_bolts(self):
+        """§2.5 (6.6.0): intent `phase: closed` ⇒ unit/bolt còn lại hiện "đã đóng", không còn "chờ" ai."""
+        write(os.path.join(self.p["intent"], "units", "UOW-01", "bolts", "BOLT-01", "tasks.md"), "# tasks\n")
+        u = {x["id"]: x for x in generate(self.root)["unitsByIntent"]["INT-001"]}
+        self.assertNotEqual(u["UOW-01"]["status"], "done")          # đối chứng: intent còn chạy thì unit vẫn mở
+        self.assertFalse(u["UOW-01"]["boltDetails"][0]["closed"])
+        st = os.path.join(self.p["intent"], "status.md")
+        write(st, read(st).replace("phase: construction", "phase: closed   # đóng\nclosed_by: DEC-0099   # x"))
+        spec = os.path.join(self.p["intent"], "units", "UOW-02", "spec.md")
+        write(spec, read(spec).replace("status: todo", "status: closed\nclosed_by: DEC-0098"))
+        u = {x["id"]: x for x in generate(self.root)["unitsByIntent"]["INT-001"]}
+        self.assertEqual((u["UOW-01"]["status"], u["UOW-01"]["closedBy"], u["UOW-01"]["problems"]),
+                         ("done", "DEC-0099", []))
+        self.assertEqual(u["UOW-01"]["boltDetails"][0]["closedBy"], "DEC-0099")
+        self.assertEqual(u["UOW-02"]["closedBy"], "DEC-0098", "DEC riêng của unit thắng DEC của intent")
+
+
 class ImportIsSafe(unittest.TestCase):
     """Hai agent trong lần chạy thử đã vô tình sinh lại tower khi chỉ muốn kiểm một parser (phát hiện #22)."""
 

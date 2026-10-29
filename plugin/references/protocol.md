@@ -197,6 +197,45 @@ Nội dung đủ, nhưng không ai quyết được bằng cách đọc 778 dòn
    đảo đắt · `HV08` mô hình cũ · `HV09` có `gaps`. KPI: `view.gaps_per_doc` (giảm dần = bản chữ viết rõ hơn) ·
    `view.stale_hours`. Nguồn: quyết định chủ gói 2026-09-28 — **nợ LL**.
 
+### 2.5 Đóng intent theo sự thật đo được — việc hành chính không chờ người (6.6.0)
+
+Ca gốc (chủ gói 2026-10-28, dự án PCT, rà soát INT-020): 19/19 intent cũ đã **release lên nhánh chính** (136/136
+commit đo bằng git) nhưng sổ vẫn ghi `construction` / `acceptance` / `paused` hàng tuần. Chỗ treo không phải mã mà là
+**việc hành chính chờ người**: review bù, kiểm tay không để dấu vết, đọc lại `[LEAD-CHOSE]`, ký E/F/G. Người quyết
+nói rõ: những bước đó *"không cần tôi in-charge chi tiết"*. Luật cũ bắt người làm chúng ⇒ chúng không được làm ⇒
+sổ trôi khỏi thực tế (LL-004 của PCT).
+
+1. **Ba điều kiện đóng, máy đo** — `scripts/close_sweep.py`:
+   - **C1** intent có ≥1 commit mang tên mình (frontmatter `commits:` ∪ `git log --all --grep INT-NNN`, bỏ merge)
+     và **mọi** commit là tổ tiên của nhánh phát hành (origin/HEAD → `main` → `master`, hoặc `--ref`).
+   - **C2** không có `gate_open` — gate mở nghĩa là đang có câu hỏi người thật, hoặc intent đang sống.
+   - **C3** không có `escalations/ESC-*.md` của intent ở `status: open` với `severity: high` hoặc tag security.
+2. **Đủ C1–C3 ⇒ AI tự đóng**, không mở gate, không chờ: một DEC autopilot cho cả lượt quét (`by: autopilot-closure`,
+   có *Đảo bằng* + *Hiện ở* như §2.3.7), `status.md` sang `stage: 8 · phase: closed · gate_open: null` kèm
+   `closed_by` + `released` (nhánh · sha · N/N commit). **`gates_passed` không đổi** — đóng không có nghĩa là gate
+   thiếu đã được ký; sổ nói thật cả hai điều.
+3. **Khoảng trống hành chính KHÔNG chặn đóng** — ghi ở dòng *Đóng không bù* của DEC, không sinh việc cho người,
+   không sinh mục backlog: thiếu RV / review record · kiểm tay chưa có dấu vết · `[LEAD-CHOSE]` chưa đọc lại ·
+   E/F/G chưa ký · HOF treo đã bị thay · unit thiếu US/NFR/`releasable` · nguồn còn `planned` · intent `paused`.
+   Khoảng trống chỉ thành backlog khi nó là **thứ người dùng cuối thấy** (lỗi, tính năng thiếu) — khi đó nó là một
+   intent mới, không phải nợ của intent cũ. "Không dựng bù hồ sơ" (CLAUDE.md) giữ nguyên.
+4. **Không đủ ⇒ giữ, kèm đúng một câu cho người**: C1 không có commit ("đang làm dở, hay bị intent/batch khác
+   thay?") · C1 thiếu commit trên nhánh phát hành · C2 gate đang mở · C3 escalation nào. Người trả lời một câu ⇒
+   lead ghi DEC thường và đóng tay (vd intent chỉ có tài liệu trong `.ai-dlc/`, hoặc bị batch khác thay thế).
+5. **Khi nào chạy**: `dlc-resume` bước 1b (sau briefing, sau khi drain inbox) và cuối `dlc-accept`. Chạy lại là
+   idempotent: intent đã `closed` bị bỏ qua, không DEC mới.
+6. **Núm**: `governance/autopilot.md` → `closure: auto` (mặc định, kể cả khi không có tệp hoặc `mode: lead`) ·
+   `closure: ask` ⇒ chỉ đo và trình danh sách, `--apply` bị từ chối (exit 3).
+7. **Ranh đỏ không đổi**: đóng intent chỉ sửa sổ — không deploy, không push, không gửi ra ngoài. Release lên nhánh
+   chính ≠ deploy prod; deploy vẫn là ranh đỏ #4 của §2.3.
+8. KPI: `closure.auto` · `closure.held` theo C1/C2/C3 · `closure.reopened` (đảo sau đóng → 0). Nguồn: quyết định
+   chủ gói 2026-10-28 + LL-004 của PCT (đề xuất, chưa qua Gate G) — **nợ LL**.
+9. **Đóng theo intent**: intent `phase: closed` ⇒ mọi unit, bolt, câu hỏi còn mở của nó **đóng theo**, không chờ ai.
+   Tower hiện unit/bolt đó là "đã đóng" (`closedBy` = DEC của intent, hoặc `closed_by:` riêng của unit nếu có) và
+   không soi DoR nữa. Muốn ghi tận tệp thì đặt `status: closed` · `status_before:` · `closed_by:` trong `spec.md`/
+   `ESC-*.md`. Câu hỏi còn mở lấy cột *Nếu im lặng*; không có cột đó thì giữ hiện trạng mã. Đây là một DEC hành chính,
+   không phải việc cho người. Unit `planned` của intent đã đóng mà vẫn hiện "chờ" là khai sai.
+
 ## 3. Layout state trong project
 
 **Một `.ai-dlc/` = một space** (6.2.0): một đội ổn định, một bộ luật, một tower. Space không phải

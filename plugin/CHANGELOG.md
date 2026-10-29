@@ -1,10 +1,42 @@
 # Changelog — ai-dlc plugin
 
 > **Nợ LL tổng (tính tới 6.5.1):** 5.0.0 (bỏ trần 5h) · 6.0.0 (gỡ Review Board) · 6.2.0 (map v2 + codekb) ·
-> 6.3.0 (lớp chính sách trên AWS v2 + layout resolver) · 6.4.0 (autopilot) · 6.5.0 (bản mô hình cho người xem) · 6.5.1 (dòng `Áp`) đều đi bằng **quyết định chủ gói**, chưa bản nào có LL
+> 6.3.0 (lớp chính sách trên AWS v2 + layout resolver) · 6.4.0 (autopilot) · 6.5.0 (bản mô hình cho người xem) · 6.5.1 (dòng `Áp`) · 6.6.0 (đóng intent theo sự thật đo được) đều đi bằng **quyết định chủ gói**, chưa bản nào có LL
 > qua Gate G. 4.1.0 nợ `LL-004` (retro INT-003). Trả bằng: retro INT-003 của PILOT (engine ai-dlc) và retro
 > intent pilot đầu tiên của đội (nay là engine `contracts`, không còn aws-v2). Kế hoạch trả và lát kế tiếp:
 > `docs/template-contracts-engine-vs-ai-dlc.md` §5 (thay `plugin-7-policy-layer-plan.md` §6 từ 2026-10-16).
+
+## 6.6.0 (2026-10-28): đóng intent theo sự thật đo được — việc hành chính không chờ người
+
+Nguồn: **quyết định chủ gói 2026-10-28** (chat trong dự án PCT, nguyên văn: *"những chỗ tôi thường không làm hết thì
+cơ bản chính là những điểm có thể không cần thiết tôi incharge chi tiết, tôi cần bạn cập nhật bản plugin sao cho việc
+triển khai tiếp tục để hoàn toàn close tất cả các intent hiện tại"*). Căn cứ đo: rà soát INT-020 của PCT — 136/136
+commit của 19 intent đã ở `main` trong khi sổ vẫn ghi đang làm; LL-004 của PCT (đề xuất, **chưa qua Gate G** ⇒ nợ LL
+như 6.4/6.5). Đi cùng các lát 7.0.0-a chưa phát hành trên `main`.
+
+### Luật — protocol §2.5 (mới)
+- Ba điều kiện máy đo C1 (mọi commit mang tên intent ∈ nhánh phát hành) · C2 (không gate mở) · C3 (không escalation
+  high/security mở). Đủ ⇒ AI tự đóng bằng DEC autopilot, `gates_passed` không đổi, khoảng trống hành chính ghi ở dòng
+  *Đóng không bù*, không sinh việc cho người, không sinh backlog. Thiếu ⇒ giữ kèm đúng một câu cho người.
+- Núm `closure: auto | ask` trong `governance/autopilot.md` (template v3); mặc định `auto`, áp cả `mode: lead`.
+
+### `scripts/close_sweep.py` (mới, stdlib)
+- Chỉ đo (mặc định) · `--json` · `--apply [--dec DEC-NNNN] [--ref <nhánh>]`. Idempotent. Dò state qua `layout.py`.
+- Skill: `dlc-resume` bước 1b chạy `--apply` sau khi drain inbox; `dlc-accept` đóng intent bằng script này.
+
+- Đóng theo intent (§2.5 điểm 9): intent `phase: closed` ⇒ tower hiện mọi unit/bolt của nó "đã đóng"
+  (`closedBy`, chip ở BoltBoard/IntentDetail), bỏ soi DoR. Unit `status: closed` + `closed_by:` cũng được nhận riêng.
+  PCT: 91 unit `planned`/`proposed`/`in-bolt` + 38 bolt thiếu chặng của 22 intent đã đóng thôi hiện là "chờ".
+
+### Sửa lỗi
+- `session_brief.py --open-session` đánh số `len(logs)+1`: thư mục log có lỗ số thì rơi trúng tệp đã có và lặng lẽ
+  không tạo log mới (PCT: trỏ vào SES-024 của 27/08). Nay lấy số lớn nhất + 1.
+- `hooks/session_start.sh` in "GATE ĐANG MỞ … Gate null" khi `gate_open: null   # chú thích` — nay bỏ chú thích cuối dòng.
+
+### Test
+- `tests/test_close_sweep.py` 5 ca: đối chứng + đột biến từng C1/C2/C3, `INT-0010` không bị đếm thành `INT-001`,
+  `closure: ask` từ chối `--apply`, chạy lại không sinh DEC, lỗ số log phiên. `test_tower_generate` thêm 1 ca (đối chứng intent đang chạy → đóng ⇒ unit/bolt đóng;
+  DEC riêng của unit thắng DEC intent). Tổng 183 ca xanh.
 
 ## Unreleased, 7.0.0-a (2026-10-16): engine `contracts`, gói là lớp đọc trên engine `docs/intents/` của đội; nhánh AWS v2 archive
 
